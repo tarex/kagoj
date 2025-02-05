@@ -19,6 +19,8 @@ body {
   color: var(--foreground-light);
   background: var(--background-light);
   font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -89,13 +91,79 @@ body {
 }
 
 .note-app {
-  @apply flex h-screen bg-gray-50;
+  @apply flex flex-col h-screen bg-gray-50;
+}
+
+.note-topbar {
+  @apply flex justify-between items-center p-4 bg-gray-100;
+}
+
+.note-content {
+  @apply flex flex-1;
 }
 
 .note-sidebar {
   @apply w-64 p-4 overflow-y-auto;
   background-color: #f7f7f7;
   border-right: 1px solid #e0e0e0;
+}
+
+.app-title {
+  @apply text-xl font-bold;
+}
+
+.language-toggle-container {
+  @apply flex items-center;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  margin-right: 8px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 20px;
+}
+
+.slider:before {
+  position: absolute;
+  content: '';
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #007bff;
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+.language-label {
+  @apply text-sm font-medium;
 }
 
 .sidebar-title {
@@ -134,16 +202,20 @@ body {
 
 .note-editor {
   @apply flex-1 p-8 bg-white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .note-textarea {
-  @apply w-full h-full border-none p-4 resize-none;
+  @apply w-full max-w-3xl border-none p-4 resize-none;
   font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 1rem;
   line-height: 1.6;
   caret-color: #007aff;
   outline: none;
   background-color: transparent;
+  height: 80vh; /* Adjust height as needed */
 }
 
 .note-textarea::placeholder {
@@ -181,13 +253,33 @@ body {
     @apply bg-gray-900;
   }
 
+  .note-topbar {
+    @apply bg-gray-800;
+  }
+
   .note-sidebar {
     background-color: #1e1e1e;
     border-right-color: #333333;
   }
 
-  .sidebar-title {
+  .app-title {
     @apply text-gray-200;
+  }
+
+  .slider {
+    background-color: #555;
+  }
+
+  .slider:before {
+    background-color: #ddd;
+  }
+
+  input:checked + .slider {
+    background-color: #4a90e2;
+  }
+
+  .language-label {
+    @apply text-gray-300;
   }
 
   .note-item {
@@ -237,4 +329,43 @@ body {
   .note-item.selected {
     @apply bg-blue-900 border-blue-700;
   }
+}
+
+.editor-toolbar {
+  @apply flex justify-center items-center p-2 bg-gray-200;
+}
+
+.toolbar-button {
+  @apply mx-2 px-3 py-1 bg-white border border-gray-300 rounded shadow-sm;
+  transition: background-color 0.2s;
+}
+
+.toolbar-button:hover {
+  @apply bg-gray-300;
+}
+
+.toolbar-button.active {
+  @apply bg-blue-500 text-white;
+}
+
+@media (prefers-color-scheme: dark) {
+  .editor-toolbar {
+    @apply bg-gray-800;
+  }
+
+  .toolbar-button {
+    @apply bg-gray-700 border-gray-600 text-gray-200;
+  }
+
+  .toolbar-button:hover {
+    @apply bg-gray-600;
+  }
+
+  .toolbar-button.active {
+    @apply bg-blue-600 text-white;
+  }
+}
+
+.suggestion {
+  color: #ccc;
 }
