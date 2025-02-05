@@ -3,19 +3,238 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background-light: #ffffff;
+  --foreground-light: #171717;
+  --background-dark: #0a0a0a;
+  --foreground-dark: #ededed;
+  --primary-color-light: #007bff;
+  --primary-color-dark: #4a90e2;
+  --note-bg-light: #f9f9f9;
+  --note-bg-dark: #1a1a1a;
+  --note-border-light: #e0e0e0;
+  --note-border-dark: #333333;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  color: var(--foreground-light);
+  background: var(--background-light);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    color: var(--foreground-dark);
+    background: var(--background-dark);
+  }
+}
+
+.note-container {
+  @apply flex flex-col items-center;
+}
+
+.note-textarea {
+  @apply w-full max-w-lg border p-2 mb-4;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  caret-color: #007bff;
+  outline: none;
+}
+
+.note-textarea::placeholder {
+  color: #ccc;
+}
+
+.note-textarea:focus {
+  border-color: #007bff;
+}
+
+.note-textarea::-webkit-scrollbar {
+  width: 8px;
+}
+
+.note-textarea::-webkit-scrollbar-thumb {
+  background-color: #007bff;
+  border-radius: 4px;
+}
+
+.save-button {
+  @apply bg-blue-500 text-white px-4 py-2 rounded;
+}
+
+.notes-list {
+  @apply w-full max-w-lg mt-4;
+}
+
+.note {
+  @apply border-b p-2;
+}
+
+.page-button {
+  @apply bg-gray-200 text-black px-2 py-1 m-1 rounded;
+}
+
+.page-button:hover {
+  @apply bg-gray-300;
+}
+
+.edit-button,
+.delete-button {
+  @apply bg-blue-500 text-white px-2 py-1 m-1 rounded;
+}
+
+.edit-button:hover,
+.delete-button:hover {
+  @apply bg-blue-600;
+}
+
+.note-app {
+  @apply flex h-screen bg-gray-50;
+}
+
+.note-sidebar {
+  @apply w-64 p-4 overflow-y-auto;
+  background-color: #f7f7f7;
+  border-right: 1px solid #e0e0e0;
+}
+
+.sidebar-title {
+  @apply text-lg font-semibold mb-4 text-gray-700;
+}
+
+.notes-list {
+  @apply space-y-2;
+}
+
+.note-item {
+  @apply p-3 rounded-lg transition-all duration-200;
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  cursor: pointer;
+}
+
+.note-item:hover {
+  @apply bg-gray-100;
+}
+
+.note-date {
+  @apply text-xs mb-1 text-gray-500;
+}
+
+.note-content-preview {
+  @apply text-sm text-gray-700;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.note-actions {
+  @apply mt-2 flex gap-2;
+}
+
+.note-editor {
+  @apply flex-1 p-8 bg-white;
+}
+
+.note-textarea {
+  @apply w-full h-full border-none p-4 resize-none;
+  font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  caret-color: #007aff;
+  outline: none;
+  background-color: transparent;
+}
+
+.note-textarea::placeholder {
+  color: #a0a0a0;
+}
+
+.editor-footer {
+  display: none;
+}
+
+.save-button {
+  @apply bg-blue-500 text-white px-4 py-2 rounded-lg shadow;
+  transition: background-color 0.2s;
+}
+
+.save-button:hover {
+  @apply bg-blue-600;
+}
+
+.edit-button,
+.delete-button {
+  @apply text-sm px-2 py-1 rounded;
+  background-color: transparent;
+  color: #007aff;
+  border: 1px solid #007aff;
+}
+
+.edit-button:hover,
+.delete-button:hover {
+  @apply bg-blue-50;
+}
+
+@media (prefers-color-scheme: dark) {
+  .note-app {
+    @apply bg-gray-900;
+  }
+
+  .note-sidebar {
+    background-color: #1e1e1e;
+    border-right-color: #333333;
+  }
+
+  .sidebar-title {
+    @apply text-gray-200;
+  }
+
+  .note-item {
+    background-color: #2d2d2d;
+    border-color: #333333;
+  }
+
+  .note-item:hover {
+    @apply bg-gray-800;
+  }
+
+  .note-date {
+    @apply text-gray-400;
+  }
+
+  .note-content-preview {
+    @apply text-gray-200;
+  }
+
+  .note-editor {
+    @apply bg-gray-900;
+  }
+
+  .note-textarea {
+    @apply text-gray-200;
+  }
+
+  .note-textarea::placeholder {
+    @apply text-gray-500;
+  }
+}
+
+.new-note-button {
+  @apply w-full mb-4 bg-blue-500 text-white px-4 py-2 rounded-lg;
+  transition: background-color 0.2s;
+}
+
+.new-note-button:hover {
+  @apply bg-blue-600;
+}
+
+.note-item.selected {
+  @apply bg-blue-50 border-blue-200;
+}
+
+@media (prefers-color-scheme: dark) {
+  .note-item.selected {
+    @apply bg-blue-900 border-blue-700;
+  }
 }

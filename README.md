@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bangla AI Notebook
 
-## Getting Started
+## Overview
 
-First, run the development server:
+Bangla AI Notebook is a web-based application designed to assist users in writing Bangla effortlessly with AI-powered suggestions and phonetic typing. The application provides real-time Bangla text completion, contextual suggestions, and an intuitive typing experience by automatically converting phonetic input into Bangla script without displaying the English letters first.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 1. **AI-Powered Sentence Completion**
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Provides intelligent sentence suggestions to help users complete their writing.
+- Works for general Bangla text, not just lyrics or predefined phrases.
+- Uses OpenAI GPT models or fine-tuned Bangla NLP models for contextual accuracy.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 2. **Instant Phonetic Typing (Avro-like but Improved)**
 
-## Learn More
+- Users can type in Romanized Bangla (e.g., "ami banglay gan gai") and see direct Bangla output ("আমি বাংলায় গান গাই").
+- The system uses an enhanced Avro-style mapping for accurate transliteration, ensuring that Bangla characters appear directly without showing English letters first.
+- Supports a wide range of phonetic mappings for a seamless typing experience.
 
-To learn more about Next.js, take a look at the following resources:
+### 3. **Real-Time Text Processing**
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- As users type, the system instantly converts phonetic input to Bangla.
+- Works smoothly in text fields with no noticeable lag.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 4. **Contextual AI Suggestions**
 
-## Deploy on Vercel
+- Based on previous words, the AI predicts and suggests possible next words or phrases.
+- Helps improve the flow of writing for various content types, including articles, stories, and lyrics.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 5. **User-Friendly Interface**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Designed to be intuitive and distraction-free for seamless Bangla writing.
+- Optimized for both desktop and mobile web browsers.
+
+## Future Enhancements
+
+- **Custom Dictionary Support:** Allow users to add custom words for better predictions.
+- **Offline Mode:** Enable local phonetic conversion without internet dependency.
+- **Voice-to-Text Integration:** Allow dictation in Bangla for hands-free writing.
+- **Code Editor Integration:** Support phonetic Bangla typing inside code editors (e.g., Cursor Editor, VS Code).
+
+## Project Structure
+
+### Core Libraries
+
+The project includes a set of reusable libraries and components in the `lib/` directory:
+
+---
+
+This project aims to enhance the Bangla writing experience with AI-driven intelligence and seamless phonetic typing. 🚀
