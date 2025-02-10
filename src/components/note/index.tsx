@@ -77,7 +77,7 @@ const NoteComponent: React.FC = () => {
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (isBanglaMode) {
-      banglaInputHandler.handleTextInput(
+      banglaInputHandler.processInputKeyPress(
         textareaRef,
         currentNote,
         setCurrentNote,
@@ -94,7 +94,7 @@ const NoteComponent: React.FC = () => {
   return (
     <div className="note-app">
       <div className="note-topbar">
-        <h1 className="app-title">Notebook App</h1>
+        <h1 className="app-title">কাগজ</h1>
         <div className="language-toggle-container">
           <label className="switch">
             <input
@@ -104,8 +104,8 @@ const NoteComponent: React.FC = () => {
             />
             <span className="slider round"></span>
           </label>
-          <span className="language-label">
-            {isBanglaMode ? 'Bangla' : 'English'}
+          <span className="language-label mr-2">
+            {isBanglaMode ? 'বাংলা' : 'ইংরেজি'}
           </span>
           <span className="shortcut-info">(Ctrl + B)</span>
         </div>
@@ -120,9 +120,8 @@ const NoteComponent: React.FC = () => {
       </div>
       <div className="note-content">
         <div className="note-sidebar">
-          <h2 className="sidebar-title">Notes</h2>
           <button onClick={createNewNote} className="new-note-button">
-            + New Note
+            + নতুন কাগজ
           </button>
           <NoteList
             notes={notes}
@@ -135,7 +134,7 @@ const NoteComponent: React.FC = () => {
           suggestions={words}
           value={currentNote}
           onChange={handleChange}
-          onKeyPress={handleKeyPress}
+          onKeyDown={handleKeyPress}
           textareaRef={textareaRef}
           fontSize={fontSize}
         />

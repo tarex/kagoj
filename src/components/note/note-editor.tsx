@@ -4,21 +4,19 @@ import { BanglaInputHandler } from '../../lib/bangla-input-handler';
 interface NoteEditorProps {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  onKeyPress: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
-  onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   textareaRef: React.RefObject<HTMLTextAreaElement>;
   fontSize: number;
-  suggestion: string;
+  suggestions: string[];
 }
 
 export const NoteEditor: React.FC<NoteEditorProps> = ({
   value,
   onChange,
-  onKeyPress,
   onKeyDown,
   textareaRef,
   fontSize,
-  suggestion,
+  suggestions,
 }) => {
   const banglaHandler: BanglaInputHandler = BanglaInputHandler.getInstance();
 
@@ -38,7 +36,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
         e
       );
     } else {
-      onKeyDown(e);
+      onKeyDown?.(e);
     }
   };
 
@@ -48,13 +46,13 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
         ref={textareaRef}
         value={value}
         onChange={onChange}
-        onKeyPress={onKeyPress}
         onKeyDown={handleKeyDown}
-        rows={30}
         className="note-textarea"
         placeholder="Start writing your note..."
         style={{
           fontSize: `${fontSize}px`,
+          height: '100%',
+          border: '1px solid #ccc',
         }}
       />
     </div>
