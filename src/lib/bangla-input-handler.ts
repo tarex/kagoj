@@ -15,10 +15,12 @@ export class BanglaInputHandler {
   private context = '';
   private active = false;
   private readonly rules: TransliterationRule[];
+  private readonly maxPatternLength: number; // Store max pattern length
   private static instance: BanglaInputHandler;
 
   private constructor() {
-    this.rules = this.parseRules(contextPatterns);
+    this.rules = contextPatterns;
+    this.maxPatternLength = this.calculateMaxPatternLength(); // Calculate once
   }
 
   public static getInstance(): BanglaInputHandler {
@@ -82,14 +84,6 @@ export class BanglaInputHandler {
     });
   }
 
-  private parseRules(patterns: Array<string[]>): TransliterationRule[] {
-    return patterns.map((pattern) => ({
-      pattern: pattern[0],
-      ...(pattern.length === 3 && { contextPattern: pattern[1] }),
-      replacement: pattern[pattern.length - 1],
-    }));
-  }
-
   private handleKeyPress(text: string, typedChar: string): string {
     if (this.isNonCharacterOrSpecialKey(typedChar)) {
       return text;
@@ -127,7 +121,7 @@ export class BanglaInputHandler {
   }
 
   private getTextSegmentToProcess(text: string, char: string) {
-    const startIndex = Math.max(0, text.length - this.rules[0].pattern.length);
+    const startIndex = Math.max(0, text.length - this.maxPatternLength);
     return {
       startIndex,
       text: text.slice(startIndex) + char,
@@ -135,11 +129,7 @@ export class BanglaInputHandler {
   }
 
   private updateContext(text: string): void {
-    this.context = text;
-    const maxLength = this.rules[0].pattern.length;
-    if (this.context.length > maxLength) {
-      this.context = this.context.slice(-maxLength);
-    }
+    this.context = text.slice(-this.maxPatternLength);
   }
 
   private transliterate(input: string, context: string): string {
@@ -163,5 +153,13 @@ export class BanglaInputHandler {
     const isExplicitlyRecognized = recognizedKeys.includes(key);
     const isSingleCharacter = key.length === 1;
     return !isSingleCharacter && !isExplicitlyRecognized;
+  }
+
+  private calculateMaxPatternLength(): number {
+    let maxLength = 0;
+    for (const rule of this.rules) {
+      maxLength = Math.max(maxLength, rule.pattern.length);
+    }
+    return maxLength;
   }
 }

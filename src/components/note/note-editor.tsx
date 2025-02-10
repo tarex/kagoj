@@ -48,11 +48,9 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
         onChange={onChange}
         onKeyDown={handleKeyDown}
         className="note-textarea"
-        placeholder="Start writing your note..."
+        placeholder="বাংলায় লিখুন..."
         style={{
           fontSize: `${fontSize}px`,
-          height: '100%',
-          border: '1px solid #ccc',
         }}
       />
     </div>
