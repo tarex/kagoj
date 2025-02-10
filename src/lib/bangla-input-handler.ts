@@ -41,35 +41,43 @@ export class BanglaInputHandler {
     return this.active;
   }
 
-  public handleTextInput(
-    textareaRef: RefObject<HTMLTextAreaElement>,
-    currentNote: string,
-    setCurrentNote: (note: string) => void,
-    e: React.KeyboardEvent<HTMLTextAreaElement>
+  public processInputKeyPress(
+    inputRef: RefObject<HTMLInputElement | HTMLTextAreaElement>,
+    currentValue: string,
+    setCurrentValue: (value: string) => void,
+    e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
   ): void {
+    // If user is holding down a modifier key (Cmd/Ctrl/Alt),
+    // let the default behavior handle the key.
+    if (e.metaKey || e.ctrlKey || e.altKey) {
+      return;
+    }
+
     e.preventDefault();
 
-    const textarea = textareaRef.current;
-    if (!textarea) return;
+    const inputElement = inputRef.current;
+    if (!inputElement) {
+      return;
+    }
 
-    const cursorPosition = textarea.selectionStart;
-    const text = currentNote;
-    const typedChar = e.key;
+    const cursorPosition: number = inputElement.selectionStart || 0;
+    const text: string = currentValue;
+    const typedChar: string = e.key;
 
-    const beforeCursor = text.slice(0, cursorPosition);
-    const afterCursor = text.slice(cursorPosition);
+    const beforeCursor: string = text.slice(0, cursorPosition);
+    const afterCursor: string = text.slice(cursorPosition);
 
-    const convertedText = this.handleKeyPress(beforeCursor, typedChar);
-    const finalText = convertedText + afterCursor;
-    setCurrentNote(finalText);
+    const convertedText: string = this.handleKeyPress(beforeCursor, typedChar);
+    const finalText: string = convertedText + afterCursor;
+    setCurrentValue(finalText);
 
-    const newPosition =
+    const newPosition: number =
       cursorPosition + (convertedText.length - beforeCursor.length);
 
     requestAnimationFrame(() => {
-      if (textareaRef.current) {
-        textareaRef.current.selectionStart = newPosition;
-        textareaRef.current.selectionEnd = newPosition;
+      if (inputRef.current) {
+        inputRef.current.selectionStart = newPosition;
+        inputRef.current.selectionEnd = newPosition;
       }
     });
   }
@@ -83,6 +91,10 @@ export class BanglaInputHandler {
   }
 
   private handleKeyPress(text: string, typedChar: string): string {
+    if (this.isNonCharacterOrSpecialKey(typedChar)) {
+      return text;
+    }
+
     if (this.shouldPassThrough(typedChar)) {
       return this.handleSpecialChar(text, typedChar);
     }
@@ -99,12 +111,19 @@ export class BanglaInputHandler {
   }
 
   private shouldPassThrough(char: string): boolean {
-    return char === 'Enter' || char === '\n' || char === '\r' || char === '\b';
+    return (
+      char === 'Enter' || char === 'Backspace' || char === '\n' || char === '\r'
+    );
   }
 
   private handleSpecialChar(text: string, char: string): string {
-    if (char === '\b') return text;
-    return text + (char === 'Enter' ? '\n' : char);
+    if (char === 'Backspace') {
+      return text.slice(0, -1);
+    }
+    if (char === 'Enter') {
+      return text + '\n';
+    }
+    return text + char;
   }
 
   private getTextSegmentToProcess(text: string, char: string) {
@@ -137,5 +156,12 @@ export class BanglaInputHandler {
       }
     }
     return input;
+  }
+
+  private isNonCharacterOrSpecialKey(key: string): boolean {
+    const recognizedKeys = ['Enter', 'Backspace', '\n', '\r'];
+    const isExplicitlyRecognized = recognizedKeys.includes(key);
+    const isSingleCharacter = key.length === 1;
+    return !isSingleCharacter && !isExplicitlyRecognized;
   }
 }

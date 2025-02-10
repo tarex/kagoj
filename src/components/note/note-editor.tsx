@@ -1,4 +1,5 @@
 import React from 'react';
+import { BanglaInputHandler } from '../../lib/bangla-input-handler';
 
 interface NoteEditorProps {
   value: string;
@@ -19,6 +20,28 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
   fontSize,
   suggestion,
 }) => {
+  const banglaHandler: BanglaInputHandler = BanglaInputHandler.getInstance();
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (banglaHandler.isActive()) {
+      banglaHandler.processInputKeyPress(
+        textareaRef,
+        value,
+        (updated) => {
+          onChange({
+            // Mimic React's ChangeEvent
+            // This is just a demonstration,
+            // you can adapt to your state management
+            target: { value: updated },
+          } as React.ChangeEvent<HTMLTextAreaElement>);
+        },
+        e
+      );
+    } else {
+      onKeyDown(e);
+    }
+  };
+
   return (
     <div className="note-editor" style={{ position: 'relative' }}>
       <textarea
@@ -26,7 +49,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
         value={value}
         onChange={onChange}
         onKeyPress={onKeyPress}
-        onKeyDown={onKeyDown}
+        onKeyDown={handleKeyDown}
         rows={30}
         className="note-textarea"
         placeholder="Start writing your note..."
