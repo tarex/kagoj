@@ -8,6 +8,7 @@ import { BanglaInputHandler } from '@/lib/bangla-input-handler';
 import { words } from '@/lib/bangla-suggestion';
 
 const FONT_SIZE_KEY = 'noteFontSize';
+const DEFAULT_FONT_SIZE = 16;
 
 const NoteComponent: React.FC = () => {
   const {
@@ -23,10 +24,7 @@ const NoteComponent: React.FC = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null!);
   const banglaInputHandler = BanglaInputHandler.getInstance();
   const [isBanglaMode, setIsBanglaMode] = useState(true);
-  const [fontSize, setFontSize] = useState(() => {
-    const savedFontSize = localStorage.getItem(FONT_SIZE_KEY);
-    return savedFontSize ? parseInt(savedFontSize, 10) : 16;
-  });
+  const [fontSize, setFontSize] = useState(DEFAULT_FONT_SIZE);
 
   const toggleLanguageMode = () => {
     setIsBanglaMode((prevMode) => !prevMode);
@@ -68,6 +66,13 @@ const NoteComponent: React.FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
+  }, []);
+
+  useEffect(() => {
+    const savedFontSize = localStorage.getItem(FONT_SIZE_KEY);
+    if (savedFontSize) {
+      setFontSize(parseInt(savedFontSize, 10));
+    }
   }, []);
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
