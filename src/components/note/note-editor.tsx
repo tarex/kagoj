@@ -1,58 +1,37 @@
 import React from 'react';
-import { BanglaInputHandler } from '../../lib/bangla-input-handler';
 
 interface NoteEditorProps {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  onInput?: (e: any) => void;
   textareaRef: React.RefObject<HTMLTextAreaElement>;
   fontSize: number;
   suggestions: string[];
 }
 
-export const NoteEditor: React.FC<NoteEditorProps> = ({
+export const NoteEditor = React.memo<NoteEditorProps>(({
   value,
   onChange,
   onKeyDown,
+  onInput,
   textareaRef,
   fontSize,
-  suggestions,
 }) => {
-  const banglaHandler: BanglaInputHandler = BanglaInputHandler.getInstance();
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (banglaHandler.isActive()) {
-      banglaHandler.processInputKeyPress(
-        textareaRef,
-        value,
-        (updated) => {
-          onChange({
-            // Mimic React's ChangeEvent
-            // This is just a demonstration,
-            // you can adapt to your state management
-            target: { value: updated },
-          } as React.ChangeEvent<HTMLTextAreaElement>);
-        },
-        e
-      );
-    } else {
-      onKeyDown?.(e);
-    }
-  };
-
   return (
-    <div className="note-editor" style={{ position: 'relative' }}>
-      <textarea
-        ref={textareaRef}
-        value={value}
-        onChange={onChange}
-        onKeyDown={handleKeyDown}
-        className="note-textarea"
-        placeholder="বাংলায় লিখুন..."
-        style={{
-          fontSize: `${fontSize}px`,
-        }}
-      />
-    </div>
+    <textarea
+      ref={textareaRef}
+      value={value}
+      onChange={onChange}
+      onKeyDown={onKeyDown}
+      onInput={onInput}
+      className="text-editor"
+      placeholder="বাংলায় লিখুন..."
+      style={{
+        fontSize: `${fontSize}px`,
+      }}
+    />
   );
-};
+});
+
+NoteEditor.displayName = 'NoteEditor';

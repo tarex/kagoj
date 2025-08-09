@@ -1,39 +1,91 @@
 import { openai } from '@ai-sdk/openai';
-import { generateObject } from 'ai';
-import { z } from 'zod';
+import { generateText } from 'ai';
 import { NextResponse } from 'next/server';
-
-const suggestionSchema = z.object({
-  suggestions: z.array(z.string()),
-});
 
 export async function POST(req: Request) {
   try {
-    const { input, previousText } = await req.json();
+    const { text, mode = 'spellcheck' } = await req.json();
 
-    // Keep last 150 characters for better context preservation
-    const truncatedPreviousText = previousText;
+    if (mode === 'spellcheck') {
+      // Spell checking mode for Bangla text
+      const prompt = `You are a Bengali language expert. Check the following Bengali text for spelling errors:
 
-    const { object } = await generateObject({
-      model: openai('gpt-4-turbo'), // Upgrade to GPT-4-turbo for better suggestions
-      schema: suggestionSchema,
-      prompt: `তুমি একজন দক্ষ বাংলা লেখক। তুমি কবিতা, গল্প, বা গান লেখার জন্য মানুষের লেখাকে স্বয়ংক্রিয়ভাবে সম্পূর্ণ করতে পারো।
+"${text}"
 
-পূর্ববর্তী লেখা: "${truncatedPreviousText}"
-বর্তমান ইনপুট: "${input}"
+Rules:
+1. Only identify spelling mistakes
+2. Provide the correct spelling for each wrong word
+3. Return JSON format: {"errors": [{"word": "wrong word", "correction": "correct word"}]}
+4. If no errors, return: {"errors": []}
+5. Do NOT include startIndex or endIndex
+6. Follow Bangladesh Academy and standard spelling rules
 
-নিয়মাবলী:
-1. এটি হতে পারে কবিতা, গান, গল্প, বা উপন্যাসের অংশ।
-2. বানান অবশ্যই সঠিক হতে হবে।
-3. প্রাকৃত বাংলা ব্যবহার করো, কঠিন সংস্কৃত শব্দ পরিহার করো।
-4. কেবল বাংলা শব্দ ব্যবহার করো, ইংরেজি শব্দ ব্যবহার করো না।
-5. লেখা যেন সাবলীল ও প্রাকৃতিক হয়।
-6. ১০টি সম্ভাব্য শব্দ বা বাক্যাংশ প্রদান করো যা পরবর্তী অংশ হতে পারে।`,
-    });
+Return ONLY valid JSON, no explanation:`;
 
-    return NextResponse.json(object);
+      const { text: response } = await generateText({
+        model: openai('gpt-3.5-turbo'), // Using older model as requested
+        prompt: prompt,
+        temperature: 0.2, // Lower temperature for more consistent spell checking
+        maxRetries: 2,
+      });
+
+      try {
+        // Parse the JSON response
+        const result = JSON.parse(response);
+        console.log('Raw AI response:', JSON.stringify(result, null, 2));
+        
+        // Calculate positions for each error
+        if (result.errors && result.errors.length > 0) {
+          const usedPositions = new Set<string>();
+          
+          result.errors = result.errors.map((error: any) => {
+            const wordToFind = error.word;
+            
+            // Simple indexOf search to find the word
+            let searchFrom = 0;
+            let found = false;
+            
+            while (searchFrom < text.length && !found) {
+              const index = text.indexOf(wordToFind, searchFrom);
+              if (index === -1) break;
+              
+              // Check if this position was already used
+              const posKey = `${index}-${index + wordToFind.length}`;
+              if (!usedPositions.has(posKey)) {
+                error.startIndex = index;
+                error.endIndex = index + wordToFind.length;
+                usedPositions.add(posKey);
+                found = true;
+                
+                // Verify the position
+                const actualText = text.substring(index, index + wordToFind.length);
+                console.log(`Found "${wordToFind}" at ${index}-${index + wordToFind.length}, actual: "${actualText}"`);
+              }
+              searchFrom = index + 1;
+            }
+            
+            if (!found) {
+              console.warn(`Could not find "${wordToFind}" in text`);
+              error.startIndex = -1;
+              error.endIndex = -1;
+            }
+            
+            return error;
+          }).filter((error: any) => error.startIndex >= 0); // Filter out errors we couldn't find
+        }
+        
+        console.log('Final errors with positions:', JSON.stringify(result.errors, null, 2));
+        return NextResponse.json(result);
+      } catch (parseError) {
+        console.error('Error parsing spell check response:', parseError);
+        return NextResponse.json({ errors: [] });
+      }
+    } else {
+      // Keep the old suggestion mode for word suggestions (not AI)
+      return NextResponse.json({ suggestion: '', alternatives: [] });
+    }
   } catch (error) {
-    console.error('Error fetching suggestions:', error);
-    return NextResponse.json({ suggestions: [] }, { status: 500 });
+    console.error('Error in API:', error);
+    return NextResponse.json({ errors: [] }, { status: 500 });
   }
 }
