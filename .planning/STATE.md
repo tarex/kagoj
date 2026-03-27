@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Writing Intelligence
 status: unknown
-stopped_at: Completed 01-01-PLAN.md — trie + 52k word dictionary
-last_updated: "2026-03-27T14:32:20.724Z"
+stopped_at: Completed 01-02-PLAN.md — trie integration + old dictionary cleanup
+last_updated: "2026-03-27T14:37:06.233Z"
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -47,6 +47,7 @@ Plan: 2 of 2
 
 *Updated after each plan completion*
 | Phase 01 P01 | 525654 | 2 tasks | 2 files |
+| Phase 01 P02 | 148 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -58,6 +59,8 @@ Recent decisions affecting current work:
 - (roadmap just created)
 - [Phase 01]: Custom BanglaTrie using Map<string,TrieNode> for Unicode children — handles Bangla chars as single keys
 - [Phase 01]: Dictionary ships as flat TypeScript array, trie built at runtime (~34ms) — no build pipeline needed
+- [Phase 01]: isKnownWord() added to AdaptiveDictionary as single source of truth for spell validation
+- [Phase 01]: findClosestWord uses trie prefix search (top-20 candidates) not full dictionary linear scan
 
 ### Pending Todos
 
@@ -71,6 +74,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-27T14:32:20.722Z
-Stopped at: Completed 01-01-PLAN.md — trie + 52k word dictionary
+Last session: 2026-03-27T14:37:06.230Z
+Stopped at: Completed 01-02-PLAN.md — trie integration + old dictionary cleanup
 Resume file: None

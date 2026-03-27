@@ -14,7 +14,7 @@ Three phases transform the writing engine: first build the vocabulary foundation
 
 **Milestone Goal:** Make ghost text suggestions smarter and more visible, dramatically improve spell-checking accuracy and UX, and build a comprehensive Bangla dictionary that eliminates false positives.
 
-- [ ] **Phase 1: Dictionary Foundation** - Build and integrate the comprehensive Bangla dictionary with fast trie-indexed lookup
+- [x] **Phase 1: Dictionary Foundation** - Build and integrate the comprehensive Bangla dictionary with fast trie-indexed lookup (completed 2026-03-27)
 - [ ] **Phase 2: Ghost Text Intelligence** - Upgrade ghost text to AI-powered phrase/sentence suggestions with clear UX
 - [ ] **Phase 3: Spell Check Overhaul** - Rebuild spell-checking for accuracy, phonetic similarity, and inline flow
 
@@ -32,7 +32,7 @@ Three phases transform the writing engine: first build the vocabulary foundation
 **Plans**: 2 plans
 Plans:
 - [x] 01-01-PLAN.md — Create trie data structure and comprehensive 50k+ word dictionary
-- [ ] 01-02-PLAN.md — Refactor AdaptiveDictionary to use trie, update spell-checker, remove old files
+- [x] 01-02-PLAN.md — Refactor AdaptiveDictionary to use trie, update spell-checker, remove old files
 
 ### Phase 2: Ghost Text Intelligence
 **Goal**: Writers see AI-powered phrase and sentence completions as ghost text — not just single words — with a clearly visible UI and Tab hint
@@ -63,6 +63,6 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Dictionary Foundation | 1/2 | In Progress|  |
+| 1. Dictionary Foundation | 2/2 | Complete   | 2026-03-27 |
 | 2. Ghost Text Intelligence | 0/TBD | Not started | - |
 | 3. Spell Check Overhaul | 0/TBD | Not started | - |

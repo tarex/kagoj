@@ -11,7 +11,7 @@ Requirements for the Writing Intelligence milestone. Each maps to roadmap phases
 
 - [x] **DICT-01**: App includes a comprehensive Bangla dictionary (50k+ words) from open-source corpus
 - [x] **DICT-02**: Dictionary supports verb conjugations, common nouns, adjectives, and postpositions
-- [ ] **DICT-03**: Adaptive dictionary merges seamlessly with the expanded base dictionary
+- [x] **DICT-03**: Adaptive dictionary merges seamlessly with the expanded base dictionary
 
 ### Ghost Text
 
@@ -28,7 +28,7 @@ Requirements for the Writing Intelligence milestone. Each maps to roadmap phases
 
 ### Performance
 
-- [ ] **PERF-01**: Phonetic transliteration processes each keystroke in under 5ms
+- [x] **PERF-01**: Phonetic transliteration processes each keystroke in under 5ms
 - [ ] **PERF-02**: Ghost text suggestions appear within 100ms for dictionary lookups
 - [ ] **PERF-03**: Spell-check runs in background without blocking typing input
 - [x] **PERF-04**: Dictionary lookup uses indexed/trie data structure instead of linear scan
@@ -67,9 +67,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | DICT-01 | Phase 1 | Complete |
 | DICT-02 | Phase 1 | Complete |
-| DICT-03 | Phase 1 | Pending |
+| DICT-03 | Phase 1 | Complete |
 | PERF-04 | Phase 1 | Complete |
-| PERF-01 | Phase 1 | Pending |
+| PERF-01 | Phase 1 | Complete |
 | GHOST-01 | Phase 2 | Pending |
 | GHOST-02 | Phase 2 | Pending |
 | GHOST-03 | Phase 2 | Pending |
