@@ -6,6 +6,11 @@ const WORD_FREQUENCY_KEY = 'bangla_word_frequency';
 const MIN_WORD_LENGTH = 2;
 const MAX_LEARNED_WORDS = 5000; // Limit to prevent storage issues
 
+// Common Bangla suffixes for suggestion expansion (longest first)
+const BANGLA_SUFFIXES = [
+  'গুলো', 'গুলি', 'দের', 'তে', 'কে', 'রা', 'ের', 'র', 'ে', 'য়', 'তি', 'নি',
+];
+
 interface WordFrequencyEntry {
   count: number;
   lastUsed: number; // timestamp in ms
@@ -203,12 +208,29 @@ class AdaptiveDictionary {
     if (!partial || partial.length < 1) return [];
 
     const cleanedPartial = this.cleanWord(partial);
-    console.log('Getting adaptive suggestions for:', cleanedPartial);
 
-    const suggestions = this.trie.getSuggestions(cleanedPartial, limit)
+    // Try exact prefix first (includes suffix-extended forms since they share the prefix)
+    let suggestions = this.trie.getSuggestions(cleanedPartial, limit)
       .filter(word => word !== cleanedPartial);
 
-    console.log('Adaptive suggestions:', suggestions);
+    // If the partial is a known word with few prefix completions,
+    // boost suffix-expanded forms that exist in the trie
+    if (suggestions.length < limit && this.trie.search(cleanedPartial)) {
+      for (const suffix of BANGLA_SUFFIXES) {
+        const suffixed = cleanedPartial + suffix;
+        if (this.trie.search(suffixed) && !suggestions.includes(suffixed)) {
+          suggestions.push(suffixed);
+          if (suggestions.length >= limit) break;
+        }
+      }
+    }
+
+    // Fall back to fuzzy matching when exact prefix yields nothing (typo recovery)
+    if (suggestions.length === 0 && cleanedPartial.length >= 3) {
+      suggestions = this.trie.getFuzzySuggestions(cleanedPartial, 1, limit)
+        .filter(word => word !== cleanedPartial);
+    }
+
     return suggestions;
   }
 

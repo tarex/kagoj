@@ -58,9 +58,11 @@ export const GhostText = React.memo<GhostTextProps>(({
           >
             {suggestion}
           </span>
-          <span className="ghost-text-tab-hint ghost-text-hint-desktop">
-            <kbd>Tab</kbd>
-          </span>
+          {!textAfter && (
+            <span className="ghost-text-tab-hint ghost-text-hint-desktop">
+              <kbd>Tab</kbd>
+            </span>
+          )}
           {textAfter}
         </div>
       </div>

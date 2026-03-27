@@ -140,6 +140,61 @@ export class BanglaTrie {
     return false;
   }
 
+  /**
+   * Returns words within `maxEdits` edit distance of `query`, sorted by
+   * frequency desc. Uses row-by-row Levenshtein traversal of the trie
+   * (Steve Hanov's technique) — avoids full dictionary scan.
+   */
+  getFuzzySuggestions(query: string, maxEdits: number = 1, limit: number = 10): string[] {
+    const queryChars = [...query];
+    const queryLen = queryChars.length;
+
+    // Initial row of the Levenshtein matrix
+    const initialRow: number[] = [];
+    for (let i = 0; i <= queryLen; i++) initialRow.push(i);
+
+    const results: Array<{ word: string; frequency: number; distance: number }> = [];
+
+    // Recursive DFS through the trie, carrying the current Levenshtein row
+    const search = (node: TrieNode, prevRow: number[]) => {
+      for (const [char, childNode] of node.children) {
+        const currentRow: number[] = [prevRow[0] + 1];
+
+        for (let col = 1; col <= queryLen; col++) {
+          const insertCost = currentRow[col - 1] + 1;
+          const deleteCost = prevRow[col] + 1;
+          const replaceCost = prevRow[col - 1] + (queryChars[col - 1] === char ? 0 : 1);
+          currentRow.push(Math.min(insertCost, deleteCost, replaceCost));
+        }
+
+        // If any value in this row is within maxEdits, keep searching
+        const minInRow = Math.min(...currentRow);
+        if (minInRow <= maxEdits) {
+          // If this node is a word and the last column is within maxEdits, it's a match
+          if (childNode.isEndOfWord && childNode.word !== null && currentRow[queryLen] <= maxEdits) {
+            results.push({
+              word: childNode.word,
+              frequency: childNode.frequency,
+              distance: currentRow[queryLen],
+            });
+          }
+          search(childNode, currentRow);
+        }
+      }
+    };
+
+    search(this.root, initialRow);
+
+    // Sort: closer distance first, then higher frequency, then shorter word
+    results.sort((a, b) => {
+      if (a.distance !== b.distance) return a.distance - b.distance;
+      if (b.frequency !== a.frequency) return b.frequency - a.frequency;
+      return a.word.length - b.word.length;
+    });
+
+    return results.slice(0, limit).map(r => r.word);
+  }
+
   /** Traverses the trie to find the node at the end of the given string. */
   private findNode(str: string): TrieNode | null {
     let node = this.root;

@@ -17,6 +17,7 @@ import { BanglaInputHandler } from '@/lib/bangla-input-handler';
 // import { words } from '@/lib/bangla-suggestion'; // Not needed - using adaptive dictionary
 import { adaptiveDictionary } from '@/lib/adaptive-dictionary';
 import { bigramStore } from '@/lib/bigram-store';
+import { banglaCollocations } from '@/lib/bangla-collocations';
 
 const FONT_SIZE_KEY = 'noteFontSize';
 const DEFAULT_FONT_SIZE = 28;
@@ -209,6 +210,7 @@ const NoteComponent: React.FC = () => {
   useEffect(() => {
     adaptiveDictionary.initializeOnClient();
     bigramStore.initializeOnClient();
+    bigramStore.seed(banglaCollocations);
 
     // Learn from all existing notes on initial load
     if (notes.length > 0) {
@@ -269,8 +271,8 @@ const NoteComponent: React.FC = () => {
     }
   }, [isBanglaMode]);
   
-  // Debounced version of updateGhostSuggestion — 50ms for fast dictionary completion
-  const updateGhostSuggestion = useDebounce(updateGhostSuggestionInternal, 50, [updateGhostSuggestionInternal]);
+  // Direct call — trie lookup is O(prefix) and fast enough without debounce
+  const updateGhostSuggestion = updateGhostSuggestionInternal;
 
   const handleCorrection = useCallback((error: any) => {
     handleSpellingCorrection(error, currentNote, setCurrentNote);
@@ -402,10 +404,19 @@ const NoteComponent: React.FC = () => {
     
     // Process Bangla input (skip for navigation keys and Delete)
     const skipKeys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown', 'Delete'];
+
+    // Clear ghost on cursor movement — suggestion is position-dependent
+    if (skipKeys.includes(e.key)) {
+      setGhostSuggestion('');
+      setIsAISuggestionActive(false);
+      return;
+    }
+
     // Let browser handle Backspace/Delete natively when text is selected
     const hasSelection = textareaRef.current &&
       textareaRef.current.selectionStart !== textareaRef.current.selectionEnd;
     if (hasSelection && (e.key === 'Backspace' || e.key === 'Delete')) {
+      setGhostSuggestion('');
       return;
     }
     if (isBanglaMode && !skipKeys.includes(e.key)) {
@@ -415,9 +426,10 @@ const NoteComponent: React.FC = () => {
         setCurrentNote,
         e
       );
-      
-      // After Bangla input handler processes, check for suggestions
-      setTimeout(() => {
+
+      // processInputKeyPress calls preventDefault(), so handleChange won't fire.
+      // Compute ghost suggestion from the DOM which was updated synchronously.
+      requestAnimationFrame(() => {
         if (!textareaRef.current) return;
         const textarea = textareaRef.current;
         const text = textarea.value;
@@ -430,13 +442,17 @@ const NoteComponent: React.FC = () => {
         const word = text.substring(start, cursorPos);
         if (word) {
           updateGhostSuggestion(word, getPrevWord(text, start), cursorPos);
+        } else {
+          setGhostSuggestion('');
         }
-      }, 10);
+      });
     }
   };
 
   // Handle mobile input via beforeinput event.
   // Mobile keyboards fire this with inputType="insertText" and event.data = typed char.
+  // On mobile, onChange does NOT fire after preventDefault(), so we must handle
+  // ghost suggestions, spell check, auto-save, and word learning here.
   const handleBeforeInput = useCallback((e: React.FormEvent<HTMLTextAreaElement>) => {
     if (!isBanglaMode) return;
 
@@ -444,12 +460,6 @@ const NoteComponent: React.FC = () => {
     // Only intercept single-character text insertion (typing)
     if (inputEvent.inputType !== 'insertText' || !inputEvent.data) return;
 
-    // Check if the keydown handler already processed this (desktop path).
-    // On desktop, keydown fires first with a real key and calls preventDefault().
-    // On mobile, keydown fires with "Unidentified" and does NOT preventDefault(),
-    // so beforeinput fires next — that's where we handle it.
-    // We detect mobile by checking if the event is cancelable (it always is for beforeinput)
-    // and if the typed char is a Latin letter (phonetic input).
     const char = inputEvent.data;
     if (char.length !== 1) return;
 
@@ -459,30 +469,57 @@ const NoteComponent: React.FC = () => {
     if (!isAsciiPrintable) return;
 
     e.preventDefault();
-    banglaInputHandler.processCharInput(
+    const result = banglaInputHandler.processCharInput(
       textareaRef,
       currentNote,
       setCurrentNote,
       char
     );
 
-    // Update ghost suggestions after transliteration
-    setTimeout(() => {
-      if (!textareaRef.current) return;
-      const textarea = textareaRef.current;
-      const text = textarea.value;
-      const cursorPos = textarea.selectionStart;
+    if (!result) return;
 
-      let start = cursorPos;
-      while (start > 0 && !/[\s\.,;!?।]/.test(text[start - 1])) {
-        start--;
+    const { text: newText, cursorPosition: newCursorPos } = result;
+
+    // Ghost suggestions — use returned newText directly (DOM not updated yet)
+    let wordStart = newCursorPos;
+    while (wordStart > 0 && !/[\s\.,;!?।]/.test(newText[wordStart - 1])) {
+      wordStart--;
+    }
+    const currentWord = newText.substring(wordStart, newCursorPos);
+
+    if (currentWord && currentWord.length > 0) {
+      updateGhostSuggestion(currentWord, getPrevWord(newText, wordStart), newCursorPos);
+    } else {
+      setGhostSuggestion('');
+      setIsAISuggestionActive(false);
+    }
+
+    // Word learning at boundaries (space, comma, etc.)
+    const lastChar = newText[newCursorPos - 1];
+    if (lastChar && /[\s,;]/.test(lastChar)) {
+      const beforeBoundary = newText.substring(0, newCursorPos - 1);
+      const words = beforeBoundary.split(/[\s\.,;!?।]+/);
+      const lastWord = words[words.length - 1];
+      if (lastWord && lastWord.length >= 2) {
+        adaptiveDictionary.learnWord(lastWord);
       }
-      const word = text.substring(start, cursorPos);
-      if (word) {
-        updateGhostSuggestion(word, getPrevWord(text, start), cursorPos);
+      setGhostSuggestion('');
+      setIsAISuggestionActive(false);
+    }
+
+    // Spell check scheduling
+    scheduleSpellCheck(newText, 2000);
+
+    // Auto-save
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    saveTimeoutRef.current = setTimeout(() => {
+      if (newText.trim()) {
+        saveCurrentNote();
       }
-    }, 10);
-  }, [isBanglaMode, banglaInputHandler, currentNote, setCurrentNote, updateGhostSuggestion]);
+    }, 2000);
+  }, [isBanglaMode, banglaInputHandler, currentNote, setCurrentNote, updateGhostSuggestion, scheduleSpellCheck, saveCurrentNote]);
 
   // Add a direct input handler to catch actual typed characters
   const handleInput = useCallback((e: React.FormEvent<HTMLTextAreaElement>) => {
@@ -490,7 +527,10 @@ const NoteComponent: React.FC = () => {
       setGhostSuggestion('');
       return;
     }
-    
+
+    // Clear stale ghost immediately
+    setGhostSuggestion('');
+
     const textarea = e.target as HTMLTextAreaElement;
     const text = textarea.value;
     const cursorPos = textarea.selectionStart;
@@ -515,6 +555,10 @@ const NoteComponent: React.FC = () => {
     const value = e.target.value;
     const prevValue = currentNote;
     setCurrentNote(value);
+
+    // Clear stale ghost suggestion immediately — debounced update will set the new one
+    setGhostSuggestion('');
+    setIsAISuggestionActive(false);
     
     // Always schedule spell check when in Bangla mode (not gated by showSpellingErrors)
     // Auto-invalidation handles immediate error removal; debounce catches new errors

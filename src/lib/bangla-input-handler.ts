@@ -93,17 +93,19 @@ export class BanglaInputHandler {
   /**
    * Process a character directly (used by beforeinput on mobile).
    * Takes the raw character instead of reading from KeyboardEvent.
+   * Returns { text, cursorPosition } so callers can use the new values
+   * immediately without waiting for React re-render.
    */
   public processCharInput(
     inputRef: RefObject<HTMLInputElement | HTMLTextAreaElement>,
     currentValue: string,
     setCurrentValue: (value: string) => void,
     char: string
-  ): void {
-    if (!this.active) return;
+  ): { text: string; cursorPosition: number } | null {
+    if (!this.active) return null;
 
     const inputElement = inputRef.current;
-    if (!inputElement) return;
+    if (!inputElement) return null;
 
     const cursorPosition: number = inputElement.selectionStart || 0;
     const text: string = currentValue;
@@ -124,6 +126,8 @@ export class BanglaInputHandler {
         inputRef.current.selectionEnd = newPosition;
       }
     });
+
+    return { text: finalText, cursorPosition: newPosition };
   }
 
   private handleKeyPress(text: string, typedChar: string): string {
