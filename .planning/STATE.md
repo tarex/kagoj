@@ -84,8 +84,15 @@ None yet.
 - Ghost text only does single-word dictionary completion (Phase 2 resolves)
 - Spell-check UX needs streamlining (Phase 3 resolves)
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260328-26o | Investigate and fix spell-check functionality | 2026-03-27 | 0ad1833 | [260328-26o-investigate-and-fix-spell-check-function](./quick/260328-26o-investigate-and-fix-spell-check-function/) |
+
 ## Session Continuity
 
+Last activity: 2026-03-27 - Completed quick task 260328-26o: Investigate and fix spell-check functionality
 Last session: 2026-03-27T15:27:26.451Z
 Stopped at: Completed 03-02-PLAN.md — keyboard UX and background spell-check
 Resume file: None
