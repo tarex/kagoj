@@ -29,7 +29,10 @@ Three phases transform the writing engine: first build the vocabulary foundation
   2. Dictionary lookups complete in under 5ms using trie or indexed structure (no linear scan)
   3. User's learned words from adaptive dictionary appear alongside base dictionary without duplication
   4. Phonetic transliteration processes each keystroke in under 5ms with no perceptible lag
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 01-01-PLAN.md — Create trie data structure and comprehensive 50k+ word dictionary
+- [ ] 01-02-PLAN.md — Refactor AdaptiveDictionary to use trie, update spell-checker, remove old files
 
 ### Phase 2: Ghost Text Intelligence
 **Goal**: Writers see AI-powered phrase and sentence completions as ghost text — not just single words — with a clearly visible UI and Tab hint
@@ -60,6 +63,6 @@ Three phases transform the writing engine: first build the vocabulary foundation
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Dictionary Foundation | 0/TBD | Not started | - |
+| 1. Dictionary Foundation | 0/2 | Planning complete | - |
 | 2. Ghost Text Intelligence | 0/TBD | Not started | - |
 | 3. Spell Check Overhaul | 0/TBD | Not started | - |
