@@ -10,11 +10,74 @@ interface SpellingError {
   confidence?: number;
 }
 
+/**
+ * Compare prevText and newText to find the edit region (first differing index
+ * from start and end), then filter and adjust errors accordingly.
+ *
+ * - Errors whose range overlaps the edit region are removed (will be re-checked).
+ * - Errors after the edit region have their positions adjusted by length delta.
+ */
+function invalidateErrors(
+  prevText: string,
+  newText: string,
+  errors: SpellingError[]
+): SpellingError[] {
+  if (prevText === newText) return errors;
+
+  // Find first differing char from start
+  let editStart = 0;
+  const minLen = Math.min(prevText.length, newText.length);
+  while (editStart < minLen && prevText[editStart] === newText[editStart]) {
+    editStart++;
+  }
+
+  // Find first differing char from end (relative to shorter string)
+  let prevEnd = prevText.length;
+  let newEnd = newText.length;
+  while (
+    prevEnd > editStart &&
+    newEnd > editStart &&
+    prevText[prevEnd - 1] === newText[newEnd - 1]
+  ) {
+    prevEnd--;
+    newEnd--;
+  }
+
+  // editStart..prevEnd is the range replaced in prevText
+  // editStart..newEnd is the inserted range in newText
+  const lengthDelta = newText.length - prevText.length;
+
+  return errors.reduce<SpellingError[]>((acc, error) => {
+    const overlapStart = Math.max(error.startIndex, editStart);
+    const overlapEnd = Math.min(error.endIndex, prevEnd);
+    const overlaps = overlapStart < overlapEnd;
+
+    if (overlaps) {
+      // Error overlaps with edit region — invalidate it
+      return acc;
+    }
+
+    if (error.startIndex >= prevEnd) {
+      // Error is entirely after the edit region — adjust positions
+      acc.push({
+        ...error,
+        startIndex: error.startIndex + lengthDelta,
+        endIndex: error.endIndex + lengthDelta,
+      });
+    } else {
+      // Error is entirely before the edit region — keep as-is
+      acc.push(error);
+    }
+    return acc;
+  }, []);
+}
+
 export const useSpellCheck = (isBanglaMode: boolean) => {
   const [spellingErrors, setSpellingErrors] = useState<SpellingError[]>([]);
   const [isCheckingSpelling, setIsCheckingSpelling] = useState(false);
   const [showSpellingErrors, setShowSpellingErrors] = useState(false);
   const spellCheckTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const prevTextRef = useRef<string>('');
 
   const checkSpelling = useCallback(async (text: string) => {
     // Check if spell checking is disabled via environment variable
@@ -59,10 +122,20 @@ export const useSpellCheck = (isBanglaMode: boolean) => {
   }, [isBanglaMode]);
 
   const scheduleSpellCheck = useCallback((text: string, delay: number = 2000) => {
+    // Immediately invalidate errors at the edited position
+    setSpellingErrors(prev => {
+      const updated = invalidateErrors(prevTextRef.current, text, prev);
+      if (updated.length === 0 && prev.length > 0) {
+        setShowSpellingErrors(false);
+      }
+      return updated;
+    });
+    prevTextRef.current = text;
+
     if (spellCheckTimeoutRef.current) {
       clearTimeout(spellCheckTimeoutRef.current);
     }
-    
+
     spellCheckTimeoutRef.current = setTimeout(() => {
       if (isBanglaMode && text.trim().length > 3) {
         console.log('Auto re-checking spelling after text change');
