@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 interface SpellingError {
   word: string;
@@ -13,7 +13,7 @@ interface SpellingOverlayProps {
   textareaRef: React.RefObject<HTMLTextAreaElement>;
   fontSize: number;
   onCorrect: (error: SpellingError) => void;
-  onIgnore?: (error: SpellingError) => void;
+  onIgnore: (error: SpellingError) => void;
 }
 
 export const SpellingOverlay: React.FC<SpellingOverlayProps> = ({
@@ -27,6 +27,27 @@ export const SpellingOverlay: React.FC<SpellingOverlayProps> = ({
   const [activeError, setActiveError] = useState<SpellingError | null>(null);
   const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
   const overlayRef = useRef<HTMLDivElement>(null);
+  const activeErrorRef = useRef<SpellingError | null>(null);
+
+  // Keep ref in sync with state so scroll handler can access latest value
+  useEffect(() => {
+    activeErrorRef.current = activeError;
+  }, [activeError]);
+
+  // Recalculate popup position from the error span element
+  const recalcPopupPosition = useCallback(() => {
+    const current = activeErrorRef.current;
+    if (!current || !overlayRef.current) return;
+    const span = overlayRef.current.querySelector<HTMLElement>(
+      `[data-error-index="${current.startIndex}"]`
+    );
+    if (!span) return;
+    const rect = span.getBoundingClientRect();
+    setPopupPosition({
+      x: rect.left + rect.width / 2,
+      y: rect.bottom + 5,
+    });
+  }, []);
 
   useEffect(() => {
     if (!textareaRef.current || !overlayRef.current) return;
@@ -37,11 +58,34 @@ export const SpellingOverlay: React.FC<SpellingOverlayProps> = ({
     const syncScroll = () => {
       overlay.scrollTop = textarea.scrollTop;
       overlay.scrollLeft = textarea.scrollLeft;
+      // Update popup position if a popup is open
+      recalcPopupPosition();
     };
 
     textarea.addEventListener('scroll', syncScroll);
     return () => textarea.removeEventListener('scroll', syncScroll);
-  }, [textareaRef]);
+  }, [textareaRef, recalcPopupPosition]);
+
+  // Document-level keydown listener for Enter/Escape when popup is active
+  useEffect(() => {
+    if (!activeError) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        handleCorrect(activeError);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        handleIgnore(activeError);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => document.removeEventListener('keydown', handleKeyDown, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeError]);
 
   const handleErrorClick = (error: SpellingError, event: React.MouseEvent) => {
     event.stopPropagation();
@@ -60,9 +104,7 @@ export const SpellingOverlay: React.FC<SpellingOverlayProps> = ({
   };
 
   const handleIgnore = (error: SpellingError) => {
-    if (onIgnore) {
-      onIgnore(error);
-    }
+    onIgnore(error);
     setActiveError(null);
   };
 
@@ -93,6 +135,7 @@ export const SpellingOverlay: React.FC<SpellingOverlayProps> = ({
       elements.push(
         <span
           key={`error-${error.startIndex}-${error.endIndex}`}
+          data-error-index={error.startIndex}
           onClick={(e) => {
             e.stopPropagation();
             e.preventDefault();
@@ -171,7 +214,6 @@ export const SpellingOverlay: React.FC<SpellingOverlayProps> = ({
             zIndex: 1000,
             minWidth: '200px',
             maxWidth: '300px',
-            animation: 'popUp 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -209,7 +251,7 @@ export const SpellingOverlay: React.FC<SpellingOverlayProps> = ({
             </span>
           </div>
 
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
             <button
               onClick={() => handleCorrect(activeError)}
               className="spelling-btn spelling-btn-primary"
@@ -223,6 +265,15 @@ export const SpellingOverlay: React.FC<SpellingOverlayProps> = ({
             >
               এড়িয়ে যান
             </button>
+          </div>
+
+          <div style={{
+            fontSize: '10px',
+            color: 'var(--text-muted)',
+            textAlign: 'center',
+            opacity: 0.7,
+          }}>
+            Enter — ঠিক করুন · Esc — এড়িয়ে যান
           </div>
         </div>
       )}
