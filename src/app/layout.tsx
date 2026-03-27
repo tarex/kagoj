@@ -20,6 +20,20 @@ export const metadata: Metadata = {
   title: 'কাগজ — Bangla Notebook',
   description:
     'Write Bangla text effortlessly with AI-powered suggestions and phonetic typing',
+  openGraph: {
+    title: 'কাগজ — Bangla Notebook',
+    description:
+      'Write Bangla effortlessly — AI suggestions & phonetic typing',
+    siteName: 'কাগজ',
+    locale: 'bn_BD',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'কাগজ — Bangla Notebook',
+    description:
+      'Write Bangla effortlessly — AI suggestions & phonetic typing',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
