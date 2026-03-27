@@ -1,9 +1,4 @@
-import { banglaDictionary } from './bangla-dictionary';
-import { extendedBanglaWords } from './bangla-words-extended';
 import { adaptiveDictionary } from './adaptive-dictionary';
-
-// Combine all dictionaries
-const allWords = new Set([...banglaDictionary, ...extendedBanglaWords]);
 
 // Common Bangla character combinations that are valid
 const validBanglaCharCombinations = [
@@ -189,36 +184,26 @@ function levenshteinDistance(str1: string, str2: string): number {
   return dp[len1][len2];
 }
 
-// Find the closest word in dictionary
-function findClosestWord(word: string, dictionary: Set<string>, maxDistance: number = 2): string | null {
+// Find the closest word using trie prefix search (no full dictionary scan)
+function findClosestWord(word: string, maxDistance: number = 2): string | null {
+  // 1. Check common mistakes first
+  if (commonMistakes[word]) return commonMistakes[word];
+
+  // 2. Get prefix-based suggestions from trie (fast)
+  const prefixLength = Math.max(2, word.length - 2);
+  const prefixSuggestions = adaptiveDictionary.getSuggestions(word.slice(0, prefixLength), 20);
+
+  // 3. Find closest by Levenshtein among suggestions
   let minDistance = Infinity;
   let closestWord: string | null = null;
-
-  // First check common mistakes
-  if (commonMistakes[word]) {
-    return commonMistakes[word];
-  }
-
-  // Check adaptive dictionary suggestions first
-  const adaptiveSuggestions = adaptiveDictionary.getSuggestions(word, 1);
-  if (adaptiveSuggestions.length > 0) {
-    return adaptiveSuggestions[0];
-  }
-
-  // Then check dictionary for close matches
-  for (const dictWord of dictionary) {
-    // Skip if lengths are too different
-    if (Math.abs(dictWord.length - word.length) > maxDistance) {
-      continue;
-    }
-
-    const distance = levenshteinDistance(word, dictWord);
+  for (const candidate of prefixSuggestions) {
+    if (Math.abs(candidate.length - word.length) > maxDistance) continue;
+    const distance = levenshteinDistance(word, candidate);
     if (distance < minDistance && distance <= maxDistance) {
       minDistance = distance;
-      closestWord = dictWord;
+      closestWord = candidate;
     }
   }
-
   return closestWord;
 }
 
@@ -237,35 +222,31 @@ function cleanWord(word: string): string {
 // Main spell checking function
 export function checkSpelling(text: string): SpellingError[] {
   const errors: SpellingError[] = [];
-  
+
   // Split text into words while keeping track of positions
   const wordRegex = /[\u0980-\u09FF]+/g;
   let match;
-  
+
   while ((match = wordRegex.exec(text)) !== null) {
     const word = match[0];
     const startIndex = match.index;
     const endIndex = startIndex + word.length;
-    
+
     // Skip very short words (1-2 characters)
     if (word.length <= 2) {
       continue;
     }
-    
-    // Check if word is in any dictionary
-    const isInBaseDictionary = banglaDictionary.includes(word);
-    const isInExtendedDictionary = extendedBanglaWords.includes(word);
-    const isInAdaptiveDictionary = adaptiveDictionary.getSuggestions(word.slice(0, -1), 10).includes(word);
-    
-    if (!isInBaseDictionary && !isInExtendedDictionary && !isInAdaptiveDictionary) {
+
+    // Check if word is in the trie-backed adaptive dictionary
+    if (!adaptiveDictionary.isKnownWord(word)) {
       // Try to find a correction
-      const correction = findClosestWord(word, allWords);
-      
+      const correction = findClosestWord(word);
+
       if (correction && correction !== word) {
         // Calculate confidence based on edit distance
         const distance = levenshteinDistance(word, correction);
         const confidence = Math.max(0, 100 - (distance * 25)); // 25% reduction per edit
-        
+
         errors.push({
           word,
           correction,
@@ -276,7 +257,7 @@ export function checkSpelling(text: string): SpellingError[] {
       }
     }
   }
-  
+
   return errors;
 }
 
@@ -288,62 +269,24 @@ export function addToCustomDictionary(word: string): void {
 // Function to check if a single word is spelled correctly
 export function isSpelledCorrectly(word: string): boolean {
   const cleanedWord = cleanWord(word);
-  
+
   if (cleanedWord.length <= 2) {
     return true; // Don't check very short words
   }
-  
-  return banglaDictionary.includes(cleanedWord) || 
-         extendedBanglaWords.includes(cleanedWord) ||
-         adaptiveDictionary.getSuggestions(cleanedWord.slice(0, -1), 10).includes(cleanedWord);
+
+  return adaptiveDictionary.isKnownWord(cleanedWord);
 }
 
 // Get suggestions for a partial word
 export function getSpellingSuggestions(partial: string, limit: number = 5): string[] {
   if (!partial || partial.length < 1) return [];
-  
-  // First get adaptive dictionary suggestions (user's frequently used words)
-  const adaptiveSuggestions = adaptiveDictionary.getSuggestions(partial, limit);
-  
-  // Then get suggestions from all dictionaries
-  const allSuggestions = new Set<string>();
-  
-  // Add adaptive suggestions first (higher priority)
-  adaptiveSuggestions.forEach(s => allSuggestions.add(s));
-  
-  // Add from base and extended dictionaries
-  for (const word of allWords) {
-    if (word.startsWith(partial) && word !== partial) {
-      allSuggestions.add(word);
-      if (allSuggestions.size >= limit * 2) break; // Get more than needed for sorting
-    }
-  }
-  
-  // Convert to array and sort by relevance
-  const suggestions = Array.from(allSuggestions);
-  
-  // Sort by: 1) exact prefix match, 2) length (shorter first), 3) alphabetically
-  suggestions.sort((a, b) => {
-    // Prioritize adaptive dictionary suggestions
-    const aIsAdaptive = adaptiveSuggestions.includes(a);
-    const bIsAdaptive = adaptiveSuggestions.includes(b);
-    
-    if (aIsAdaptive && !bIsAdaptive) return -1;
-    if (!aIsAdaptive && bIsAdaptive) return 1;
-    
-    // Then by length
-    if (a.length !== b.length) {
-      return a.length - b.length;
-    }
-    
-    // Finally alphabetically
-    return a.localeCompare(b, 'bn');
-  });
-  
-  return suggestions.slice(0, limit);
+  return adaptiveDictionary.getSuggestions(partial, limit);
 }
 
 // Export function to learn from user's text
 export function learnFromText(text: string): void {
   adaptiveDictionary.learnFromText(text);
 }
+
+// Keep for type compatibility — unused but referenced elsewhere
+export { validBanglaCharCombinations };
