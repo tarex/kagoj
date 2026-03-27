@@ -19,11 +19,24 @@ interface ShortcutGroup {
 
 const SHORTCUT_GROUPS: ShortcutGroup[] = [
   {
+    title: 'নোট',
+    items: [
+      { keys: ['Ctrl', 'N'], description: 'নতুন নোট' },
+      { keys: ['Ctrl', 'S'], description: 'সেভ করুন' },
+      { keys: ['Ctrl', 'Shift', 'D'], description: 'নোট মুছুন' },
+      { keys: ['Ctrl', 'Z'], description: 'আনডু' },
+      { keys: ['Ctrl', 'Shift', 'Z'], description: 'রিডু' },
+      { keys: ['Ctrl', 'P'], description: 'প্রিন্ট' },
+    ],
+  },
+  {
     title: 'লেখা',
     items: [
       { keys: ['Ctrl', 'Shift', 'B'], description: 'বাংলা/English টগল' },
+      { keys: ['Ctrl', 'Shift', 'T'], description: 'থিম টগল' },
       { keys: ['Tab'], description: 'সাজেশন গ্রহণ' },
       { keys: ['Escape'], description: 'সাজেশন বাতিল' },
+      { keys: ['Ctrl', '/'], description: 'শর্টকাট প্যানেল' },
     ],
   },
   {
@@ -73,7 +86,13 @@ export const KeyboardShortcutsPanel: React.FC<KeyboardShortcutsPanelProps> = ({
 
   return (
     <div className="shortcuts-panel" ref={panelRef}>
-      <div className="shortcuts-panel-title">কীবোর্ড শর্টকাট</div>
+      <div className="shortcuts-panel-title">
+        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.75} style={{ color: 'var(--accent-primary)', flexShrink: 0 }}>
+          <rect x="2" y="6" width="20" height="13" rx="2" />
+          <path strokeLinecap="round" d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8M6 14h.01M18 14h.01" />
+        </svg>
+        কীবোর্ড শর্টকাট
+      </div>
       {SHORTCUT_GROUPS.map((group) => (
         <div className="shortcuts-group" key={group.title}>
           <div className="shortcuts-group-title">{group.title}</div>

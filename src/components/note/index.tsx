@@ -13,6 +13,7 @@ import { useNotes } from './use-notes';
 import { useSpellCheck } from '@/hooks/useSpellCheck';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useAISuggestion, AI_TRIGGER_DELAY_MS } from '@/hooks/useAISuggestion';
+import { useUndoRedo } from '@/hooks/useUndoRedo';
 import { BanglaInputHandler } from '@/lib/bangla-input-handler';
 // import { words } from '@/lib/bangla-suggestion'; // Not needed - using adaptive dictionary
 import { adaptiveDictionary } from '@/lib/adaptive-dictionary';
@@ -61,6 +62,7 @@ const NoteComponent: React.FC = () => {
   const [isAISuggestionActive, setIsAISuggestionActive] = useState<boolean>(false);
   const [showShortcuts, setShowShortcuts] = useState<boolean>(false);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const aiTriggerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -76,6 +78,8 @@ const NoteComponent: React.FC = () => {
     getWordSuggestions,
     clearSpellCheck,
   } = useSpellCheck(isBanglaMode);
+
+  const { pushSnapshot, undo, redo, canUndo, canRedo, resetHistory } = useUndoRedo();
 
   const toggleSidebar = useCallback(() => {
     setSidebarOpen((prev) => !prev);
@@ -143,6 +147,46 @@ const NoteComponent: React.FC = () => {
   const insertBullet = useCallback(() => insertFormatting('• ', ''), []);
   const insertNumberedList = useCallback(() => insertFormatting('1. ', ''), []);
 
+  // Undo/Redo handlers
+  const handleUndo = useCallback(() => {
+    const entry = undo();
+    if (!entry) return;
+    setCurrentNote(entry.text);
+    setCurrentTitle(entry.title);
+    if (textareaRef.current) {
+      setTimeout(() => {
+        textareaRef.current!.selectionStart = textareaRef.current!.selectionEnd = entry.cursorPos;
+        textareaRef.current!.focus();
+      }, 0);
+    }
+  }, [undo, setCurrentNote, setCurrentTitle]);
+
+  const handleRedo = useCallback(() => {
+    const entry = redo();
+    if (!entry) return;
+    setCurrentNote(entry.text);
+    setCurrentTitle(entry.title);
+    if (textareaRef.current) {
+      setTimeout(() => {
+        textareaRef.current!.selectionStart = textareaRef.current!.selectionEnd = entry.cursorPos;
+        textareaRef.current!.focus();
+      }, 0);
+    }
+  }, [redo, setCurrentNote, setCurrentTitle]);
+
+  // Print handler — expand textarea to full content height before printing
+  const handlePrint = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const prevHeight = textarea.style.height;
+      textarea.style.height = `${textarea.scrollHeight}px`;
+      window.print();
+      textarea.style.height = prevHeight;
+    } else {
+      window.print();
+    }
+  }, []);
+
   useEffect(() => {
     if (isBanglaMode) {
       banglaInputHandler.enable();
@@ -172,9 +216,71 @@ const NoteComponent: React.FC = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && e.key === 'b') {
+      const ctrl = e.ctrlKey || e.metaKey;
+
+      // Ctrl+Shift+B — Toggle Bangla/English
+      if (ctrl && e.shiftKey && e.key === 'b') {
         e.preventDefault();
         toggleLanguageMode();
+        return;
+      }
+
+      // Ctrl+Shift+D — Delete current note
+      if (ctrl && e.shiftKey && (e.key === 'd' || e.key === 'D')) {
+        e.preventDefault();
+        if (selectedNoteIndex !== null && selectedNoteIndex >= 0) {
+          deleteNote(selectedNoteIndex);
+        }
+        return;
+      }
+
+      // Ctrl+Shift+T — Toggle theme
+      if (ctrl && e.shiftKey && (e.key === 't' || e.key === 'T')) {
+        e.preventDefault();
+        toggleTheme();
+        return;
+      }
+
+      // Ctrl+N — New note
+      if (ctrl && !e.shiftKey && e.key === 'n') {
+        e.preventDefault();
+        createNewNote();
+        return;
+      }
+
+      // Ctrl+S — Save
+      if (ctrl && !e.shiftKey && e.key === 's') {
+        e.preventDefault();
+        saveCurrentNote();
+        return;
+      }
+
+      // Ctrl+Z — Undo
+      if (ctrl && !e.shiftKey && e.key === 'z') {
+        e.preventDefault();
+        handleUndo();
+        return;
+      }
+
+      // Ctrl+Shift+Z or Ctrl+Y — Redo
+      if (ctrl && (e.key === 'y' || (e.shiftKey && e.key === 'z') || (e.shiftKey && e.key === 'Z'))) {
+        e.preventDefault();
+        handleRedo();
+        return;
+      }
+
+      // Ctrl+P — Print
+      if (ctrl && !e.shiftKey && e.key === 'p') {
+        e.preventDefault();
+        handlePrint();
+        return;
+      }
+
+      // Ctrl+/ — Toggle shortcuts panel
+      if (ctrl && e.key === '/') {
+        e.preventDefault();
+        setShowShortcuts(prev => !prev);
+        return;
       }
     };
 
@@ -182,7 +288,7 @@ const NoteComponent: React.FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, [selectedNoteIndex, deleteNote, createNewNote, saveCurrentNote, toggleLanguageMode, toggleTheme, handleUndo, handleRedo, handlePrint]);
 
   useEffect(() => {
     // Mark that we're on the client
@@ -223,10 +329,12 @@ const NoteComponent: React.FC = () => {
     }
   }, []);
 
-  // Clear spell-check errors when switching notes
+  // Clear spell-check errors and reset undo history when switching notes
   useEffect(() => {
     clearSpellCheck();
-  }, [selectedNoteIndex, clearSpellCheck]);
+    resetHistory(currentNote, currentTitle, 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only reset on note switch, not on every text change
+  }, [selectedNoteIndex, clearSpellCheck, resetHistory]);
 
   // Sync AI suggestion into ghost suggestion state
   useEffect(() => {
@@ -480,6 +588,9 @@ const NoteComponent: React.FC = () => {
 
     const { text: newText, cursorPosition: newCursorPos } = result;
 
+    // Push undo snapshot
+    pushSnapshot(newText, currentTitle, newCursorPos);
+
     // Ghost suggestions — use returned newText directly (DOM not updated yet)
     let wordStart = newCursorPos;
     while (wordStart > 0 && !/[\s\.,;!?।]/.test(newText[wordStart - 1])) {
@@ -519,7 +630,7 @@ const NoteComponent: React.FC = () => {
         saveCurrentNote();
       }
     }, 2000);
-  }, [isBanglaMode, banglaInputHandler, currentNote, setCurrentNote, updateGhostSuggestion, scheduleSpellCheck, saveCurrentNote]);
+  }, [isBanglaMode, banglaInputHandler, currentNote, currentTitle, setCurrentNote, updateGhostSuggestion, scheduleSpellCheck, saveCurrentNote, pushSnapshot]);
 
   // Add a direct input handler to catch actual typed characters
   const handleInput = useCallback((e: React.FormEvent<HTMLTextAreaElement>) => {
@@ -555,6 +666,9 @@ const NoteComponent: React.FC = () => {
     const value = e.target.value;
     const prevValue = currentNote;
     setCurrentNote(value);
+
+    // Push undo snapshot
+    pushSnapshot(value, currentTitle, e.target.selectionStart);
 
     // Clear stale ghost suggestion immediately — debounced update will set the new one
     setGhostSuggestion('');
@@ -636,7 +750,7 @@ const NoteComponent: React.FC = () => {
       clearAISuggestion();
       setIsAISuggestionActive(false);
     }
-  }, [currentNote, scheduleSpellCheck, saveCurrentNote, isBanglaMode, setGhostSuggestion, updateGhostSuggestion, requestAISuggestion, clearAISuggestion]);
+  }, [currentNote, currentTitle, scheduleSpellCheck, saveCurrentNote, isBanglaMode, setGhostSuggestion, updateGhostSuggestion, requestAISuggestion, clearAISuggestion, pushSnapshot]);
 
   return (
     <div className="app-container">
@@ -653,7 +767,14 @@ const NoteComponent: React.FC = () => {
               <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
-          <h1 className="topbar-title">কাগজ</h1>
+          <h1 className="topbar-title">
+            <svg className="topbar-logo-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+              <path d="M9 10h6" />
+              <path d="M9 14h4" />
+            </svg>
+            কাগজ
+          </h1>
         </div>
 
         <div className="topbar-controls">
@@ -661,14 +782,15 @@ const NoteComponent: React.FC = () => {
           <div style={{ position: 'relative' }}>
             <button
               className="btn-shortcuts"
-              title="কীবোর্ড শর্টকাট"
+              title="কীবোর্ড শর্টকাট (Ctrl+/)"
               aria-label="কীবোর্ড শর্টকাট"
               onClick={() => setShowShortcuts((prev) => !prev)}
             >
-              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.75}>
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.75}>
                 <rect x="2" y="6" width="20" height="13" rx="2" />
                 <path strokeLinecap="round" d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8M6 14h.01M18 14h.01" />
               </svg>
+              <span className="btn-shortcuts-label">Ctrl /</span>
             </button>
             <KeyboardShortcutsPanel
               isOpen={showShortcuts}
@@ -676,49 +798,38 @@ const NoteComponent: React.FC = () => {
             />
           </div>
 
-          {/* Language Toggle */}
-          <div className="flex-center gap-3">
-            <button
-              onClick={toggleLanguageMode}
-              className={`toggle-switch ${isBanglaMode ? 'active' : ''}`}
-              aria-label="Toggle language"
-            >
-              <span className="toggle-switch-handle" />
-            </button>
-            <div className="toggle-label">
-              <span className="toggle-label-main">
-                {isBanglaMode ? 'বাংলা' : 'English'}
-              </span>
-              <span className="toggle-label-sub">Ctrl+Shift+B</span>
-            </div>
-          </div>
+          {/* Language Toggle — Segmented Pill */}
+          <button
+            onClick={toggleLanguageMode}
+            className="lang-toggle"
+            aria-label={isBanglaMode ? 'Switch to English' : 'বাংলায় পরিবর্তন করুন'}
+            title="Toggle language (Ctrl+Shift+B)"
+          >
+            <span className="lang-toggle-bg" style={{ transform: isBanglaMode ? 'translateX(0)' : 'translateX(100%)' }} />
+            <span className={`lang-toggle-option ${isBanglaMode ? 'active' : ''}`}>বা</span>
+            <span className={`lang-toggle-option ${!isBanglaMode ? 'active' : ''}`}>En</span>
+          </button>
 
-          {/* Theme Toggle */}
-          <div className="flex-center gap-3">
-            <button
-              onClick={toggleTheme}
-              className={`toggle-switch ${isDarkMode ? 'active' : ''}`}
-              aria-label="Toggle theme"
-              disabled={!isClient}
-            >
-              <span className="toggle-switch-handle">
-                {isClient && isDarkMode ? (
-                  <svg width="12" height="12" fill="currentColor" viewBox="0 0 20 20" style={{ color: 'var(--accent-primary)' }}>
-                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-                  </svg>
-                ) : (
-                  <svg width="12" height="12" fill="currentColor" viewBox="0 0 20 20" style={{ color: 'var(--accent-warning)' }}>
-                    <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
-                  </svg>
-                )}
-              </span>
-            </button>
-            <div className="toggle-label">
-              <span className="toggle-label-main">
-                {isClient && isDarkMode ? 'Dark' : 'Light'}
-              </span>
-            </div>
-          </div>
+          {/* Theme Toggle — Icon Button */}
+          <button
+            onClick={toggleTheme}
+            className={`theme-toggle ${isClient && isDarkMode ? 'dark' : 'light'}`}
+            aria-label={isClient && isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            title="Toggle theme (Ctrl+Shift+T)"
+            disabled={!isClient}
+          >
+            <span className="theme-toggle-icon-wrap">
+              {/* Sun */}
+              <svg className="theme-toggle-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+              </svg>
+              {/* Moon */}
+              <svg className="theme-toggle-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+            </span>
+          </button>
         </div>
       </header>
 
@@ -743,11 +854,38 @@ const NoteComponent: React.FC = () => {
             </button>
           </div>
 
+          <div className="sidebar-search">
+            <div className="search-input-wrapper">
+              <svg className="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                placeholder="নোট খুঁজুন..."
+                className="search-input"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button
+                  className="search-clear"
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Clear search"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="sidebar-content">
             <h2 className="sidebar-title">সকল নোট</h2>
             <NoteList
               notes={notes}
               selectedNoteIndex={selectedNoteIndex}
+              searchQuery={searchQuery}
               onSelect={(index) => {
                 selectNote(index);
                 closeSidebar();
@@ -755,28 +893,24 @@ const NoteComponent: React.FC = () => {
               onDelete={deleteNote}
             />
           </div>
+
+          <div className="sidebar-footer">
+            <span className="sidebar-credit-line">সহজে বাংলা লিখুন &hearts;</span>
+            <span className="sidebar-credit-line">
+              <a
+                href="https://github.com/tarex"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="sidebar-credit-link"
+              >
+                tarex
+              </a>
+            </span>
+          </div>
         </aside>
 
         {/* Editor Container */}
         <div className="editor-container">
-          {/* Editor Toolbar */}
-          <Toolbar
-            onFormatBold={formatBold}
-            onFormatItalic={formatItalic}
-            onFormatUnderline={formatUnderline}
-            onFormatStrikethrough={formatStrikethrough}
-            onFormatCode={formatCode}
-            onFormatHighlight={formatHighlight}
-            onInsertBullet={insertBullet}
-            onInsertNumberedList={insertNumberedList}
-            isBanglaMode={isBanglaMode}
-            fontSize={fontSize}
-            onFontSizeChange={(newSize: number) => {
-              setFontSize(newSize);
-              localStorage.setItem(FONT_SIZE_KEY, String(newSize));
-            }}
-          />
-
           {/* Editor Main Area */}
           <div className="editor-main" style={{ position: 'relative' }}>
             {/* Note Title Input */}
@@ -857,6 +991,29 @@ const NoteComponent: React.FC = () => {
               />
             </div>
           </div>
+
+          {/* Floating Format Toolbar */}
+          <Toolbar
+            onFormatBold={formatBold}
+            onFormatItalic={formatItalic}
+            onFormatUnderline={formatUnderline}
+            onFormatStrikethrough={formatStrikethrough}
+            onFormatCode={formatCode}
+            onFormatHighlight={formatHighlight}
+            onInsertBullet={insertBullet}
+            onInsertNumberedList={insertNumberedList}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
+            canUndo={canUndo()}
+            canRedo={canRedo()}
+            onPrint={handlePrint}
+            isBanglaMode={isBanglaMode}
+            fontSize={fontSize}
+            onFontSizeChange={(newSize: number) => {
+              setFontSize(newSize);
+              localStorage.setItem(FONT_SIZE_KEY, String(newSize));
+            }}
+          />
         </div>
       </div>
     </div>

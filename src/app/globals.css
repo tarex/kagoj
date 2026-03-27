@@ -51,6 +51,9 @@
   --sidebar-width: 272px;
   --editor-max-width: 960px;
 
+  /* Background pattern */
+  --dot-color: rgba(0, 0, 0, 0.09);
+
   /* Border radius scale */
   --radius-sm: 6px;
   --radius-md: 8px;
@@ -89,6 +92,8 @@ html.dark {
   --shadow-md: 0 4px 8px -1px rgb(0 0 0 / 0.35);
   --shadow-lg: 0 12px 24px -4px rgb(0 0 0 / 0.45);
   --shadow-xl: 0 20px 40px -8px rgb(0 0 0 / 0.55);
+
+  --dot-color: rgba(255, 255, 255, 0.07);
 }
 
 /* ── Global Reset ── */
@@ -161,6 +166,11 @@ h1, h2, h3, h4, h5, h6 {
   gap: 10px;
 }
 
+.topbar-logo-icon {
+  color: var(--accent-primary);
+  flex-shrink: 0;
+}
+
 /* ── Hamburger Button (hidden on desktop) ── */
 .btn-hamburger {
   display: none;
@@ -217,6 +227,68 @@ h1, h2, h3, h4, h5, h6 {
   border-bottom: 1px solid var(--border-primary);
 }
 
+.sidebar-search {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 32px 8px 32px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-input:focus {
+  border-color: var(--accent-primary);
+}
+
+.search-clear {
+  position: absolute;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.search-clear:hover {
+  color: var(--text-primary);
+}
+
 .sidebar-content {
   flex: 1;
   overflow-y: auto;
@@ -240,6 +312,44 @@ h1, h2, h3, h4, h5, h6 {
   background-color: var(--text-muted);
 }
 
+.sidebar-footer {
+  padding: 14px 16px;
+  border-top: 1px solid var(--border-primary);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  opacity: 0.5;
+  transition: opacity var(--transition-base);
+}
+
+.sidebar-footer:hover {
+  opacity: 0.85;
+}
+
+.sidebar-credit-line {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.sidebar-credit-line:first-child {
+  font-style: italic;
+  font-size: 10.5px;
+  letter-spacing: 0.01em;
+}
+
+.sidebar-credit-link {
+  color: var(--text-tertiary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color var(--transition-fast);
+}
+
+.sidebar-credit-link:hover {
+  color: var(--accent-primary);
+}
+
 .sidebar-title {
   font-family: var(--font-body);
   font-size: 11px;
@@ -252,58 +362,129 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ── Toggle Switch ── */
-.toggle-switch {
+/* ── Language Toggle — Segmented Pill ── */
+.lang-toggle {
   position: relative;
-  width: 40px;
-  height: 22px;
-  background-color: var(--border-secondary);
-  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  width: 68px;
+  height: 32px;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: 16px;
   cursor: pointer;
+  padding: 3px;
   transition: all var(--transition-fast);
   flex-shrink: 0;
+  overflow: hidden;
 }
 
-.toggle-switch.active {
-  background-color: var(--accent-primary);
+.lang-toggle:hover {
+  border-color: var(--border-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 12%, transparent);
 }
 
-.toggle-switch-handle {
+.lang-toggle:active {
+  transform: scale(0.96);
+}
+
+.lang-toggle-bg {
   position: absolute;
-  top: 2px;
-  left: 2px;
+  top: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  height: calc(100% - 6px);
+  background-color: var(--accent-primary);
+  border-radius: 12px;
+  transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.15);
+}
+
+.lang-toggle-option {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  transition: color var(--transition-fast);
+  user-select: none;
+  line-height: 1;
+}
+
+.lang-toggle-option.active {
+  color: #fff;
+}
+
+/* ── Theme Toggle — Icon Button ── */
+.theme-toggle {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-primary);
+  border-radius: 50%;
+  background-color: var(--bg-tertiary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+
+.theme-toggle:hover {
+  border-color: var(--border-accent);
+  background-color: var(--bg-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 12%, transparent);
+}
+
+.theme-toggle:active {
+  transform: scale(0.9);
+}
+
+.theme-toggle-icon-wrap {
+  position: relative;
   width: 18px;
   height: 18px;
-  background-color: white;
-  border-radius: 50%;
-  transition: transform var(--transition-fast);
-  box-shadow: 0 1px 3px rgb(0 0 0 / 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.toggle-switch.active .toggle-switch-handle {
-  transform: translateX(18px);
+.theme-toggle-sun,
+.theme-toggle-moon {
+  position: absolute;
+  transition: all 350ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.toggle-label {
-  display: flex;
-  flex-direction: column;
-  margin-left: 8px;
+/* Light mode: show sun, hide moon */
+.theme-toggle.light .theme-toggle-sun {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+.theme-toggle.light .theme-toggle-moon {
+  opacity: 0;
+  transform: rotate(-45deg) scale(0.5);
 }
 
-.toggle-label-main {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-primary);
-  line-height: 1;
+/* Dark mode: show moon, hide sun */
+.theme-toggle.dark .theme-toggle-sun {
+  opacity: 0;
+  transform: rotate(45deg) scale(0.5);
+}
+.theme-toggle.dark .theme-toggle-moon {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
 }
 
-.toggle-label-sub {
-  font-size: 10px;
-  color: var(--text-muted);
-  margin-top: 2px;
-  font-family: ui-monospace, 'SF Mono', monospace;
+.theme-toggle.dark {
+  color: var(--accent-primary);
+  border-color: color-mix(in srgb, var(--accent-primary) 30%, transparent);
+  background-color: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-tertiary));
 }
 
 /* ── Buttons ── */
@@ -346,89 +527,120 @@ h1, h2, h3, h4, h5, h6 {
   overflow: hidden;
 }
 
-/* ── Editor Toolbar — Refined icon-only design ── */
+/* ── Editor Toolbar — Floating bottom bar ── */
 .editor-toolbar {
-  background-color: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-primary);
-  padding: 6px 16px;
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--bg-elevated) 82%, transparent),
+    color-mix(in srgb, var(--bg-secondary) 75%, transparent)
+  );
+  border: 1px solid color-mix(in srgb, var(--border-primary) 40%, transparent);
+  border-top-color: color-mix(in srgb, var(--bg-elevated) 60%, transparent);
+  border-radius: 18px;
+  padding: 6px 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 42px;
-  transition: background-color var(--transition-base);
-}
-
-.toolbar-group {
-  display: flex;
-  align-items: center;
   gap: 2px;
-  padding: 3px 4px;
-  background-color: var(--bg-primary);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-primary);
+  min-height: 52px;
+  box-shadow:
+    inset 0 1px 0 0 color-mix(in srgb, white 12%, transparent),
+    0 0 0 0.5px color-mix(in srgb, var(--border-primary) 25%, transparent),
+    0 12px 40px -6px rgba(0, 0, 0, 0.14),
+    0 4px 12px -2px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  transition: background var(--transition-base), box-shadow var(--transition-base);
 }
 
 .toolbar-sep {
   width: 1px;
-  height: 18px;
-  background-color: var(--border-primary);
-  margin: 0 4px;
+  height: 22px;
+  background-color: color-mix(in srgb, var(--border-primary) 35%, transparent);
+  margin: 0 5px;
   flex-shrink: 0;
+  border-radius: 1px;
 }
 
 .toolbar-btn {
-  width: 30px;
-  height: 30px;
+  width: 38px;
+  height: 38px;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: none;
-  border: none;
-  border-radius: var(--radius-sm);
-  color: var(--text-tertiary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all var(--transition-fast);
+  position: relative;
 }
 
 .toolbar-btn:hover {
-  background-color: var(--bg-tertiary);
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--bg-elevated) 95%, transparent),
+    color-mix(in srgb, var(--bg-tertiary) 70%, transparent)
+  );
+  border-color: color-mix(in srgb, var(--border-primary) 45%, transparent);
+  border-top-color: color-mix(in srgb, white 15%, transparent);
   color: var(--text-primary);
+  box-shadow:
+    inset 0 1px 0 0 color-mix(in srgb, white 10%, transparent),
+    0 2px 6px -1px rgba(0, 0, 0, 0.08);
 }
 
 .toolbar-btn:active {
-  background-color: var(--bg-accent);
+  background: linear-gradient(
+    to bottom,
+    var(--bg-tertiary),
+    var(--bg-accent)
+  );
+  border-color: color-mix(in srgb, var(--border-secondary) 50%, transparent);
   color: var(--text-primary);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  transform: scale(0.93);
 }
 
 .toolbar-btn:disabled {
-  opacity: 0.3;
+  opacity: 0.28;
   cursor: not-allowed;
 }
 
 .toolbar-btn:disabled:hover {
-  background: none;
+  background: transparent;
+  border-color: transparent;
   color: var(--text-tertiary);
+  box-shadow: none;
+  transform: none;
 }
 
 .toolbar-btn-sm {
-  width: 26px;
-  height: 26px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
 }
 
 /* Font size inline control */
 .toolbar-fontsize {
   display: flex;
   align-items: center;
-  gap: 1px;
+  gap: 0;
 }
 
 .toolbar-fontsize-val {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--text-secondary);
-  min-width: 22px;
+  min-width: 28px;
   text-align: center;
   user-select: none;
   font-family: var(--font-display);
@@ -462,6 +674,42 @@ h1, h2, h3, h4, h5, h6 {
 html.dark .note-item.selected {
   background-color: var(--accent-primary-light);
   border-color: var(--accent-primary);
+}
+
+html.dark .editor-toolbar {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--bg-elevated) 78%, transparent),
+    color-mix(in srgb, var(--bg-primary) 70%, transparent)
+  );
+  border-color: color-mix(in srgb, var(--border-secondary) 35%, transparent);
+  border-top-color: color-mix(in srgb, var(--border-secondary) 50%, transparent);
+  box-shadow:
+    inset 0 1px 0 0 color-mix(in srgb, white 5%, transparent),
+    0 0 0 0.5px color-mix(in srgb, var(--border-secondary) 30%, transparent),
+    0 12px 40px -6px rgba(0, 0, 0, 0.5),
+    0 4px 12px -2px rgba(0, 0, 0, 0.35);
+}
+
+html.dark .toolbar-btn:hover {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--bg-tertiary) 85%, transparent),
+    color-mix(in srgb, var(--bg-accent) 55%, transparent)
+  );
+  border-top-color: color-mix(in srgb, white 6%, transparent);
+  box-shadow:
+    inset 0 1px 0 0 color-mix(in srgb, white 4%, transparent),
+    0 2px 6px -1px rgba(0, 0, 0, 0.2);
+}
+
+html.dark .toolbar-btn:active {
+  background: linear-gradient(
+    to bottom,
+    var(--bg-accent),
+    color-mix(in srgb, var(--bg-accent) 75%, black)
+  );
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .note-date {
@@ -511,11 +759,15 @@ html.dark .note-item.selected {
   align-items: center;
   position: relative;
   padding-top: 48px;
+  padding-bottom: 72px;
 
-  /* Subtle paper texture via noise grain */
+  /* Subtle manuscript dot grid + soft radial wash */
   background-image:
+    radial-gradient(circle, var(--dot-color) 0.8px, transparent 0.8px),
     radial-gradient(circle at 20% 50%, color-mix(in srgb, var(--bg-tertiary) 20%, transparent) 0%, transparent 50%),
     radial-gradient(circle at 80% 20%, color-mix(in srgb, var(--bg-tertiary) 15%, transparent) 0%, transparent 40%);
+  background-size: 28px 28px, 100% 100%, 100% 100%;
+  background-position: 14px 14px, 0 0, 0 0;
 }
 
 .editor-main::-webkit-scrollbar {
@@ -1016,9 +1268,14 @@ html.dark .note-item.selected {
     gap: 12px;
   }
 
-  /* Hide toggle labels on mobile */
-  .toggle-label {
+  /* Hide shortcut label on mobile */
+  .btn-shortcuts-label {
     display: none;
+  }
+
+  .btn-shortcuts {
+    padding: 0;
+    width: 32px;
   }
 
   /* Editor padding */
@@ -1039,6 +1296,7 @@ html.dark .note-item.selected {
 
   .editor-main {
     padding-top: 24px;
+    padding-bottom: 64px;
   }
 
   /* Editor wrapper: remove side borders on mobile */
@@ -1047,21 +1305,49 @@ html.dark .note-item.selected {
     border-right: none;
   }
 
-  /* Toolbar: horizontally scrollable */
+  /* Toolbar: docked bottom bar on mobile */
   .editor-toolbar {
-    padding: 6px 8px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transform: none;
+    width: 100%;
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
     overflow-x: auto;
-    justify-content: flex-start;
+    justify-content: center;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    box-shadow:
+      0 -1px 0 0 color-mix(in srgb, var(--border-primary) 30%, transparent),
+      0 -8px 24px -4px rgba(0, 0, 0, 0.08);
   }
 
   .editor-toolbar::-webkit-scrollbar {
     display: none;
   }
 
-  .toolbar-group {
-    flex-shrink: 0;
+  /* Hide less-essential buttons on mobile */
+  .toolbar-hide-mobile {
+    display: none !important;
+  }
+
+  /* Hide separators on mobile */
+  .toolbar-sep {
+    display: none;
+  }
+
+  .toolbar-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .toolbar-btn-sm {
+    width: 36px;
+    height: 36px;
   }
 
   /* Spelling modal full-width on mobile */
@@ -1265,22 +1551,43 @@ textarea:focus-visible {
 
 /* ── Keyboard Shortcuts Button ── */
 .btn-shortcuts {
-  width: 32px;
   height: 32px;
-  background-color: transparent;
-  border: none;
-  border-radius: var(--radius-md);
+  padding: 0 10px;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: 16px;
   color: var(--text-tertiary);
   cursor: pointer;
   transition: all var(--transition-fast);
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
+  font-size: 0;
+}
+
+.btn-shortcuts-label {
+  font-size: 11px;
+  font-weight: 600;
+  font-family: ui-monospace, 'SF Mono', monospace;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .btn-shortcuts:hover {
-  background-color: var(--bg-tertiary);
+  background-color: var(--bg-accent);
+  border-color: var(--border-accent);
   color: var(--text-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 12%, transparent);
+}
+
+.btn-shortcuts:hover .btn-shortcuts-label {
+  color: var(--text-secondary);
+}
+
+.btn-shortcuts:active {
+  transform: scale(0.96);
 }
 
 /* ── Keyboard Shortcuts Panel ── */
@@ -1288,29 +1595,44 @@ textarea:focus-visible {
   position: fixed;
   top: calc(var(--topbar-height) + 8px);
   right: 24px;
-  background-color: var(--bg-elevated);
+  background-color: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
+  backdrop-filter: blur(16px);
   border: 1px solid var(--border-primary);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
-  padding: 16px 20px;
-  min-width: 320px;
-  max-width: 400px;
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  padding: 20px 24px;
+  min-width: 340px;
+  max-width: 420px;
   z-index: 200;
-  animation: popUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: shortcutsSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes shortcutsSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .shortcuts-panel-title {
   font-family: var(--font-display);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 12px;
-  padding-bottom: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
   border-bottom: 1px solid var(--border-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .shortcuts-group {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .shortcuts-group:last-child {
@@ -1318,34 +1640,46 @@ textarea:focus-visible {
 }
 
 .shortcuts-group-title {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-muted);
-  margin-bottom: 6px;
+  letter-spacing: 0.12em;
+  color: var(--accent-primary);
+  margin-bottom: 8px;
+  padding: 3px 8px;
+  background-color: var(--accent-primary-light);
+  border-radius: 6px;
+  display: inline-block;
 }
 
 .shortcut-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 4px 0;
+  padding: 5px 4px;
   font-size: 13px;
   color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast);
+}
+
+.shortcut-row:hover {
+  background-color: var(--bg-tertiary);
 }
 
 .shortcut-row kbd {
   background: var(--bg-tertiary);
   border: 1px solid var(--border-secondary);
-  border-radius: 4px;
+  border-radius: 5px;
   font-family: ui-monospace, 'SF Mono', monospace;
   font-size: 11px;
   font-weight: 600;
   color: var(--text-secondary);
-  padding: 2px 6px;
-  box-shadow: 0 1px 0 var(--border-secondary);
+  padding: 2px 7px;
+  box-shadow: 0 1px 0 var(--border-secondary), inset 0 -1px 0 color-mix(in srgb, var(--border-secondary) 40%, transparent);
   white-space: nowrap;
+  min-width: 22px;
+  text-align: center;
 }
 
 .shortcut-row span:last-child {
@@ -1364,5 +1698,101 @@ textarea:focus-visible {
 
   .spelling-overlay-inner {
     padding: 32px 36px !important;
+  }
+}
+
+/* ── Print Stylesheet ── */
+@media print {
+  /* Reset backgrounds and colors for printing */
+  * {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Hide everything except the editor content */
+  .topbar,
+  .sidebar,
+  .sidebar-backdrop,
+  .editor-toolbar,
+  .ghost-text-overlay,
+  .spelling-overlay,
+  .word-suggestion-popup,
+  .shortcuts-panel,
+  .btn-hamburger,
+  .ghost-accept-btn {
+    display: none !important;
+  }
+
+  /* Break all containers out of fixed/flex height so content flows naturally */
+  .app-container,
+  .main-content,
+  .editor-container,
+  .editor-main,
+  .editor-wrapper {
+    display: block !important;
+    position: static !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    flex: none !important;
+  }
+
+  .app-container {
+    width: 100% !important;
+  }
+
+  .main-content {
+    margin-top: 0 !important;
+  }
+
+  .editor-main {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    background-image: none !important;
+  }
+
+  .editor-wrapper {
+    border: none !important;
+    max-width: 100% !important;
+  }
+
+  /* Title styling for print */
+  .note-title-input {
+    border: none !important;
+    padding: 0 0 8px 0 !important;
+    font-size: 24pt !important;
+    font-weight: 700 !important;
+    height: auto !important;
+  }
+
+  .title-divider {
+    padding: 0 !important;
+    margin-top: 4px !important;
+  }
+
+  .title-divider hr {
+    background-color: #ccc !important;
+    opacity: 1 !important;
+  }
+
+  /* Editor text — force full content height for printing */
+  .text-editor {
+    padding: 16px 0 !important;
+    font-size: 12pt !important;
+    line-height: 1.8 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    resize: none !important;
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+  }
+
+  /* Page settings */
+  @page {
+    margin: 2cm;
+    size: A4;
   }
 }

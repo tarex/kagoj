@@ -26,6 +26,7 @@ pnpm lint
 ```
 
 - Do not run `pnpm build` after code changes during development.
+- After finishing any code change, verify no blocking issues: run `npx tsc --noEmit` (typecheck) and check for hydration errors in the browser console. Fix any issues before considering the task done.
 
 ## Architecture Overview
 

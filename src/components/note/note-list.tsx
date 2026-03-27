@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 interface Note {
   content: string;
@@ -9,6 +9,7 @@ interface Note {
 interface NoteListProps {
   notes: Note[];
   selectedNoteIndex: number | null;
+  searchQuery?: string;
   onSelect: (index: number) => void;
   onDelete: (index: number) => void;
 }
@@ -16,9 +17,23 @@ interface NoteListProps {
 export const NoteList = React.memo<NoteListProps>(({
   notes,
   selectedNoteIndex,
+  searchQuery = '',
   onSelect,
   onDelete,
 }) => {
+  const filteredNotes = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return notes.map((note, index) => ({ note, originalIndex: index }));
+    }
+    const query = searchQuery.trim().toLowerCase();
+    return notes
+      .map((note, index) => ({ note, originalIndex: index }))
+      .filter(({ note }) =>
+        note.title.toLowerCase().includes(query) ||
+        note.content.toLowerCase().includes(query)
+      );
+  }, [notes, searchQuery]);
+
   if (notes.length === 0) {
     return (
       <div className="empty-state">
@@ -36,16 +51,26 @@ export const NoteList = React.memo<NoteListProps>(({
     );
   }
 
+  if (filteredNotes.length === 0 && searchQuery.trim()) {
+    return (
+      <div className="empty-state">
+        <div className="empty-state-text">
+          <p>কোনো ফলাফল পাওয়া যায়নি</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
-      {notes.map((note, index) => {
+      {filteredNotes.map(({ note, originalIndex }) => {
         const hasTitle = note.title && note.title.trim() !== '';
 
         return (
           <div
-            key={index}
-            className={`note-item ${index === selectedNoteIndex ? 'selected' : ''}`}
-            onClick={() => onSelect(index)}
+            key={originalIndex}
+            className={`note-item ${originalIndex === selectedNoteIndex ? 'selected' : ''}`}
+            onClick={() => onSelect(originalIndex)}
           >
             <div className="note-date">
               {new Date(note.date).toLocaleDateString('bn-BD', {
@@ -64,7 +89,7 @@ export const NoteList = React.memo<NoteListProps>(({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                onDelete(index);
+                onDelete(originalIndex);
               }}
               className="note-delete"
               aria-label="Delete note"

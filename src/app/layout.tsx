@@ -20,22 +20,19 @@ export const metadata: Metadata = {
   metadataBase: process.env.VERCEL_PROJECT_PRODUCTION_URL
     ? new URL(`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`)
     : new URL('http://localhost:3000'),
-  title: 'কাগজ — Bangla Notebook',
-  description:
-    'Write Bangla text effortlessly with AI-powered suggestions and phonetic typing',
+  title: 'কাগজ — সহজে বাংলা লিখুন',
+  description: 'সহজে বাংলা লিখুন — AI suggestions & phonetic typing',
   openGraph: {
-    title: 'কাগজ — Bangla Notebook',
-    description:
-      'Write Bangla effortlessly — AI suggestions & phonetic typing',
+    title: 'কাগজ — সহজে বাংলা লিখুন',
+    description: 'সহজে বাংলা লিখুন — AI suggestions & phonetic typing',
     siteName: 'কাগজ',
     locale: 'bn_BD',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'কাগজ — Bangla Notebook',
-    description:
-      'Write Bangla effortlessly — AI suggestions & phonetic typing',
+    title: 'কাগজ — সহজে বাংলা লিখুন',
+    description: 'সহজে বাংলা লিখুন — AI suggestions & phonetic typing',
   },
   appleWebApp: {
     capable: true,
@@ -62,7 +59,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="bn">
+    <html lang="bn" suppressHydrationWarning>
       <body
         className={`${literata.variable} ${notoBengali.variable} antialiased`}
       >
