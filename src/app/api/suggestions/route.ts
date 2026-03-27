@@ -4,9 +4,32 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    const { text, mode = 'spellcheck' } = await req.json();
+    const { text, mode = 'spellcheck', cursorContext } = await req.json();
 
-    if (mode === 'spellcheck') {
+    if (mode === 'ghost') {
+      // Ghost text completion mode — returns a short phrase continuation
+      if (typeof cursorContext !== 'string' || cursorContext.length === 0) {
+        return NextResponse.json({ suggestion: '', source: 'ai' });
+      }
+
+      const ghostPrompt = `You are a Bangla writing assistant. Complete the following Bangla text naturally. Return ONLY the completion text (no quotes, no explanation). Keep it under 40 characters. If the text is not Bangla or you cannot suggest a natural completion, return empty string.`;
+
+      try {
+        const { text: completion } = await generateText({
+          model: openai.chat('gpt-4o-mini'),
+          system: ghostPrompt,
+          prompt: cursorContext,
+          temperature: 0.3,
+          maxTokens: 60,
+          maxRetries: 1,
+        });
+
+        return NextResponse.json({ suggestion: completion.trim(), source: 'ai' });
+      } catch (ghostError) {
+        console.error('Ghost text AI error:', ghostError);
+        return NextResponse.json({ suggestion: '', source: 'ai' });
+      }
+    } else if (mode === 'spellcheck') {
       // Spell checking mode for Bangla text
       const prompt = `You are a Bengali language expert. Check the following Bengali text for spelling errors:
 
