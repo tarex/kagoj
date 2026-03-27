@@ -55,6 +55,12 @@ export class BanglaInputHandler {
       return;
     }
 
+    // On mobile keyboards, e.key is often "Unidentified" or "Process".
+    // Skip and let beforeinput/processCharInput handle it instead.
+    if (e.key === 'Unidentified' || e.key === 'Process') {
+      return;
+    }
+
     e.preventDefault();
 
     const inputElement = inputRef.current;
@@ -70,6 +76,42 @@ export class BanglaInputHandler {
     const afterCursor: string = text.slice(cursorPosition);
 
     const convertedText: string = this.handleKeyPress(beforeCursor, typedChar);
+    const finalText: string = convertedText + afterCursor;
+    setCurrentValue(finalText);
+
+    const newPosition: number =
+      cursorPosition + (convertedText.length - beforeCursor.length);
+
+    requestAnimationFrame(() => {
+      if (inputRef.current) {
+        inputRef.current.selectionStart = newPosition;
+        inputRef.current.selectionEnd = newPosition;
+      }
+    });
+  }
+
+  /**
+   * Process a character directly (used by beforeinput on mobile).
+   * Takes the raw character instead of reading from KeyboardEvent.
+   */
+  public processCharInput(
+    inputRef: RefObject<HTMLInputElement | HTMLTextAreaElement>,
+    currentValue: string,
+    setCurrentValue: (value: string) => void,
+    char: string
+  ): void {
+    if (!this.active) return;
+
+    const inputElement = inputRef.current;
+    if (!inputElement) return;
+
+    const cursorPosition: number = inputElement.selectionStart || 0;
+    const text: string = currentValue;
+
+    const beforeCursor: string = text.slice(0, cursorPosition);
+    const afterCursor: string = text.slice(cursorPosition);
+
+    const convertedText: string = this.handleKeyPress(beforeCursor, char);
     const finalText: string = convertedText + afterCursor;
     setCurrentValue(finalText);
 

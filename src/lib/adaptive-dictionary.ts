@@ -6,8 +6,29 @@ const WORD_FREQUENCY_KEY = 'bangla_word_frequency';
 const MIN_WORD_LENGTH = 2;
 const MAX_LEARNED_WORDS = 5000; // Limit to prevent storage issues
 
+interface WordFrequencyEntry {
+  count: number;
+  lastUsed: number; // timestamp in ms
+}
+
 interface WordFrequency {
-  [word: string]: number;
+  [word: string]: number | WordFrequencyEntry;
+}
+
+/** Normalize old flat-number format to { count, lastUsed } */
+function normalizeEntry(entry: number | WordFrequencyEntry): WordFrequencyEntry {
+  if (typeof entry === 'number') {
+    return { count: entry, lastUsed: Date.now() };
+  }
+  return entry;
+}
+
+/** Recency decay factor: score = count * 0.95^daysSinceLastUse */
+const RECENCY_DECAY = 0.95;
+
+function computeEffectiveScore(entry: WordFrequencyEntry): number {
+  const daysSinceLastUse = (Date.now() - entry.lastUsed) / (1000 * 60 * 60 * 24);
+  return entry.count * Math.pow(RECENCY_DECAY, daysSinceLastUse);
 }
 
 class AdaptiveDictionary {
@@ -56,9 +77,13 @@ class AdaptiveDictionary {
         console.log('Loaded word frequency data');
       }
 
-      // Insert each learned word into trie with its frequency
+      // Insert each learned word into trie with recency-weighted frequency
       for (const word of this.learnedWords) {
-        this.trie.insert(word, this.wordFrequency[word] || 1);
+        const raw = this.wordFrequency[word];
+        const entry = raw ? normalizeEntry(raw) : { count: 1, lastUsed: Date.now() };
+        // Migrate old format in-place
+        this.wordFrequency[word] = entry;
+        this.trie.insert(word, computeEffectiveScore(entry));
       }
     } catch (error) {
       console.error('Error loading from localStorage:', error);
@@ -82,9 +107,13 @@ class AdaptiveDictionary {
         const wordsArray = Array.from(this.learnedWords).slice(-MAX_LEARNED_WORDS);
         localStorage.setItem(LEARNED_WORDS_KEY, JSON.stringify(wordsArray));
 
-        // Save word frequency (keep only top frequent words)
+        // Save word frequency (keep only top scoring words by recency-weighted score)
         const sortedWords = Object.entries(this.wordFrequency)
-          .sort((a, b) => b[1] - a[1])
+          .sort((a, b) => {
+            const scoreA = computeEffectiveScore(normalizeEntry(a[1]));
+            const scoreB = computeEffectiveScore(normalizeEntry(b[1]));
+            return scoreB - scoreA;
+          })
           .slice(0, MAX_LEARNED_WORDS);
         const limitedFrequency = Object.fromEntries(sortedWords);
         localStorage.setItem(WORD_FREQUENCY_KEY, JSON.stringify(limitedFrequency));
@@ -122,11 +151,14 @@ class AdaptiveDictionary {
         continue;
       }
 
-      // Update frequency
-      this.wordFrequency[word] = (this.wordFrequency[word] || 0) + 1;
+      // Update frequency with recency
+      const existing = this.wordFrequency[word];
+      const prev = existing ? normalizeEntry(existing) : { count: 0, lastUsed: Date.now() };
+      const updated: WordFrequencyEntry = { count: prev.count + 1, lastUsed: Date.now() };
+      this.wordFrequency[word] = updated;
 
-      // Insert into trie with updated frequency
-      this.trie.insert(word, this.wordFrequency[word]);
+      // Insert into trie with recency-weighted score
+      this.trie.insert(word, computeEffectiveScore(updated));
 
       // Track as learned if newly added
       if (!this.learnedWords.has(word)) {
@@ -149,11 +181,14 @@ class AdaptiveDictionary {
       return;
     }
 
-    // Update frequency
-    this.wordFrequency[cleanedWord] = (this.wordFrequency[cleanedWord] || 0) + 1;
+    // Update frequency with recency
+    const existing = this.wordFrequency[cleanedWord];
+    const prev = existing ? normalizeEntry(existing) : { count: 0, lastUsed: Date.now() };
+    const updated: WordFrequencyEntry = { count: prev.count + 1, lastUsed: Date.now() };
+    this.wordFrequency[cleanedWord] = updated;
 
-    // Insert into trie with updated frequency
-    this.trie.insert(cleanedWord, this.wordFrequency[cleanedWord]);
+    // Insert into trie with recency-weighted score
+    this.trie.insert(cleanedWord, computeEffectiveScore(updated));
 
     // Track in learnedWords Set for localStorage persistence
     if (!this.learnedWords.has(cleanedWord)) {
@@ -186,15 +221,17 @@ class AdaptiveDictionary {
   }
 
   public getWordStats(word: string): { count: number } | null {
-    const count = this.wordFrequency[word];
-    if (count) {
-      return { count };
+    const raw = this.wordFrequency[word];
+    if (raw) {
+      const entry = normalizeEntry(raw);
+      return { count: entry.count };
     }
     return null;
   }
 
   public getStats(): { totalWords: number; learnedWords: number; topWords: [string, number][] } {
-    const topWords = Object.entries(this.wordFrequency)
+    const topWords: [string, number][] = Object.entries(this.wordFrequency)
+      .map(([w, raw]) => [w, normalizeEntry(raw).count] as [string, number])
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10);
 
@@ -231,7 +268,8 @@ class AdaptiveDictionary {
     const normalizedNew = newWord.trim().toLowerCase();
 
     // Get the frequency of the old word (if it exists)
-    const oldFrequency = this.wordFrequency[normalizedOld] || 0;
+    const oldRaw = this.wordFrequency[normalizedOld];
+    const oldCount = oldRaw ? normalizeEntry(oldRaw).count : 0;
 
     // Remove the old word
     this.removeWord(normalizedOld);
@@ -239,13 +277,15 @@ class AdaptiveDictionary {
     // Add the new word with the same or higher frequency
     if (normalizedNew && normalizedNew.length >= MIN_WORD_LENGTH) {
       this.learnedWords.add(normalizedNew);
-      // Give it at least the same frequency as the old word, or increment if it already exists
-      this.wordFrequency[normalizedNew] = Math.max(
-        this.wordFrequency[normalizedNew] || 0,
-        oldFrequency + 1,
-      );
-      this.trie.insert(normalizedNew, this.wordFrequency[normalizedNew]);
-      console.log(`Replaced "${normalizedOld}" with "${normalizedNew}" (frequency: ${this.wordFrequency[normalizedNew]})`);
+      const existingRaw = this.wordFrequency[normalizedNew];
+      const existingCount = existingRaw ? normalizeEntry(existingRaw).count : 0;
+      const newEntry: WordFrequencyEntry = {
+        count: Math.max(existingCount, oldCount + 1),
+        lastUsed: Date.now(),
+      };
+      this.wordFrequency[normalizedNew] = newEntry;
+      this.trie.insert(normalizedNew, computeEffectiveScore(newEntry));
+      console.log(`Replaced "${normalizedOld}" with "${normalizedNew}" (count: ${newEntry.count})`);
 
       this.saveToStorage();
     }

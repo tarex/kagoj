@@ -1,5 +1,6 @@
-import type { Metadata } from 'next/types';
+import type { Metadata, Viewport } from 'next/types';
 import { Literata, Noto_Sans_Bengali } from 'next/font/google';
+import { PWARegister } from './pwa-register';
 import './globals.css';
 
 const literata = Literata({
@@ -19,6 +20,23 @@ export const metadata: Metadata = {
   title: 'কাগজ — Bangla Notebook',
   description:
     'Write Bangla text effortlessly with AI-powered suggestions and phonetic typing',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'কাগজ',
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#0a0a0a',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({
@@ -31,6 +49,7 @@ export default function RootLayout({
       <body
         className={`${literata.variable} ${notoBengali.variable} antialiased`}
       >
+        <PWARegister />
         {children}
       </body>
     </html>

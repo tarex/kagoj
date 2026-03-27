@@ -112,7 +112,7 @@ export const WordSuggestionPopup: React.FC<WordSuggestionPopupProps> = ({
     const textarea = textareaRef.current;
     if (!textarea) return;
 
-    const handleMouseUp = () => {
+    const handleSelectionTrigger = () => {
       // Small delay to let selection settle
       setTimeout(checkSelection, 50);
     };
@@ -124,20 +124,23 @@ export const WordSuggestionPopup: React.FC<WordSuggestionPopupProps> = ({
       }
     };
 
-    textarea.addEventListener('mouseup', handleMouseUp);
+    // mouseup for desktop, selectionchange for mobile (long-press select)
+    textarea.addEventListener('mouseup', handleSelectionTrigger);
     textarea.addEventListener('keyup', handleKeyUp);
+    document.addEventListener('selectionchange', handleSelectionTrigger);
 
     return () => {
-      textarea.removeEventListener('mouseup', handleMouseUp);
+      textarea.removeEventListener('mouseup', handleSelectionTrigger);
       textarea.removeEventListener('keyup', handleKeyUp);
+      document.removeEventListener('selectionchange', handleSelectionTrigger);
     };
   }, [textareaRef, checkSelection]);
 
-  // Close on click outside
+  // Close on click/touch outside
   useEffect(() => {
     if (!selectedWord) return;
 
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
       if (popupRef.current && !popupRef.current.contains(e.target as Node)) {
         setSelectedWord('');
         setSuggestions([]);
@@ -145,7 +148,11 @@ export const WordSuggestionPopup: React.FC<WordSuggestionPopupProps> = ({
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, [selectedWord]);
 
   // Close on Escape

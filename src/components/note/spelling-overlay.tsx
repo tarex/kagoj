@@ -174,6 +174,7 @@ export const SpellingOverlay: React.FC<SpellingOverlayProps> = ({
     <>
       <div
         ref={overlayRef}
+        className="spelling-overlay-inner"
         style={{
           position: 'absolute',
           top: 0,
@@ -267,7 +268,7 @@ export const SpellingOverlay: React.FC<SpellingOverlayProps> = ({
             </button>
           </div>
 
-          <div style={{
+          <div className="spelling-keyboard-hint" style={{
             fontSize: '10px',
             color: 'var(--text-muted)',
             textAlign: 'center',

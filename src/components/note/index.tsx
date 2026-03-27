@@ -16,10 +16,23 @@ import { useAISuggestion, AI_TRIGGER_DELAY_MS } from '@/hooks/useAISuggestion';
 import { BanglaInputHandler } from '@/lib/bangla-input-handler';
 // import { words } from '@/lib/bangla-suggestion'; // Not needed - using adaptive dictionary
 import { adaptiveDictionary } from '@/lib/adaptive-dictionary';
+import { bigramStore } from '@/lib/bigram-store';
 
 const FONT_SIZE_KEY = 'noteFontSize';
 const DEFAULT_FONT_SIZE = 28;
 const THEME_KEY = 'noteTheme';
+
+/** Extract the previous Bangla word before a given position in text */
+function getPrevWord(text: string, wordStart: number): string | undefined {
+  // Walk backwards from wordStart, skip whitespace, then find word boundary
+  let end = wordStart;
+  while (end > 0 && /[\s\.,;!?।]/.test(text[end - 1])) end--;
+  if (end === 0) return undefined;
+  let start = end;
+  while (start > 0 && !/[\s\.,;!?।]/.test(text[start - 1])) start--;
+  const word = text.substring(start, end);
+  return word.length >= 2 ? word : undefined;
+}
 
 const NoteComponent: React.FC = () => {
   const {
@@ -43,8 +56,10 @@ const NoteComponent: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false); // Default to false to match SSR
   const [isClient, setIsClient] = useState(false); // Track if we're on the client
   const [ghostSuggestion, setGhostSuggestion] = useState<string>('');  // Only one suggestion for ghost text
+  const [ghostCursorPos, setGhostCursorPos] = useState<number>(0); // Where the ghost suggestion should render
   const [isAISuggestionActive, setIsAISuggestionActive] = useState<boolean>(false);
   const [showShortcuts, setShowShortcuts] = useState<boolean>(false);
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const aiTriggerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -60,6 +75,14 @@ const NoteComponent: React.FC = () => {
     getWordSuggestions,
     clearSpellCheck,
   } = useSpellCheck(isBanglaMode);
+
+  const toggleSidebar = useCallback(() => {
+    setSidebarOpen((prev) => !prev);
+  }, []);
+
+  const closeSidebar = useCallback(() => {
+    setSidebarOpen(false);
+  }, []);
 
   const toggleLanguageMode = useCallback(() => {
     setIsBanglaMode((prevMode) => !prevMode);
@@ -132,6 +155,7 @@ const NoteComponent: React.FC = () => {
     (text: string) => {
       if (text && isBanglaMode) {
         adaptiveDictionary.learnFromText(text);
+        bigramStore.learnFromText(text);
       }
     },
     30000, // Learn after 30 seconds of no typing
@@ -183,14 +207,15 @@ const NoteComponent: React.FC = () => {
   
   // Initialize adaptive dictionary on client and learn from notes
   useEffect(() => {
-    // Initialize the adaptive dictionary on client side
     adaptiveDictionary.initializeOnClient();
+    bigramStore.initializeOnClient();
 
     // Learn from all existing notes on initial load
     if (notes.length > 0) {
       notes.forEach(note => {
         if (note.content) {
           adaptiveDictionary.learnFromText(note.content);
+          bigramStore.learnFromText(note.content);
         }
       });
     }
@@ -210,14 +235,29 @@ const NoteComponent: React.FC = () => {
   }, [aiSuggestion]);
 
 
-  const updateGhostSuggestionInternal = useCallback((word: string) => {
+  const updateGhostSuggestionInternal = useCallback((word: string, prevWord?: string, cursorPos?: number) => {
     if (word && word.length >= 1 && isBanglaMode) {
-      const suggestions = adaptiveDictionary.getSuggestions(word, 10);
+      // Get trie-based suggestions (unigram)
+      const trieSuggestions = adaptiveDictionary.getSuggestions(word, 10);
 
-      if (suggestions.length > 0) {
-        const bestMatch = suggestions[0];
+      // Get bigram-boosted suggestions if we have a previous word
+      let bestMatch: string | undefined;
+      if (prevWord) {
+        const bigramHits = bigramStore.getSuggestionsWithPrefix(prevWord, word, 5);
+        if (bigramHits.length > 0) {
+          bestMatch = bigramHits[0];
+        }
+      }
+
+      // Fall back to trie if no bigram match
+      if (!bestMatch && trieSuggestions.length > 0) {
+        bestMatch = trieSuggestions[0];
+      }
+
+      if (bestMatch) {
         const completion = bestMatch.substring(word.length);
         setGhostSuggestion(completion);
+        setGhostCursorPos(cursorPos ?? 0);
         setIsAISuggestionActive(false);
       } else {
         setGhostSuggestion('');
@@ -382,21 +422,70 @@ const NoteComponent: React.FC = () => {
         const textarea = textareaRef.current;
         const text = textarea.value;
         const cursorPos = textarea.selectionStart;
-        
-        if (cursorPos === text.length) {
-          let start = cursorPos;
-          while (start > 0 && !/[\s\.,;!?।]/.test(text[start - 1])) {
-            start--;
-          }
-          const word = text.substring(start, cursorPos);
-            updateGhostSuggestion(word);
+
+        let start = cursorPos;
+        while (start > 0 && !/[\s\.,;!?।]/.test(text[start - 1])) {
+          start--;
+        }
+        const word = text.substring(start, cursorPos);
+        if (word) {
+          updateGhostSuggestion(word, getPrevWord(text, start), cursorPos);
         }
       }, 10);
     }
   };
 
+  // Handle mobile input via beforeinput event.
+  // Mobile keyboards fire this with inputType="insertText" and event.data = typed char.
+  const handleBeforeInput = useCallback((e: React.FormEvent<HTMLTextAreaElement>) => {
+    if (!isBanglaMode) return;
+
+    const inputEvent = e.nativeEvent as InputEvent;
+    // Only intercept single-character text insertion (typing)
+    if (inputEvent.inputType !== 'insertText' || !inputEvent.data) return;
+
+    // Check if the keydown handler already processed this (desktop path).
+    // On desktop, keydown fires first with a real key and calls preventDefault().
+    // On mobile, keydown fires with "Unidentified" and does NOT preventDefault(),
+    // so beforeinput fires next — that's where we handle it.
+    // We detect mobile by checking if the event is cancelable (it always is for beforeinput)
+    // and if the typed char is a Latin letter (phonetic input).
+    const char = inputEvent.data;
+    if (char.length !== 1) return;
+
+    // Only transliterate ASCII characters (phonetic Roman input)
+    const code = char.charCodeAt(0);
+    const isAsciiPrintable = code >= 32 && code <= 126;
+    if (!isAsciiPrintable) return;
+
+    e.preventDefault();
+    banglaInputHandler.processCharInput(
+      textareaRef,
+      currentNote,
+      setCurrentNote,
+      char
+    );
+
+    // Update ghost suggestions after transliteration
+    setTimeout(() => {
+      if (!textareaRef.current) return;
+      const textarea = textareaRef.current;
+      const text = textarea.value;
+      const cursorPos = textarea.selectionStart;
+
+      let start = cursorPos;
+      while (start > 0 && !/[\s\.,;!?।]/.test(text[start - 1])) {
+        start--;
+      }
+      const word = text.substring(start, cursorPos);
+      if (word) {
+        updateGhostSuggestion(word, getPrevWord(text, start), cursorPos);
+      }
+    }, 10);
+  }, [isBanglaMode, banglaInputHandler, currentNote, setCurrentNote, updateGhostSuggestion]);
+
   // Add a direct input handler to catch actual typed characters
-  const handleInput = useCallback((e: any) => {
+  const handleInput = useCallback((e: React.FormEvent<HTMLTextAreaElement>) => {
     if (!isBanglaMode) {
       setGhostSuggestion('');
       return;
@@ -406,22 +495,17 @@ const NoteComponent: React.FC = () => {
     const text = textarea.value;
     const cursorPos = textarea.selectionStart;
     
-    if (cursorPos !== text.length) {
-      setGhostSuggestion('');
-      return;
-    }
-    
     // Find current word at cursor position
     let start = cursorPos;
     while (start > 0 && !/[\s\.,;!?।]/.test(text[start - 1])) {
       start--;
     }
-    
+
     const currentWordAtCursor = text.substring(start, cursorPos);
-    
+
     // Only update if we have a word
     if (currentWordAtCursor && currentWordAtCursor.length > 0) {
-      updateGhostSuggestion(currentWordAtCursor);
+      updateGhostSuggestion(currentWordAtCursor, getPrevWord(text, start), cursorPos);
     } else {
       setGhostSuggestion('');
     }
@@ -462,6 +546,12 @@ const NoteComponent: React.FC = () => {
         
         if (lastWord && lastWord.length >= 2) {
           adaptiveDictionary.learnWord(lastWord);
+
+          // Learn bigram: second-to-last word → last word
+          const prevWord = words.length >= 2 ? words[words.length - 2] : undefined;
+          if (prevWord && prevWord.length >= 2) {
+            bigramStore.recordBigram(prevWord, lastWord);
+          }
         }
         
         // Clear word suggestion
@@ -484,15 +574,15 @@ const NoteComponent: React.FC = () => {
       } else {
         // Check for word suggestions on every change
         if (isBanglaMode) {
-          const cursorPos = value.length;
+          const cursorPos = e.target.selectionStart;
           let start = cursorPos;
           while (start > 0 && !/[\s\.,;!?।]/.test(value[start - 1])) {
             start--;
           }
           const word = value.substring(start, cursorPos);
           if (word && word.length > 0) {
-            // Show word suggestions
-            updateGhostSuggestion(word);
+            // Show word suggestions (with bigram context)
+            updateGhostSuggestion(word, getPrevWord(value, start), cursorPos);
           }
         }
       }
@@ -509,8 +599,19 @@ const NoteComponent: React.FC = () => {
       <Onboarding />
       {/* Top Navigation Bar */}
       <header className="topbar">
-        <h1 className="topbar-title">কাগজ</h1>
-        
+        <div className="topbar-left">
+          <button
+            className="btn-hamburger"
+            onClick={toggleSidebar}
+            aria-label="Toggle sidebar"
+          >
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <h1 className="topbar-title">কাগজ</h1>
+        </div>
+
         <div className="topbar-controls">
           {/* Keyboard Shortcuts Button */}
           <div style={{ position: 'relative' }}>
@@ -579,8 +680,13 @@ const NoteComponent: React.FC = () => {
 
       {/* Main Content Area */}
       <div className="main-content">
+        {/* Sidebar Backdrop (mobile) */}
+        {sidebarOpen && (
+          <div className="sidebar-backdrop" onClick={closeSidebar} />
+        )}
+
         {/* Sidebar */}
-        <aside className="sidebar">
+        <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
           <div className="sidebar-header">
             <button
               onClick={createNewNote}
@@ -592,13 +698,16 @@ const NoteComponent: React.FC = () => {
               <span>নতুন কাগজ</span>
             </button>
           </div>
-          
+
           <div className="sidebar-content">
             <h2 className="sidebar-title">সকল নোট</h2>
             <NoteList
               notes={notes}
               selectedNoteIndex={selectedNoteIndex}
-              onSelect={selectNote}
+              onSelect={(index) => {
+                selectNote(index);
+                closeSidebar();
+              }}
               onDelete={deleteNote}
             />
           </div>
@@ -644,6 +753,22 @@ const NoteComponent: React.FC = () => {
                   );
                 }
               }}
+              onBeforeInput={(e) => {
+                if (!isBanglaMode) return;
+                const inputEvent = e.nativeEvent as InputEvent;
+                if (inputEvent.inputType !== 'insertText' || !inputEvent.data) return;
+                const char = inputEvent.data;
+                if (char.length !== 1) return;
+                const code = char.charCodeAt(0);
+                if (code < 32 || code > 126) return;
+                e.preventDefault();
+                banglaInputHandler.processCharInput(
+                  titleInputRef as unknown as React.RefObject<HTMLTextAreaElement>,
+                  currentTitle,
+                  setCurrentTitle,
+                  char
+                );
+              }}
             />
             <div className="title-divider"><hr /></div>
             <div className="editor-wrapper">
@@ -652,6 +777,7 @@ const NoteComponent: React.FC = () => {
                 value={currentNote}
                 onChange={handleChange}
                 onKeyDown={handleKeyPress}
+                onBeforeInput={handleBeforeInput}
                 onInput={handleInput}
                 textareaRef={textareaRef}
                 fontSize={fontSize}
@@ -660,9 +786,11 @@ const NoteComponent: React.FC = () => {
                 <GhostText
                   currentText={currentNote}
                   suggestion={ghostSuggestion}
+                  cursorPos={ghostCursorPos}
                   fontSize={fontSize}
                   textareaRef={textareaRef}
                   isAISuggestion={isAISuggestionActive}
+                  onAccept={acceptGhostSuggestion}
                 />
               )}
               {/* Spelling Error Overlay */}

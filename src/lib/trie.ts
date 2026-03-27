@@ -49,8 +49,8 @@ export class BanglaTrie {
       node.frequency = frequency;
       this.wordCount++;
     } else {
-      // Word already exists — accumulate frequency
-      node.frequency += frequency;
+      // Word already exists — set to new frequency (supports recency-weighted scores)
+      node.frequency = Math.max(node.frequency, frequency);
     }
   }
 

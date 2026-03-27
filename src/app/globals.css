@@ -144,6 +144,12 @@ h1, h2, h3, h4, h5, h6 {
   transition: all var(--transition-base);
 }
 
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .topbar-title {
   font-family: var(--font-display);
   font-size: 20px;
@@ -153,6 +159,31 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+/* ── Hamburger Button (hidden on desktop) ── */
+.btn-hamburger {
+  display: none;
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-hamburger:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.btn-hamburger:active {
+  background-color: var(--bg-accent);
 }
 
 .topbar-controls {
@@ -619,6 +650,16 @@ html.dark .note-item.selected {
   line-height: 1.6;
 }
 
+/* Desktop: show Tab hint, hide mobile accept bar */
+.ghost-text-hint-desktop {
+  display: inline-block;
+}
+
+/* Mobile accept bar — hidden on desktop */
+.ghost-accept-bar {
+  display: none;
+}
+
 /* ── Empty State ── */
 .empty-state {
   display: flex;
@@ -909,6 +950,8 @@ html.dark .note-item.selected {
 }
 
 /* ── Responsive ── */
+
+/* Tablet */
 @media (max-width: 900px) {
   :root {
     --sidebar-width: 240px;
@@ -920,38 +963,197 @@ html.dark .note-item.selected {
   }
 }
 
+/* Mobile */
 @media (max-width: 640px) {
   :root {
-    --sidebar-width: 240px;
+    --sidebar-width: 280px;
   }
 
+  /* Show hamburger */
+  .btn-hamburger {
+    display: flex;
+  }
+
+  /* Sidebar: off-screen drawer */
   .sidebar {
     position: fixed;
-    left: calc(-1 * var(--sidebar-width));
-    z-index: 95;
-    transition: left var(--transition-base);
+    top: var(--topbar-height);
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-width);
+    z-index: 110;
+    transform: translateX(-100%);
+    transition: transform var(--transition-base);
+    box-shadow: none;
   }
 
   .sidebar.open {
-    left: 0;
+    transform: translateX(0);
+    box-shadow: var(--shadow-xl);
   }
 
+  /* Backdrop behind sidebar */
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    top: var(--topbar-height);
+    background-color: rgb(0 0 0 / 0.4);
+    z-index: 105;
+    animation: fadeIn 0.2s ease-out;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Topbar: compact */
+  .topbar {
+    padding: 0 12px;
+  }
+
+  .topbar-title {
+    font-size: 18px;
+  }
+
+  .topbar-controls {
+    gap: 12px;
+  }
+
+  /* Hide toggle labels on mobile */
+  .toggle-label {
+    display: none;
+  }
+
+  /* Editor padding */
   .text-editor,
   .ghost-text-overlay {
-    padding: 24px 20px !important;
-    font-size: 15px;
+    padding: 24px 16px !important;
   }
 
-  .topbar {
+  .note-title-input {
+    font-size: 24px;
+    padding: 16px 16px 0 16px;
+  }
+
+  .title-divider {
     padding: 0 16px;
+    margin-top: 8px;
   }
 
+  .editor-main {
+    padding-top: 24px;
+  }
+
+  /* Editor wrapper: remove side borders on mobile */
+  .editor-wrapper {
+    border-left: none;
+    border-right: none;
+  }
+
+  /* Toolbar: horizontally scrollable */
   .editor-toolbar {
-    padding: 6px 12px;
+    padding: 6px 8px;
+    overflow-x: auto;
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
 
+  .editor-toolbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .toolbar-group {
+    flex-shrink: 0;
+  }
+
+  /* Spelling modal full-width on mobile */
   .spelling-modal-overlay {
     left: 0;
+  }
+
+  .spelling-container {
+    width: 95%;
+    max-width: none;
+    border-radius: var(--radius-lg);
+  }
+
+  /* Shortcuts panel full-width on mobile */
+  .shortcuts-panel {
+    right: 8px;
+    left: 8px;
+    min-width: unset;
+    max-width: none;
+  }
+
+  /* Word suggestion popup */
+  .word-suggestion-popup {
+    max-width: calc(100vw - 32px);
+  }
+
+  /* Note delete always visible on touch */
+  .note-delete {
+    opacity: 0.5;
+  }
+
+  /* Ghost text: hide desktop Tab hint, show floating accept bar */
+  .ghost-text-hint-desktop {
+    display: none;
+  }
+
+  .ghost-accept-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    z-index: 10;
+    background-color: var(--bg-elevated);
+    border: 1px solid var(--accent-primary);
+    border-radius: var(--radius-lg);
+    padding: 8px 14px;
+    box-shadow: var(--shadow-md);
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--text-primary);
+    max-width: calc(100vw - 48px);
+    animation: popUp 0.15s ease-out;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .ghost-accept-bar:active {
+    background-color: var(--accent-primary-light);
+    transform: scale(0.97);
+  }
+
+  .ghost-accept-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--accent-primary);
+    font-weight: 500;
+  }
+
+  .ghost-accept-bar kbd {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-secondary);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: ui-monospace, 'SF Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    box-shadow: 0 1px 0 var(--border-secondary);
+    flex-shrink: 0;
+  }
+
+  /* Spelling overlay: match mobile editor padding */
+  .spelling-overlay-inner {
+    padding: 24px 16px !important;
+  }
+
+  /* Spelling popup keyboard hint — hide on mobile */
+  .spelling-keyboard-hint {
+    display: none;
   }
 }
 
@@ -1175,15 +1377,17 @@ textarea:focus-visible {
   color: var(--text-secondary);
 }
 
-/* ── Responsive: Title Input ── */
+/* ── Responsive: Title Input & Spelling Overlay ── */
 @media (max-width: 900px) {
   .note-title-input {
     padding: 32px 36px 0 36px;
   }
-}
 
-@media (max-width: 640px) {
-  .note-title-input {
-    padding: 24px 20px 0 20px;
+  .title-divider {
+    padding: 0 36px;
+  }
+
+  .spelling-overlay-inner {
+    padding: 32px 36px !important;
   }
 }
