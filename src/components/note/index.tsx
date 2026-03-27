@@ -5,8 +5,10 @@ import { NoteList } from './note-list';
 import { NoteEditor } from './note-editor';
 import { GhostText } from './ghost-text';
 import { SpellingOverlay } from './spelling-overlay';
+import { WordSuggestionPopup } from './word-suggestion-popup';
 import { Toolbar } from './toolbar';
 import { KeyboardShortcutsPanel } from './keyboard-shortcuts-panel';
+import { Onboarding } from './onboarding';
 import { useNotes } from './use-notes';
 import { useSpellCheck } from '@/hooks/useSpellCheck';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -16,7 +18,7 @@ import { BanglaInputHandler } from '@/lib/bangla-input-handler';
 import { adaptiveDictionary } from '@/lib/adaptive-dictionary';
 
 const FONT_SIZE_KEY = 'noteFontSize';
-const DEFAULT_FONT_SIZE = 16;
+const DEFAULT_FONT_SIZE = 28;
 const THEME_KEY = 'noteTheme';
 
 const NoteComponent: React.FC = () => {
@@ -51,12 +53,11 @@ const NoteComponent: React.FC = () => {
   // Use the spell check hook
   const {
     spellingErrors,
-    isCheckingSpelling,
     showSpellingErrors,
-    checkSpelling,
     scheduleSpellCheck,
     handleSpellingCorrection,
     handleIgnoreSpelling,
+    getWordSuggestions,
     clearSpellCheck,
   } = useSpellCheck(isBanglaMode);
 
@@ -231,12 +232,6 @@ const NoteComponent: React.FC = () => {
   // Debounced version of updateGhostSuggestion — 50ms for fast dictionary completion
   const updateGhostSuggestion = useDebounce(updateGhostSuggestionInternal, 50, [updateGhostSuggestionInternal]);
 
-  // Wrapper for spell check hook functions
-  const handleSpellCheck = useCallback(() => {
-    const textToCheck = textareaRef.current?.value || currentNote;
-    checkSpelling(textToCheck);
-  }, [checkSpelling, currentNote]);
-  
   const handleCorrection = useCallback((error: any) => {
     handleSpellingCorrection(error, currentNote, setCurrentNote);
     
@@ -249,6 +244,20 @@ const NoteComponent: React.FC = () => {
       }, 0);
     }
   }, [handleSpellingCorrection, currentNote, setCurrentNote]);
+
+  const handleWordReplace = useCallback((start: number, end: number, replacement: string) => {
+    const text = currentNote;
+    const newText = text.substring(0, start) + replacement + text.substring(end);
+    setCurrentNote(newText);
+
+    if (textareaRef.current) {
+      setTimeout(() => {
+        const newPos = start + replacement.length;
+        textareaRef.current!.selectionStart = textareaRef.current!.selectionEnd = newPos;
+        textareaRef.current!.focus();
+      }, 0);
+    }
+  }, [currentNote, setCurrentNote]);
 
   const acceptGhostSuggestion = useCallback(() => {
     if (!ghostSuggestion || !textareaRef.current) return false;
@@ -351,9 +360,15 @@ const NoteComponent: React.FC = () => {
       }
     }
     
-    // Process Bangla input (skip for navigation keys)
-    const navigationKeys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'];
-    if (isBanglaMode && !navigationKeys.includes(e.key)) {
+    // Process Bangla input (skip for navigation keys and Delete)
+    const skipKeys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown', 'Delete'];
+    // Let browser handle Backspace/Delete natively when text is selected
+    const hasSelection = textareaRef.current &&
+      textareaRef.current.selectionStart !== textareaRef.current.selectionEnd;
+    if (hasSelection && (e.key === 'Backspace' || e.key === 'Delete')) {
+      return;
+    }
+    if (isBanglaMode && !skipKeys.includes(e.key)) {
       banglaInputHandler.processInputKeyPress(
         textareaRef,
         currentNote,
@@ -491,6 +506,7 @@ const NoteComponent: React.FC = () => {
 
   return (
     <div className="app-container">
+      <Onboarding />
       {/* Top Navigation Bar */}
       <header className="topbar">
         <h1 className="topbar-title">কাগজ</h1>
@@ -542,11 +558,11 @@ const NoteComponent: React.FC = () => {
             >
               <span className="toggle-switch-handle">
                 {isClient && isDarkMode ? (
-                  <svg className="w-4 h-4 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                  <svg width="12" height="12" fill="currentColor" viewBox="0 0 20 20" style={{ color: 'var(--accent-primary)' }}>
                     <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
                   </svg>
                 ) : (
-                  <svg className="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                  <svg width="12" height="12" fill="currentColor" viewBox="0 0 20 20" style={{ color: 'var(--accent-warning)' }}>
                     <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
                   </svg>
                 )}
@@ -600,9 +616,12 @@ const NoteComponent: React.FC = () => {
             onFormatHighlight={formatHighlight}
             onInsertBullet={insertBullet}
             onInsertNumberedList={insertNumberedList}
-            onCheckSpelling={handleSpellCheck}
-            isCheckingSpelling={isCheckingSpelling}
             isBanglaMode={isBanglaMode}
+            fontSize={fontSize}
+            onFontSizeChange={(newSize: number) => {
+              setFontSize(newSize);
+              localStorage.setItem(FONT_SIZE_KEY, String(newSize));
+            }}
           />
 
           {/* Editor Main Area */}
@@ -626,15 +645,8 @@ const NoteComponent: React.FC = () => {
                 }
               }}
             />
+            <div className="title-divider"><hr /></div>
             <div className="editor-wrapper">
-              {isCheckingSpelling && (
-                <div className="spell-check-loading">
-                  <span className="spell-check-dot" />
-                  বানান পরীক্ষা হচ্ছে...
-                </div>
-              )}
-              
-              {/* Removed Spelling Errors Indicator Alert Box */}
               
               <NoteEditor
                 value={currentNote}
@@ -664,6 +676,13 @@ const NoteComponent: React.FC = () => {
                   onIgnore={handleIgnoreSpelling}
                 />
               )}
+              {/* Word Suggestion Popup — shows when user highlights a word */}
+              <WordSuggestionPopup
+                textareaRef={textareaRef}
+                isBanglaMode={isBanglaMode}
+                getSuggestions={getWordSuggestions}
+                onReplace={handleWordReplace}
+              />
             </div>
           </div>
         </div>

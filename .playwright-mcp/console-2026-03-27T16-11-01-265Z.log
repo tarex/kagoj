@@ -1,0 +1,47 @@
+[    3126ms] [WARNING] The resource http://localhost:3000/_next/static/media/6ea8d1bb8ea4af7a-s.p.0h.y3vqusyrtt.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3000/:0
+[    3126ms] [WARNING] The resource http://localhost:3000/_next/static/media/30bdb5bb2b173ee1-s.p.0ax_sc6jzt9vy.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3000/:0
+[  332739ms] ReferenceError: checkSpelling is not defined
+    at NoteComponent (http://localhost:3000/_next/static/chunks/src_components_note_0icgh76._.js?id=%255Bproject%255D%252Fsrc%252Fcomponents%252Fnote%252Findex.tsx+%255Bapp-client%255D+%2528ecmascript%2529:271:9)
+    at Object.react_stack_bottom_frame (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:15037:24)
+    at renderWithHooks (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:4620:24)
+    at updateFunctionComponent (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:6081:21)
+    at beginWork (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:6691:24)
+    at runWithFiberInDEV (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:965:74)
+    at performUnitOfWork (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:9555:97)
+    at workLoopSync (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:9449:40)
+    at renderRootSync (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:9433:13)
+    at performWorkOnRoot (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:9098:47)
+    at performSyncWorkOnRoot (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:10263:9)
+    at flushSyncWorkAcrossRoots_impl (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:10179:316)
+    at flushSyncWork$1 (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:9230:86)
+    at Object.scheduleRefresh (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:299:13)
+    at http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_0.4fdo-._.js:391:33
+    at Set.forEach (<anonymous>)
+    at Object.performReactRefresh (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_0.4fdo-._.js:384:38)
+    at applyUpdate (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_0.4fdo-._.js:878:31)
+    at http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_0.4fdo-._.js:886:13
+[  335796ms] [WARNING] The resource http://localhost:3000/_next/static/media/6ea8d1bb8ea4af7a-s.p.0h.y3vqusyrtt.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3000/:0
+[  335796ms] [WARNING] The resource http://localhost:3000/_next/static/media/30bdb5bb2b173ee1-s.p.0ax_sc6jzt9vy.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3000/:0
+[  345485ms] [WARNING] [Fast Refresh] performing full reload because your application had an unrecoverable error @ http://localhost:3000/_next/static/chunks/06_a_next_dist_0k1~_1_._.js:2431
+[  356149ms] ReferenceError: onCheckSpelling is not defined
+    at _c2 (http://localhost:3000/_next/static/chunks/src_components_note_0icgh76._.js?id=%255Bproject%255D%252Fsrc%252Fcomponents%252Fnote%252Ftoolbar.tsx+%255Bapp-client%255D+%2528ecmascript%2529:399:30)
+    at Object.react_stack_bottom_frame (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:15037:24)
+    at renderWithHooks (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:4620:24)
+    at updateFunctionComponent (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:6081:21)
+    at updateSimpleMemoComponent (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:5944:16)
+    at beginWork (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:6780:24)
+    at runWithFiberInDEV (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:965:74)
+    at performUnitOfWork (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:9555:97)
+    at workLoopSync (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:9449:40)
+    at renderRootSync (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:9433:13)
+    at performWorkOnRoot (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:9098:47)
+    at performSyncWorkOnRoot (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:10263:9)
+    at flushSyncWorkAcrossRoots_impl (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:10179:316)
+    at flushSyncWork$1 (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:9230:86)
+    at Object.scheduleRefresh (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_react-dom_0feet..._.js:299:13)
+    at http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_0.4fdo-._.js:391:33
+    at Set.forEach (<anonymous>)
+    at Object.performReactRefresh (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_0.4fdo-._.js:384:38)
+    at applyUpdate (http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_0.4fdo-._.js:878:31)
+    at http://localhost:3000/_next/static/chunks/06_a_next_dist_compiled_0.4fdo-._.js:886:13
+[  358648ms] [WARNING] [Fast Refresh] performing full reload because your application had an unrecoverable error @ http://localhost:3000/_next/static/chunks/06_a_next_dist_0k1~_1_._.js:2431

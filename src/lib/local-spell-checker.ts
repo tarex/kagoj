@@ -364,10 +364,44 @@ export function isSpelledCorrectly(word: string): boolean {
   return adaptiveDictionary.isKnownWord(cleanedWord);
 }
 
-// Get suggestions for a partial word
-export function getSpellingSuggestions(partial: string, limit: number = 5): string[] {
-  if (!partial || partial.length < 1) return [];
-  return adaptiveDictionary.getSuggestions(partial, limit);
+// Get fuzzy suggestions for a word using phonetic distance
+export function getSpellingSuggestions(word: string, limit: number = 5): string[] {
+  if (!word || word.length < 2) return [];
+
+  // 1. Check common mistakes first
+  const commonFix = commonMistakes[word];
+
+  // 2. Get candidates from multiple prefix lengths to cast a wider net
+  const candidates = new Set<string>();
+  for (let prefixLen = Math.max(1, word.length - 3); prefixLen <= Math.min(word.length, word.length - 1); prefixLen++) {
+    if (prefixLen < 1) continue;
+    const prefix = word.slice(0, prefixLen);
+    for (const s of adaptiveDictionary.getSuggestions(prefix, 30)) {
+      candidates.add(s);
+    }
+  }
+
+  // 3. Score by phonetic distance, keep only close matches
+  const maxDist = Math.min(3, Math.ceil(word.length * 0.6));
+  const scored: { word: string; distance: number }[] = [];
+
+  if (commonFix) {
+    scored.push({ word: commonFix, distance: 0 });
+  }
+
+  for (const candidate of candidates) {
+    if (candidate === word) continue;
+    if (Math.abs(candidate.length - word.length) > maxDist) continue;
+    const dist = phoneticDistance(word, candidate);
+    if (dist <= maxDist) {
+      scored.push({ word: candidate, distance: dist });
+    }
+  }
+
+  // Sort by distance (closest first), then shorter words first
+  scored.sort((a, b) => a.distance - b.distance || a.word.length - b.word.length);
+
+  return scored.slice(0, limit).map(s => s.word);
 }
 
 // Export function to learn from user's text

@@ -38,10 +38,14 @@ export const useNotes = () => {
         setNotes(migratedNotes);
       }
 
-      // Load current unsaved note from localStorage
+      // Load current unsaved note and title from localStorage
       const savedCurrentNote = localStorage.getItem('currentNote');
       if (savedCurrentNote) {
         setCurrentNote(savedCurrentNote);
+      }
+      const savedCurrentTitle = localStorage.getItem('currentTitle');
+      if (savedCurrentTitle) {
+        setCurrentTitleState(savedCurrentTitle);
       }
 
       setIsInitialized(true);
@@ -52,12 +56,18 @@ export const useNotes = () => {
     }
   }, []);
 
-  // Save current note to localStorage whenever it changes
+  // Save current note and title to localStorage whenever they change
   useEffect(() => {
     if (isInitialized) {
       localStorage.setItem('currentNote', currentNote);
     }
   }, [currentNote, isInitialized]);
+
+  useEffect(() => {
+    if (isInitialized) {
+      localStorage.setItem('currentTitle', currentTitle);
+    }
+  }, [currentTitle, isInitialized]);
 
   const createNewNote = () => {
     // Save current note if it has content or title
@@ -102,7 +112,8 @@ export const useNotes = () => {
     // Clear content and title for the new note
     setCurrentNote('');
     setCurrentTitleState('');
-    localStorage.removeItem('currentNote'); // Clear current note from localStorage
+    localStorage.removeItem('currentNote');
+    localStorage.removeItem('currentTitle');
   };
 
   const saveCurrentNote = () => {
@@ -149,6 +160,7 @@ export const useNotes = () => {
       setCurrentTitleState('');
       setSelectedNoteIndex(null);
       localStorage.removeItem('currentNote');
+      localStorage.removeItem('currentTitle');
     } else if (selectedNoteIndex !== null && index < selectedNoteIndex) {
       // Adjust selected index if we deleted a note before the selected one
       setSelectedNoteIndex(selectedNoteIndex - 1);

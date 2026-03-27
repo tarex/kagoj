@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { adaptiveDictionary } from '@/lib/adaptive-dictionary';
-import { checkSpelling as localCheckSpelling, learnFromText } from '@/lib/local-spell-checker';
+import { checkSpelling as localCheckSpelling, getSpellingSuggestions } from '@/lib/local-spell-checker';
 
 interface SpellingError {
   word: string;
@@ -112,9 +112,6 @@ export const useSpellCheck = (isBanglaMode: boolean) => {
     idleCallbackRef.current = scheduleIdle(() => {
       idleCallbackRef.current = null;
       try {
-        // Learn from the text to improve adaptive dictionary
-        learnFromText(text);
-
         const errors = localCheckSpelling(text);
 
         if (errors && errors.length > 0) {
@@ -237,6 +234,11 @@ export const useSpellCheck = (isBanglaMode: boolean) => {
     });
   }, []);
 
+  const getWordSuggestions = useCallback((word: string): string[] => {
+    if (!word || word.length < 2) return [];
+    return getSpellingSuggestions(word, 5);
+  }, []);
+
   const clearSpellCheck = useCallback(() => {
     setSpellingErrors([]);
     setShowSpellingErrors(false);
@@ -257,6 +259,7 @@ export const useSpellCheck = (isBanglaMode: boolean) => {
     scheduleSpellCheck,
     handleSpellingCorrection,
     handleIgnoreSpelling,
+    getWordSuggestions,
     clearSpellCheck,
   };
 };

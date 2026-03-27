@@ -9,10 +9,28 @@ interface ToolbarProps {
   onFormatHighlight: () => void;
   onInsertBullet: () => void;
   onInsertNumberedList: () => void;
-  onCheckSpelling: () => void;
-  isCheckingSpelling: boolean;
   isBanglaMode: boolean;
+  fontSize: number;
+  onFontSizeChange: (size: number) => void;
 }
+
+const ToolbarSep = () => <div className="toolbar-sep" />;
+
+const ToolbarBtn: React.FC<{
+  onClick: () => void;
+  title: string;
+  disabled?: boolean;
+  children: React.ReactNode;
+}> = ({ onClick, title, disabled, children }) => (
+  <button
+    onClick={onClick}
+    className="toolbar-btn"
+    title={title}
+    disabled={disabled}
+  >
+    {children}
+  </button>
+);
 
 export const Toolbar: React.FC<ToolbarProps> = React.memo(({
   onFormatBold,
@@ -23,109 +41,102 @@ export const Toolbar: React.FC<ToolbarProps> = React.memo(({
   onFormatHighlight,
   onInsertBullet,
   onInsertNumberedList,
-  onCheckSpelling,
-  isCheckingSpelling,
   isBanglaMode,
+  fontSize,
+  onFontSizeChange,
 }) => {
   return (
     <div className="editor-toolbar">
-      <div className="toolbar-formatting-group">
-        {/* Text Formatting Controls */}
-        <div className="flex-center gap-2">
-          <button
-            onClick={onFormatBold}
-            className="btn-toolbar format-btn-with-text"
-            title="Bold (Ctrl+B)"
-          >
-            <span style={{ fontWeight: 'bold', fontSize: '16px' }}>B</span>
-            <span className="format-btn-label">Bold</span>
-          </button>
+      <div className="toolbar-group">
+        {/* Text style */}
+        <ToolbarBtn onClick={onFormatBold} title="Bold (Ctrl+B)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M6 4h8a4 4 0 0 1 2.69 6.97A4 4 0 0 1 15 20H6V4zm2 8h6a2 2 0 1 0 0-4H8v4zm0 2v4h7a2 2 0 1 0 0-4H8z"/>
+          </svg>
+        </ToolbarBtn>
+        <ToolbarBtn onClick={onFormatItalic} title="Italic (Ctrl+I)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M15 4H9v2h2.23l-3.46 12H5v2h6v-2H8.77l3.46-12H15V4z"/>
+          </svg>
+        </ToolbarBtn>
+        <ToolbarBtn onClick={onFormatUnderline} title="Underline (Ctrl+U)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 17c3.31 0 6-2.69 6-6V3h-2.5v8c0 1.93-1.57 3.5-3.5 3.5S8.5 12.93 8.5 11V3H6v8c0 3.31 2.69 6 6 6zm-7 2v2h14v-2H5z"/>
+          </svg>
+        </ToolbarBtn>
+        <ToolbarBtn onClick={onFormatStrikethrough} title="Strikethrough (Ctrl+D)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3 12h18v2H3v-2zm4.5-2c0-.28.22-.5.5-.5h8c.28 0 .5.22.5.5H18c0-1.38-1.12-2.5-2.5-2.5h-2V5h-3v2.5h-2C7.12 7.5 6 8.62 6 10h1.5zm9 4c0 .28-.22.5-.5.5H8c-.28 0-.5-.22-.5-.5H6c0 1.38 1.12 2.5 2.5 2.5h2V19h3v-2.5h2c1.38 0 2.5-1.12 2.5-2.5h-1.5z"/>
+          </svg>
+        </ToolbarBtn>
 
-          <button
-            onClick={onFormatItalic}
-            className="btn-toolbar format-btn-with-text"
-            title="Italic (Ctrl+I)"
-          >
-            <span style={{ fontStyle: 'italic', fontSize: '16px' }}>I</span>
-            <span className="format-btn-label">Italic</span>
-          </button>
+        <ToolbarSep />
 
-          <button
-            onClick={onFormatUnderline}
-            className="btn-toolbar format-btn-with-text"
-            title="Underline (Ctrl+U)"
-          >
-            <span style={{ textDecoration: 'underline', fontSize: '16px' }}>U</span>
-            <span className="format-btn-label">Underline</span>
-          </button>
+        {/* Semantic */}
+        <ToolbarBtn onClick={onFormatCode} title="Code (Ctrl+E)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="16 18 22 12 16 6" />
+            <polyline points="8 6 2 12 8 18" />
+          </svg>
+        </ToolbarBtn>
+        <ToolbarBtn onClick={onFormatHighlight} title="Highlight (Ctrl+H)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m9 11-6 6v3h9l3-3" />
+            <path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4" />
+          </svg>
+        </ToolbarBtn>
 
-          <button
-            onClick={onFormatStrikethrough}
-            className="btn-toolbar format-btn-with-text"
-            title="Strikethrough (Ctrl+D)"
-          >
-            <span style={{ textDecoration: 'line-through', fontSize: '16px' }}>S</span>
-            <span className="format-btn-label">Strike</span>
-          </button>
+        <ToolbarSep />
 
-          <div className="border-l border-gray-300 dark:border-gray-600 mx-2 h-6"></div>
+        {/* Lists */}
+        <ToolbarBtn onClick={onInsertBullet} title="Bullet list">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="4" cy="6" r="1.5" />
+            <circle cx="4" cy="12" r="1.5" />
+            <circle cx="4" cy="18" r="1.5" />
+            <rect x="8" y="5" width="13" height="2" rx="1" />
+            <rect x="8" y="11" width="13" height="2" rx="1" />
+            <rect x="8" y="17" width="13" height="2" rx="1" />
+          </svg>
+        </ToolbarBtn>
+        <ToolbarBtn onClick={onInsertNumberedList} title="Numbered list">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <text x="1" y="8" fontSize="7" fontWeight="600" fontFamily="system-ui">1</text>
+            <text x="1" y="14.5" fontSize="7" fontWeight="600" fontFamily="system-ui">2</text>
+            <text x="1" y="21" fontSize="7" fontWeight="600" fontFamily="system-ui">3</text>
+            <rect x="9" y="5" width="12" height="2" rx="1" />
+            <rect x="9" y="11" width="12" height="2" rx="1" />
+            <rect x="9" y="17" width="12" height="2" rx="1" />
+          </svg>
+        </ToolbarBtn>
 
-          <button
-            onClick={onFormatCode}
-            className="btn-toolbar format-btn-with-text"
-            title="Code (Ctrl+E)"
-          >
-            <span style={{ fontFamily: 'monospace', fontSize: '14px' }}>&lt;/&gt;</span>
-            <span className="format-btn-label">Code</span>
-          </button>
+        <ToolbarSep />
 
+        {/* Font size */}
+        <div className="toolbar-fontsize">
           <button
-            onClick={onFormatHighlight}
-            className="btn-toolbar format-btn-with-text"
-            title="Highlight (Ctrl+H)"
+            className="toolbar-btn toolbar-btn-sm"
+            onClick={() => onFontSizeChange(Math.max(12, fontSize - 2))}
+            aria-label="Decrease font size"
+            title="Decrease font size"
           >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z" clipRule="evenodd" />
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            <span className="format-btn-label">Highlight</span>
           </button>
-
-          <div className="border-l border-gray-300 dark:border-gray-600 mx-2 h-6"></div>
-
+          <span className="toolbar-fontsize-val">{fontSize}</span>
           <button
-            onClick={onInsertBullet}
-            className="btn-toolbar format-btn-with-text"
-            title="Bullet point"
+            className="toolbar-btn toolbar-btn-sm"
+            onClick={() => onFontSizeChange(Math.min(28, fontSize + 2))}
+            aria-label="Increase font size"
+            title="Increase font size"
           >
-            <span style={{ fontSize: '18px' }}>•</span>
-            <span className="format-btn-label">Bullet</span>
-          </button>
-
-          <button
-            onClick={onInsertNumberedList}
-            className="btn-toolbar format-btn-with-text"
-            title="Numbered list"
-          >
-            <span style={{ fontSize: '14px' }}>1.</span>
-            <span className="format-btn-label">Number</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
           </button>
         </div>
-        
-        {/* Spell Check Button */}
-        <div className="border-l border-gray-300 dark:border-gray-600 mx-2 h-6"></div>
-        <button
-          onClick={onCheckSpelling}
-          className="btn-toolbar format-btn-with-text"
-          title="Check spelling for entire document"
-          disabled={isCheckingSpelling || !isBanglaMode}
-          style={{
-            opacity: !isBanglaMode ? 0.5 : 1,
-            cursor: !isBanglaMode ? 'not-allowed' : 'pointer'
-          }}
-        >
-          <span style={{ fontSize: '16px' }}>✓</span>
-          <span className="format-btn-label">Spell Check</span>
-        </button>
       </div>
     </div>
   );
