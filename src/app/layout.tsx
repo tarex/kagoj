@@ -17,6 +17,9 @@ const notoBengali = Noto_Sans_Bengali({
 });
 
 export const metadata: Metadata = {
+  metadataBase: process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? new URL(`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`)
+    : new URL('http://localhost:3000'),
   title: 'কাগজ — Bangla Notebook',
   description:
     'Write Bangla text effortlessly with AI-powered suggestions and phonetic typing',
