@@ -406,8 +406,9 @@ const NoteComponent: React.FC = () => {
     const prevValue = currentNote;
     setCurrentNote(value);
     
-    // Only re-check spelling if errors are showing and text has changed
-    if (showSpellingErrors && value !== prevValue) {
+    // Always schedule spell check when in Bangla mode (not gated by showSpellingErrors)
+    // Auto-invalidation handles immediate error removal; debounce catches new errors
+    if (isBanglaMode) {
       scheduleSpellCheck(value, 2000); // Re-check after 2 seconds of no typing
     }
     
@@ -475,7 +476,7 @@ const NoteComponent: React.FC = () => {
       clearAISuggestion();
       setIsAISuggestionActive(false);
     }
-  }, [currentNote, showSpellingErrors, scheduleSpellCheck, selectedNoteIndex, saveCurrentNote, isBanglaMode, setGhostSuggestion, updateGhostSuggestion, requestAISuggestion, clearAISuggestion]);
+  }, [currentNote, scheduleSpellCheck, selectedNoteIndex, saveCurrentNote, isBanglaMode, setGhostSuggestion, updateGhostSuggestion, requestAISuggestion, clearAISuggestion]);
 
   return (
     <div className="app-container">
