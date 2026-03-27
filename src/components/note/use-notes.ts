@@ -4,6 +4,7 @@ import throttle from 'lodash.throttle';
 interface Note {
   content: string;
   date: string;
+  title: string;
 }
 
 const SAVE_THROTTLE_TIME = 1000; // 1 second
@@ -11,6 +12,7 @@ const SAVE_THROTTLE_TIME = 1000; // 1 second
 export const useNotes = () => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [currentNote, setCurrentNote] = useState<string>('');
+  const [currentTitle, setCurrentTitleState] = useState<string>('');
   const [selectedNoteIndex, setSelectedNoteIndex] = useState<number | null>(
     null
   );
@@ -27,15 +29,21 @@ export const useNotes = () => {
     try {
       const savedNotes = JSON.parse(localStorage.getItem('notes') || '[]');
       if (Array.isArray(savedNotes)) {
-        setNotes(savedNotes);
+        // Migration: ensure every note has a title field
+        const migratedNotes: Note[] = savedNotes.map((note: Partial<Note>) => ({
+          content: note.content ?? '',
+          date: note.date ?? new Date().toISOString(),
+          title: note.title ?? '',
+        }));
+        setNotes(migratedNotes);
       }
-      
+
       // Load current unsaved note from localStorage
       const savedCurrentNote = localStorage.getItem('currentNote');
       if (savedCurrentNote) {
         setCurrentNote(savedCurrentNote);
       }
-      
+
       setIsInitialized(true);
     } catch (error) {
       console.error('Failed to parse notes from local storage:', error);
@@ -43,7 +51,7 @@ export const useNotes = () => {
       setIsInitialized(true);
     }
   }, []);
-  
+
   // Save current note to localStorage whenever it changes
   useEffect(() => {
     if (isInitialized) {
@@ -52,14 +60,15 @@ export const useNotes = () => {
   }, [currentNote, isInitialized]);
 
   const createNewNote = () => {
-    // Save current note if it has content
-    if (currentNote.trim()) {
+    // Save current note if it has content or title
+    if (currentNote.trim() || currentTitle.trim()) {
       if (selectedNoteIndex !== null) {
         // We're already editing a note, just save it
         const updatedNotes = [...notes];
         updatedNotes[selectedNoteIndex] = {
           ...updatedNotes[selectedNoteIndex],
           content: currentNote,
+          title: currentTitle,
         };
         setNotes(updatedNotes);
         saveNotes(updatedNotes);
@@ -67,6 +76,7 @@ export const useNotes = () => {
         // Create a new note from current content
         const newNote: Note = {
           content: currentNote,
+          title: currentTitle,
           date: new Date().toISOString(),
         };
         const updatedNotes = [newNote, ...notes];
@@ -79,6 +89,7 @@ export const useNotes = () => {
       // Create an empty note
       const newNote: Note = {
         content: '',
+        title: '',
         date: new Date().toISOString(),
       };
       const updatedNotes = [newNote, ...notes];
@@ -87,19 +98,21 @@ export const useNotes = () => {
       // Select the newly created empty note
       setSelectedNoteIndex(0);
     }
-    
-    // Clear content for the new note
+
+    // Clear content and title for the new note
     setCurrentNote('');
+    setCurrentTitleState('');
     localStorage.removeItem('currentNote'); // Clear current note from localStorage
   };
-  
+
   const saveCurrentNote = () => {
-    // Save the current note if it has content
-    if (currentNote.trim()) {
+    // Save the current note if it has content or title
+    if (currentNote.trim() || currentTitle.trim()) {
       if (selectedNoteIndex === null) {
         // Create a new note
         const newNote: Note = {
           content: currentNote,
+          title: currentTitle,
           date: new Date().toISOString(),
         };
         const updatedNotes = [newNote, ...notes];
@@ -113,6 +126,7 @@ export const useNotes = () => {
         updatedNotes[selectedNoteIndex] = {
           ...updatedNotes[selectedNoteIndex],
           content: currentNote,
+          title: currentTitle,
         };
         setNotes(updatedNotes);
         saveNotes(updatedNotes);
@@ -123,6 +137,7 @@ export const useNotes = () => {
   const selectNote = (index: number) => {
     setSelectedNoteIndex(index);
     setCurrentNote(notes[index].content);
+    setCurrentTitleState(notes[index].title ?? '');
   };
 
   const deleteNote = (index: number) => {
@@ -131,6 +146,7 @@ export const useNotes = () => {
     saveNotes(updatedNotes);
     if (index === selectedNoteIndex) {
       setCurrentNote('');
+      setCurrentTitleState('');
       setSelectedNoteIndex(null);
       localStorage.removeItem('currentNote');
     } else if (selectedNoteIndex !== null && index < selectedNoteIndex) {
@@ -142,7 +158,7 @@ export const useNotes = () => {
   // Update existing note when content changes
   const updateCurrentNote = useCallback((newContent: string) => {
     setCurrentNote(newContent);
-    
+
     // If we're editing an existing note, update it in the list
     if (selectedNoteIndex !== null && notes[selectedNoteIndex]) {
       const updatedNotes = [...notes];
@@ -155,11 +171,29 @@ export const useNotes = () => {
     }
   }, [selectedNoteIndex, notes, saveNotes]);
 
+  // Update existing note when title changes
+  const updateCurrentTitle = useCallback((newTitle: string) => {
+    setCurrentTitleState(newTitle);
+
+    // If we're editing an existing note, update it in the list
+    if (selectedNoteIndex !== null && notes[selectedNoteIndex]) {
+      const updatedNotes = [...notes];
+      updatedNotes[selectedNoteIndex] = {
+        ...updatedNotes[selectedNoteIndex],
+        title: newTitle,
+      };
+      setNotes(updatedNotes);
+      saveNotes(updatedNotes);
+    }
+  }, [selectedNoteIndex, notes, saveNotes]);
+
   return {
     notes,
     currentNote,
+    currentTitle,
     selectedNoteIndex,
     setCurrentNote: updateCurrentNote,
+    setCurrentTitle: updateCurrentTitle,
     createNewNote,
     selectNote,
     deleteNote,

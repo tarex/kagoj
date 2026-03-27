@@ -1031,3 +1031,146 @@ textarea:focus-visible {
   background-color: color-mix(in srgb, var(--accent-primary) 20%, transparent);
   color: var(--text-primary);
 }
+
+/* ── Note Title Input (above editor) ── */
+.note-title-input {
+  width: 100%;
+  max-width: var(--editor-max-width);
+  margin: 0 auto;
+  display: block;
+  border: none;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 48px 56px 0 56px;
+  outline: none;
+  line-height: 1.4;
+  caret-color: var(--accent-primary);
+}
+
+.note-title-input::placeholder {
+  color: var(--text-muted);
+  font-weight: 300;
+  font-style: italic;
+}
+
+/* ── Sidebar Note Title Label ── */
+.note-title-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.note-title-label.untitled {
+  font-style: italic;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* ── Keyboard Shortcuts Button ── */
+.btn-shortcuts {
+  width: 32px;
+  height: 32px;
+  background-color: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-shortcuts:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+/* ── Keyboard Shortcuts Panel ── */
+.shortcuts-panel {
+  position: fixed;
+  top: calc(var(--topbar-height) + 8px);
+  right: 24px;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  padding: 16px 20px;
+  min-width: 320px;
+  max-width: 400px;
+  z-index: 200;
+  animation: popUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.shortcuts-panel-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.shortcuts-group {
+  margin-bottom: 12px;
+}
+
+.shortcuts-group:last-child {
+  margin-bottom: 0;
+}
+
+.shortcuts-group-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.shortcut-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.shortcut-row kbd {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-secondary);
+  border-radius: 4px;
+  font-family: ui-monospace, 'SF Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 2px 6px;
+  box-shadow: 0 1px 0 var(--border-secondary);
+  white-space: nowrap;
+}
+
+.shortcut-row span:last-child {
+  color: var(--text-secondary);
+}
+
+/* ── Responsive: Title Input ── */
+@media (max-width: 900px) {
+  .note-title-input {
+    padding: 32px 36px 0 36px;
+  }
+}
+
+@media (max-width: 640px) {
+  .note-title-input {
+    padding: 24px 20px 0 20px;
+  }
+}

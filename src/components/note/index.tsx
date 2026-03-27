@@ -22,8 +22,10 @@ const NoteComponent: React.FC = () => {
   const {
     notes,
     currentNote,
+    currentTitle,
     selectedNoteIndex,
     setCurrentNote,
+    setCurrentTitle,
     createNewNote,
     selectNote,
     deleteNote,
@@ -31,6 +33,7 @@ const NoteComponent: React.FC = () => {
   } = useNotes();
 
   const textareaRef = useRef<HTMLTextAreaElement>(null!);
+  const titleInputRef = useRef<HTMLInputElement>(null!);
   const banglaInputHandler = BanglaInputHandler.getInstance();
   const [isBanglaMode, setIsBanglaMode] = useState(true);
   const [fontSize, setFontSize] = useState(DEFAULT_FONT_SIZE);
@@ -583,6 +586,25 @@ const NoteComponent: React.FC = () => {
 
           {/* Editor Main Area */}
           <div className="editor-main" style={{ position: 'relative' }}>
+            {/* Note Title Input */}
+            <input
+              ref={titleInputRef}
+              type="text"
+              placeholder="শিরোনাম..."
+              className="note-title-input"
+              value={currentTitle}
+              onChange={(e) => setCurrentTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (isBanglaMode) {
+                  banglaInputHandler.processInputKeyPress(
+                    titleInputRef as unknown as React.RefObject<HTMLTextAreaElement>,
+                    currentTitle,
+                    setCurrentTitle,
+                    e as unknown as React.KeyboardEvent<HTMLTextAreaElement>
+                  );
+                }
+              }}
+            />
             <div className="editor-wrapper">
               {isCheckingSpelling && (
                 <div className="spell-check-loading">
