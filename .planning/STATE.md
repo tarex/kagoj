@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Writing Intelligence
 status: unknown
-stopped_at: Completed 01-02-PLAN.md — trie integration + old dictionary cleanup
-last_updated: "2026-03-27T14:40:13.916Z"
+stopped_at: Completed 02-01-PLAN.md — AI ghost text endpoint + useAISuggestion hook
+last_updated: "2026-03-27T15:00:03.451Z"
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** Bangla writing must feel natural and fluid
-**Current focus:** Phase 01 — dictionary-foundation
+**Current focus:** Phase 02 — ghost-text-intelligence
 
 ## Current Position
 
-Phase: 2
-Plan: Not started
+Phase: 02 (ghost-text-intelligence) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -48,6 +48,7 @@ Plan: Not started
 *Updated after each plan completion*
 | Phase 01 P01 | 525654 | 2 tasks | 2 files |
 | Phase 01 P02 | 148 | 2 tasks | 4 files |
+| Phase 02-ghost-text-intelligence P01 | 3 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -61,6 +62,8 @@ Recent decisions affecting current work:
 - [Phase 01]: Dictionary ships as flat TypeScript array, trie built at runtime (~34ms) — no build pipeline needed
 - [Phase 01]: isKnownWord() added to AdaptiveDictionary as single source of truth for spell validation
 - [Phase 01]: findClosestWord uses trie prefix search (top-20 candidates) not full dictionary linear scan
+- [Phase 02-ghost-text-intelligence]: gpt-4o-mini for ghost completions vs gpt-3.5-turbo for spellcheck — speed/cost tradeoff
+- [Phase 02-ghost-text-intelligence]: Module-level LRU cache and rate-limit timestamp persist across hook re-mounts
 
 ### Pending Todos
 
@@ -74,6 +77,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-27T14:37:06.230Z
-Stopped at: Completed 01-02-PLAN.md — trie integration + old dictionary cleanup
+Last session: 2026-03-27T15:00:03.448Z
+Stopped at: Completed 02-01-PLAN.md — AI ghost text endpoint + useAISuggestion hook
 Resume file: None

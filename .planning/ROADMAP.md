@@ -45,7 +45,7 @@ Plans:
   4. Ghost text is visually distinct and readable against both light and dark backgrounds
 **Plans**: 2 plans
 Plans:
-- [ ] 02-01-PLAN.md — AI suggestion API endpoint + LRU cache + useAISuggestion hook
+- [x] 02-01-PLAN.md — AI suggestion API endpoint + LRU cache + useAISuggestion hook
 - [ ] 02-02-PLAN.md — Wire AI into editor, Tab hint badge, visual AI/dictionary distinction
 
 ### Phase 3: Spell Check Overhaul

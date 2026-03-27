@@ -15,9 +15,9 @@ Requirements for the Writing Intelligence milestone. Each maps to roadmap phases
 
 ### Ghost Text
 
-- [ ] **GHOST-01**: User sees AI-powered phrase/sentence suggestions beyond single-word completion
+- [x] **GHOST-01**: User sees AI-powered phrase/sentence suggestions beyond single-word completion
 - [ ] **GHOST-02**: Ghost text is clearly visible with a Tab hint indicator
-- [ ] **GHOST-03**: Dictionary suggestions appear within 100ms, AI suggestions load async
+- [x] **GHOST-03**: Dictionary suggestions appear within 100ms, AI suggestions load async
 
 ### Spell Check
 
@@ -29,7 +29,7 @@ Requirements for the Writing Intelligence milestone. Each maps to roadmap phases
 ### Performance
 
 - [x] **PERF-01**: Phonetic transliteration processes each keystroke in under 5ms
-- [ ] **PERF-02**: Ghost text suggestions appear within 100ms for dictionary lookups
+- [x] **PERF-02**: Ghost text suggestions appear within 100ms for dictionary lookups
 - [ ] **PERF-03**: Spell-check runs in background without blocking typing input
 - [x] **PERF-04**: Dictionary lookup uses indexed/trie data structure instead of linear scan
 
@@ -70,10 +70,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DICT-03 | Phase 1 | Complete |
 | PERF-04 | Phase 1 | Complete |
 | PERF-01 | Phase 1 | Complete |
-| GHOST-01 | Phase 2 | Pending |
+| GHOST-01 | Phase 2 | Complete |
 | GHOST-02 | Phase 2 | Pending |
-| GHOST-03 | Phase 2 | Pending |
-| PERF-02 | Phase 2 | Pending |
+| GHOST-03 | Phase 2 | Complete |
+| PERF-02 | Phase 2 | Complete |
 | SPELL-01 | Phase 3 | Pending |
 | SPELL-02 | Phase 3 | Pending |
 | SPELL-03 | Phase 3 | Pending |
