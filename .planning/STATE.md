@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Writing Intelligence
 status: unknown
-stopped_at: Completed 02-01-PLAN.md — AI ghost text endpoint + useAISuggestion hook
-last_updated: "2026-03-27T15:00:03.451Z"
+stopped_at: Completed 02-02-PLAN.md — ghost text AI wiring, Tab hint badge, and AI/dictionary visual distinction
+last_updated: "2026-03-27T15:05:55.586Z"
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -49,6 +49,7 @@ Plan: 2 of 2
 | Phase 01 P01 | 525654 | 2 tasks | 2 files |
 | Phase 01 P02 | 148 | 2 tasks | 4 files |
 | Phase 02-ghost-text-intelligence P01 | 3 | 2 tasks | 3 files |
+| Phase 02-ghost-text-intelligence P02 | 181 | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,8 @@ Recent decisions affecting current work:
 - [Phase 01]: findClosestWord uses trie prefix search (top-20 candidates) not full dictionary linear scan
 - [Phase 02-ghost-text-intelligence]: gpt-4o-mini for ghost completions vs gpt-3.5-turbo for spellcheck — speed/cost tradeoff
 - [Phase 02-ghost-text-intelligence]: Module-level LRU cache and rate-limit timestamp persist across hook re-mounts
+- [Phase 02-ghost-text-intelligence]: AI suggestion synced via useEffect watching aiSuggestion state to avoid direct callback coupling
+- [Phase 02-ghost-text-intelligence]: data-ai CSS attribute drives AI vs dictionary ghost text visual distinction without inline styles
 
 ### Pending Todos
 
@@ -77,6 +80,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-27T15:00:03.448Z
-Stopped at: Completed 02-01-PLAN.md — AI ghost text endpoint + useAISuggestion hook
+Last session: 2026-03-27T15:05:55.584Z
+Stopped at: Completed 02-02-PLAN.md — ghost text AI wiring, Tab hint badge, and AI/dictionary visual distinction
 Resume file: None

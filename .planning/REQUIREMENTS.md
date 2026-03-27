@@ -16,7 +16,7 @@ Requirements for the Writing Intelligence milestone. Each maps to roadmap phases
 ### Ghost Text
 
 - [x] **GHOST-01**: User sees AI-powered phrase/sentence suggestions beyond single-word completion
-- [ ] **GHOST-02**: Ghost text is clearly visible with a Tab hint indicator
+- [x] **GHOST-02**: Ghost text is clearly visible with a Tab hint indicator
 - [x] **GHOST-03**: Dictionary suggestions appear within 100ms, AI suggestions load async
 
 ### Spell Check
@@ -71,7 +71,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PERF-04 | Phase 1 | Complete |
 | PERF-01 | Phase 1 | Complete |
 | GHOST-01 | Phase 2 | Complete |
-| GHOST-02 | Phase 2 | Pending |
+| GHOST-02 | Phase 2 | Complete |
 | GHOST-03 | Phase 2 | Complete |
 | PERF-02 | Phase 2 | Complete |
 | SPELL-01 | Phase 3 | Pending |
