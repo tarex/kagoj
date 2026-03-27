@@ -90,10 +90,11 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260328-26o | Investigate and fix spell-check functionality | 2026-03-27 | 0ad1833 | [260328-26o-investigate-and-fix-spell-check-function](./quick/260328-26o-investigate-and-fix-spell-check-function/) |
+| 260328-281 | Polish UI/UX: note titles, sidebar cleanup, keyboard shortcut mapper | 2026-03-28 | 668d845 | [260328-281-polish-ui-ux-note-titles-sidebar-cleanup](./quick/260328-281-polish-ui-ux-note-titles-sidebar-cleanup/) |
 
 ## Session Continuity
 
-Last activity: 2026-03-27 - Completed quick task 260328-26o: Investigate and fix spell-check functionality
+Last activity: 2026-03-28 - Completed quick task 260328-281: Polish UI/UX: note titles, sidebar cleanup, keyboard shortcut mapper
 Last session: 2026-03-27T15:42:33.603Z
 Stopped at: Completed quick/260328-281 — polish UI/UX note titles, sidebar cleanup, keyboard shortcuts panel
 Resume file: None
