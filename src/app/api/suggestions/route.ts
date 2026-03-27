@@ -20,7 +20,7 @@ export async function POST(req: Request) {
           system: ghostPrompt,
           prompt: cursorContext,
           temperature: 0.3,
-          maxTokens: 60,
+          maxOutputTokens: 60,
           maxRetries: 1,
         });
 

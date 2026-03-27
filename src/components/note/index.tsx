@@ -9,7 +9,7 @@ import { Toolbar } from './toolbar';
 import { useNotes } from './use-notes';
 import { useSpellCheck } from '@/hooks/useSpellCheck';
 import { useDebounce } from '@/hooks/useDebounce';
-import { useAISuggestion } from '@/hooks/useAISuggestion';
+import { useAISuggestion, AI_TRIGGER_DELAY_MS } from '@/hooks/useAISuggestion';
 import { BanglaInputHandler } from '@/lib/bangla-input-handler';
 // import { words } from '@/lib/bangla-suggestion'; // Not needed - using adaptive dictionary
 import { adaptiveDictionary } from '@/lib/adaptive-dictionary';
@@ -39,6 +39,7 @@ const NoteComponent: React.FC = () => {
   const [ghostSuggestion, setGhostSuggestion] = useState<string>('');  // Only one suggestion for ghost text
   const [isAISuggestionActive, setIsAISuggestionActive] = useState<boolean>(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const aiTriggerRef = useRef<NodeJS.Timeout | null>(null);
 
   const { aiSuggestion, isLoadingAI: _isLoadingAI, requestAISuggestion, clearAISuggestion } = useAISuggestion(isBanglaMode);
   
@@ -440,10 +441,13 @@ const NoteComponent: React.FC = () => {
         setGhostSuggestion('');
         setIsAISuggestionActive(false);
 
-        // Trigger AI suggestion after user types a space in Bangla mode
+        // Trigger AI suggestion after user types a space and pauses 500ms
         if (lastChar === ' ' && isBanglaMode) {
-          const cursorContext = value.length > 200 ? value.slice(-200) : value;
-          requestAISuggestion(cursorContext);
+          if (aiTriggerRef.current) clearTimeout(aiTriggerRef.current);
+          aiTriggerRef.current = setTimeout(() => {
+            const cursorContext = value.length > 200 ? value.slice(-200) : value;
+            requestAISuggestion(cursorContext);
+          }, AI_TRIGGER_DELAY_MS);
         }
       } else if (lastChar === '।' || lastChar === '.' || lastChar === '?' || lastChar === '!') {
         // Sentence ended, clear AI suggestion
