@@ -65,26 +65,26 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DICT-01 | — | Pending |
-| DICT-02 | — | Pending |
-| DICT-03 | — | Pending |
-| GHOST-01 | — | Pending |
-| GHOST-02 | — | Pending |
-| GHOST-03 | — | Pending |
-| SPELL-01 | — | Pending |
-| SPELL-02 | — | Pending |
-| SPELL-03 | — | Pending |
-| SPELL-04 | — | Pending |
-| PERF-01 | — | Pending |
-| PERF-02 | — | Pending |
-| PERF-03 | — | Pending |
-| PERF-04 | — | Pending |
+| DICT-01 | Phase 1 | Pending |
+| DICT-02 | Phase 1 | Pending |
+| DICT-03 | Phase 1 | Pending |
+| PERF-04 | Phase 1 | Pending |
+| PERF-01 | Phase 1 | Pending |
+| GHOST-01 | Phase 2 | Pending |
+| GHOST-02 | Phase 2 | Pending |
+| GHOST-03 | Phase 2 | Pending |
+| PERF-02 | Phase 2 | Pending |
+| SPELL-01 | Phase 3 | Pending |
+| SPELL-02 | Phase 3 | Pending |
+| SPELL-03 | Phase 3 | Pending |
+| SPELL-04 | Phase 3 | Pending |
+| PERF-03 | Phase 3 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 14 total
-- Mapped to phases: 0
-- Unmapped: 14
+- Mapped to phases: 14
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-27*
-*Last updated: 2026-03-27 after initial definition*
+*Last updated: 2026-03-27 after roadmap creation*
