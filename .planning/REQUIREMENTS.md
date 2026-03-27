@@ -21,10 +21,10 @@ Requirements for the Writing Intelligence milestone. Each maps to roadmap phases
 
 ### Spell Check
 
-- [ ] **SPELL-01**: Spell checker produces fewer false positives using the expanded dictionary
-- [ ] **SPELL-02**: Correction suggestions account for phonetic similarity (not just edit distance)
+- [x] **SPELL-01**: Spell checker produces fewer false positives using the expanded dictionary
+- [x] **SPELL-02**: Correction suggestions account for phonetic similarity (not just edit distance)
 - [ ] **SPELL-03**: User can fix or ignore errors inline without breaking writing flow
-- [ ] **SPELL-04**: Spell check errors auto-invalidate when underlying text is edited
+- [x] **SPELL-04**: Spell check errors auto-invalidate when underlying text is edited
 
 ### Performance
 
@@ -74,10 +74,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GHOST-02 | Phase 2 | Complete |
 | GHOST-03 | Phase 2 | Complete |
 | PERF-02 | Phase 2 | Complete |
-| SPELL-01 | Phase 3 | Pending |
-| SPELL-02 | Phase 3 | Pending |
+| SPELL-01 | Phase 3 | Complete |
+| SPELL-02 | Phase 3 | Complete |
 | SPELL-03 | Phase 3 | Pending |
-| SPELL-04 | Phase 3 | Pending |
+| SPELL-04 | Phase 3 | Complete |
 | PERF-03 | Phase 3 | Pending |
 
 **Coverage:**

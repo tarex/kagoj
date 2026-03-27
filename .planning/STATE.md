@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Writing Intelligence
 status: unknown
-stopped_at: Completed 02-02-PLAN.md — ghost text AI wiring, Tab hint badge, and AI/dictionary visual distinction
-last_updated: "2026-03-27T15:12:49.512Z"
+stopped_at: Completed 03-01-PLAN.md — phonetic spell check engine with suffix-aware validation and error auto-invalidation
+last_updated: "2026-03-27T15:23:36.282Z"
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 6
+  completed_plans: 5
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** Bangla writing must feel natural and fluid
-**Current focus:** Phase 02 — ghost-text-intelligence
+**Current focus:** Phase 03 — spell-check-overhaul
 
 ## Current Position
 
-Phase: 3
-Plan: Not started
+Phase: 03 (spell-check-overhaul) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -50,6 +50,7 @@ Plan: Not started
 | Phase 01 P02 | 148 | 2 tasks | 4 files |
 | Phase 02-ghost-text-intelligence P01 | 3 | 2 tasks | 3 files |
 | Phase 02-ghost-text-intelligence P02 | 181 | 3 tasks | 3 files |
+| Phase 03-spell-check-overhaul P01 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,8 @@ Recent decisions affecting current work:
 - [Phase 02-ghost-text-intelligence]: Module-level LRU cache and rate-limit timestamp persist across hook re-mounts
 - [Phase 02-ghost-text-intelligence]: AI suggestion synced via useEffect watching aiSuggestion state to avoid direct callback coupling
 - [Phase 02-ghost-text-intelligence]: data-ai CSS attribute drives AI vs dictionary ghost text visual distinction without inline styles
+- [Phase 03-spell-check-overhaul]: phoneticDistance uses 0.5 sub-cost for same aspirated/unaspirated pair — improves correction ranking for common Bangla phonetic confusions
+- [Phase 03-spell-check-overhaul]: invalidateErrors as module-level pure function in useSpellCheck — immediately clears errors at edit position before 2s debounce re-check
 
 ### Pending Todos
 
@@ -80,6 +83,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-27T15:05:55.584Z
-Stopped at: Completed 02-02-PLAN.md — ghost text AI wiring, Tab hint badge, and AI/dictionary visual distinction
+Last session: 2026-03-27T15:23:36.279Z
+Stopped at: Completed 03-01-PLAN.md — phonetic spell check engine with suffix-aware validation and error auto-invalidation
 Resume file: None
