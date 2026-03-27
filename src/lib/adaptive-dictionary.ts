@@ -1,5 +1,5 @@
-import { banglaDictionary as baseDictionary } from './bangla-dictionary';
-import { extendedBanglaWords } from './bangla-words-extended';
+import { BanglaTrie } from './trie';
+import { comprehensiveBanglaWords } from './bangla-words-comprehensive';
 
 const LEARNED_WORDS_KEY = 'bangla_learned_words';
 const WORD_FREQUENCY_KEY = 'bangla_word_frequency';
@@ -11,37 +11,40 @@ interface WordFrequency {
 }
 
 class AdaptiveDictionary {
+  private trie: BanglaTrie;
   private learnedWords: Set<string>;
   private wordFrequency: WordFrequency;
-  private combinedDictionary: string[];
   private saveTimeout: NodeJS.Timeout | null = null;
 
   constructor() {
+    this.trie = new BanglaTrie();
     this.learnedWords = new Set();
     this.wordFrequency = {};
-    // Combine base and extended dictionaries
-    const allBaseDictionary = [...new Set([...baseDictionary, ...extendedBanglaWords])];
-    this.combinedDictionary = allBaseDictionary;
-    // Don't load from storage in constructor to avoid SSR issues
-    // loadFromStorage will be called from initializeOnClient
+    // Don't load words in constructor to avoid SSR issues
+    // initializeOnClient() should be called from client side
   }
-  
+
   public initializeOnClient(): void {
+    const startTime = Date.now();
+    for (const word of comprehensiveBanglaWords) {
+      this.trie.insert(word);
+    }
     this.loadFromStorage();
+    const elapsed = Date.now() - startTime;
+    console.log(`Dictionary initialized: ${this.trie.size()} words in ${elapsed}ms`);
   }
 
   private loadFromStorage(): void {
     // Only access localStorage on the client side
     if (typeof window === 'undefined') {
-      this.rebuildDictionary();
       return;
     }
-    
+
     try {
       // Load learned words
       const savedWords = localStorage.getItem(LEARNED_WORDS_KEY);
       if (savedWords) {
-        const words = JSON.parse(savedWords);
+        const words = JSON.parse(savedWords) as string[];
         this.learnedWords = new Set(words);
         console.log(`Loaded ${this.learnedWords.size} learned words from storage`);
       }
@@ -49,12 +52,14 @@ class AdaptiveDictionary {
       // Load word frequency
       const savedFrequency = localStorage.getItem(WORD_FREQUENCY_KEY);
       if (savedFrequency) {
-        this.wordFrequency = JSON.parse(savedFrequency);
+        this.wordFrequency = JSON.parse(savedFrequency) as WordFrequency;
         console.log('Loaded word frequency data');
       }
 
-      // Rebuild combined dictionary
-      this.rebuildDictionary();
+      // Insert each learned word into trie with its frequency
+      for (const word of this.learnedWords) {
+        this.trie.insert(word, this.wordFrequency[word] || 1);
+      }
     } catch (error) {
       console.error('Error loading from localStorage:', error);
     }
@@ -65,7 +70,7 @@ class AdaptiveDictionary {
     if (typeof window === 'undefined') {
       return;
     }
-    
+
     // Debounce saves to avoid too frequent writes
     if (this.saveTimeout) {
       clearTimeout(this.saveTimeout);
@@ -91,23 +96,6 @@ class AdaptiveDictionary {
     }, 1000); // Save after 1 second of inactivity
   }
 
-  private rebuildDictionary(): void {
-    // Combine base, extended dictionary with learned words
-    const allWords = new Set([...baseDictionary, ...extendedBanglaWords, ...this.learnedWords]);
-    
-    // Sort by frequency (most used first) and then alphabetically
-    this.combinedDictionary = Array.from(allWords).sort((a, b) => {
-      const freqA = this.wordFrequency[a] || 0;
-      const freqB = this.wordFrequency[b] || 0;
-      
-      if (freqA !== freqB) {
-        return freqB - freqA; // Higher frequency first
-      }
-      
-      return a.localeCompare(b, 'bn');
-    });
-  }
-
   private isBanglaWord(word: string): boolean {
     // Check if the word contains Bangla characters
     const banglaRegex = /[\u0980-\u09FF]/;
@@ -128,7 +116,7 @@ class AdaptiveDictionary {
 
     for (const rawWord of words) {
       const word = this.cleanWord(rawWord);
-      
+
       // Skip if too short or not Bangla
       if (word.length < MIN_WORD_LENGTH || !this.isBanglaWord(word)) {
         continue;
@@ -137,8 +125,11 @@ class AdaptiveDictionary {
       // Update frequency
       this.wordFrequency[word] = (this.wordFrequency[word] || 0) + 1;
 
-      // Add to learned words if not in base or extended dictionary
-      if (!baseDictionary.includes(word) && !extendedBanglaWords.includes(word) && !this.learnedWords.has(word)) {
+      // Insert into trie with updated frequency
+      this.trie.insert(word, this.wordFrequency[word]);
+
+      // Track as learned if newly added
+      if (!this.learnedWords.has(word)) {
         this.learnedWords.add(word);
         newWordsAdded++;
         console.log('Learned new word:', word);
@@ -146,7 +137,6 @@ class AdaptiveDictionary {
     }
 
     if (newWordsAdded > 0) {
-      this.rebuildDictionary();
       this.saveToStorage();
       console.log(`Added ${newWordsAdded} new words to dictionary`);
     }
@@ -154,7 +144,7 @@ class AdaptiveDictionary {
 
   public learnWord(word: string): void {
     const cleanedWord = this.cleanWord(word);
-    
+
     if (cleanedWord.length < MIN_WORD_LENGTH || !this.isBanglaWord(cleanedWord)) {
       return;
     }
@@ -162,10 +152,12 @@ class AdaptiveDictionary {
     // Update frequency
     this.wordFrequency[cleanedWord] = (this.wordFrequency[cleanedWord] || 0) + 1;
 
-    // Add to learned words if new (not in base or extended dictionary)
-    if (!baseDictionary.includes(cleanedWord) && !extendedBanglaWords.includes(cleanedWord) && !this.learnedWords.has(cleanedWord)) {
+    // Insert into trie with updated frequency
+    this.trie.insert(cleanedWord, this.wordFrequency[cleanedWord]);
+
+    // Track in learnedWords Set for localStorage persistence
+    if (!this.learnedWords.has(cleanedWord)) {
       this.learnedWords.add(cleanedWord);
-      this.rebuildDictionary();
       console.log('Learned new word:', cleanedWord);
     }
 
@@ -178,32 +170,19 @@ class AdaptiveDictionary {
     const cleanedPartial = this.cleanWord(partial);
     console.log('Getting adaptive suggestions for:', cleanedPartial);
 
-    // Filter words that start with the partial
-    const matches = this.combinedDictionary.filter(word => 
-      word.startsWith(cleanedPartial) && word !== cleanedPartial
-    );
+    const suggestions = this.trie.getSuggestions(cleanedPartial, limit)
+      .filter(word => word !== cleanedPartial);
 
-    // Sort by frequency and length
-    matches.sort((a, b) => {
-      // First by frequency
-      const freqA = this.wordFrequency[a] || 0;
-      const freqB = this.wordFrequency[b] || 0;
-      
-      if (freqA !== freqB) {
-        return freqB - freqA;
-      }
-      
-      // Then by length (shorter first)
-      if (a.length !== b.length) {
-        return a.length - b.length;
-      }
-      
-      return a.localeCompare(b, 'bn');
-    });
-
-    const suggestions = matches.slice(0, limit);
     console.log('Adaptive suggestions:', suggestions);
     return suggestions;
+  }
+
+  /**
+   * Returns true if the word is known (in the trie — includes both comprehensive
+   * dictionary and learned words).
+   */
+  public isKnownWord(word: string): boolean {
+    return this.trie.search(word);
   }
 
   public getWordStats(word: string): { count: number } | null {
@@ -220,53 +199,54 @@ class AdaptiveDictionary {
       .slice(0, 10);
 
     return {
-      totalWords: this.combinedDictionary.length,
+      totalWords: this.trie.size(),
       learnedWords: this.learnedWords.size,
-      topWords
+      topWords,
     };
   }
 
   public removeWord(word: string): void {
     const normalizedWord = word.trim().toLowerCase();
-    
+
+    // Remove from trie
+    this.trie.delete(normalizedWord);
+
     // Remove from learned words
     if (this.learnedWords.has(normalizedWord)) {
       this.learnedWords.delete(normalizedWord);
       console.log(`Removed "${normalizedWord}" from learned words`);
     }
-    
+
     // Remove from frequency tracking
     if (this.wordFrequency[normalizedWord]) {
       delete this.wordFrequency[normalizedWord];
       console.log(`Removed "${normalizedWord}" from frequency tracking`);
     }
-    
-    // Rebuild dictionary and save
-    this.rebuildDictionary();
+
     this.saveToStorage();
   }
 
   public replaceWord(oldWord: string, newWord: string): void {
     const normalizedOld = oldWord.trim().toLowerCase();
     const normalizedNew = newWord.trim().toLowerCase();
-    
+
     // Get the frequency of the old word (if it exists)
     const oldFrequency = this.wordFrequency[normalizedOld] || 0;
-    
+
     // Remove the old word
     this.removeWord(normalizedOld);
-    
+
     // Add the new word with the same or higher frequency
     if (normalizedNew && normalizedNew.length >= MIN_WORD_LENGTH) {
       this.learnedWords.add(normalizedNew);
       // Give it at least the same frequency as the old word, or increment if it already exists
       this.wordFrequency[normalizedNew] = Math.max(
         this.wordFrequency[normalizedNew] || 0,
-        oldFrequency + 1
+        oldFrequency + 1,
       );
+      this.trie.insert(normalizedNew, this.wordFrequency[normalizedNew]);
       console.log(`Replaced "${normalizedOld}" with "${normalizedNew}" (frequency: ${this.wordFrequency[normalizedNew]})`);
-      
-      this.rebuildDictionary();
+
       this.saveToStorage();
     }
   }
@@ -274,14 +254,19 @@ class AdaptiveDictionary {
   public clearLearnedWords(): void {
     this.learnedWords.clear();
     this.wordFrequency = {};
-    this.rebuildDictionary();
-    
+
+    // Rebuild trie from scratch with just comprehensiveBanglaWords
+    this.trie = new BanglaTrie();
+    for (const word of comprehensiveBanglaWords) {
+      this.trie.insert(word);
+    }
+
     // Only access localStorage on the client side
     if (typeof window !== 'undefined') {
       localStorage.removeItem(LEARNED_WORDS_KEY);
       localStorage.removeItem(WORD_FREQUENCY_KEY);
     }
-    
+
     console.log('Cleared all learned words');
   }
 }
