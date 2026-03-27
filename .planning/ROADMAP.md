@@ -43,7 +43,10 @@ Plans:
   2. A visible Tab hint indicator appears alongside ghost text so users know how to accept it
   3. Dictionary-based suggestions appear within 100ms; AI suggestions load asynchronously without blocking typing
   4. Ghost text is visually distinct and readable against both light and dark backgrounds
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 02-01-PLAN.md — AI suggestion API endpoint + LRU cache + useAISuggestion hook
+- [ ] 02-02-PLAN.md — Wire AI into editor, Tab hint badge, visual AI/dictionary distinction
 
 ### Phase 3: Spell Check Overhaul
 **Goal**: Writers experience accurate spell-checking with far fewer false positives, phonetically-aware suggestions, and an inline fix/ignore flow that never interrupts writing
@@ -64,5 +67,5 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Dictionary Foundation | 2/2 | Complete   | 2026-03-27 |
-| 2. Ghost Text Intelligence | 0/TBD | Not started | - |
+| 2. Ghost Text Intelligence | 0/2 | In progress | - |
 | 3. Spell Check Overhaul | 0/TBD | Not started | - |
