@@ -61,7 +61,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 03-01-PLAN.md — Phonetic similarity scoring, suffix-aware validation, error auto-invalidation
-- [ ] 03-02-PLAN.md — Keyboard-driven inline fix/ignore, background spell-check execution
+- [x] 03-02-PLAN.md — Keyboard-driven inline fix/ignore, background spell-check execution
 
 ## Progress
 

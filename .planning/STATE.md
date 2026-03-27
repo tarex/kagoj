@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Writing Intelligence
 status: unknown
-stopped_at: Completed 03-01-PLAN.md — phonetic spell check engine with suffix-aware validation and error auto-invalidation
-last_updated: "2026-03-27T15:23:36.282Z"
+stopped_at: Completed 03-02-PLAN.md — keyboard UX and background spell-check
+last_updated: "2026-03-27T15:27:26.453Z"
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -51,6 +51,7 @@ Plan: 2 of 2
 | Phase 02-ghost-text-intelligence P01 | 3 | 2 tasks | 3 files |
 | Phase 02-ghost-text-intelligence P02 | 181 | 3 tasks | 3 files |
 | Phase 03-spell-check-overhaul P01 | 2 | 2 tasks | 2 files |
+| Phase 03-spell-check-overhaul P02 | 3 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,8 @@ Recent decisions affecting current work:
 - [Phase 02-ghost-text-intelligence]: data-ai CSS attribute drives AI vs dictionary ghost text visual distinction without inline styles
 - [Phase 03-spell-check-overhaul]: phoneticDistance uses 0.5 sub-cost for same aspirated/unaspirated pair — improves correction ranking for common Bangla phonetic confusions
 - [Phase 03-spell-check-overhaul]: invalidateErrors as module-level pure function in useSpellCheck — immediately clears errors at edit position before 2s debounce re-check
+- [Phase 03-spell-check-overhaul]: requestIdleCallback for spell-check with 3s timeout ensures spell-check never blocks typing
+- [Phase 03-spell-check-overhaul]: document-level keydown capture listener intercepts Enter/Escape before textarea for inline spell-check UX
 
 ### Pending Todos
 
@@ -83,6 +86,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-27T15:23:36.279Z
-Stopped at: Completed 03-01-PLAN.md — phonetic spell check engine with suffix-aware validation and error auto-invalidation
+Last session: 2026-03-27T15:27:26.451Z
+Stopped at: Completed 03-02-PLAN.md — keyboard UX and background spell-check
 Resume file: None
