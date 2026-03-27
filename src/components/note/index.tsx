@@ -6,6 +6,7 @@ import { NoteEditor } from './note-editor';
 import { GhostText } from './ghost-text';
 import { SpellingOverlay } from './spelling-overlay';
 import { Toolbar } from './toolbar';
+import { KeyboardShortcutsPanel } from './keyboard-shortcuts-panel';
 import { useNotes } from './use-notes';
 import { useSpellCheck } from '@/hooks/useSpellCheck';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -41,6 +42,7 @@ const NoteComponent: React.FC = () => {
   const [isClient, setIsClient] = useState(false); // Track if we're on the client
   const [ghostSuggestion, setGhostSuggestion] = useState<string>('');  // Only one suggestion for ghost text
   const [isAISuggestionActive, setIsAISuggestionActive] = useState<boolean>(false);
+  const [showShortcuts, setShowShortcuts] = useState<boolean>(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const aiTriggerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -494,6 +496,25 @@ const NoteComponent: React.FC = () => {
         <h1 className="topbar-title">কাগজ</h1>
         
         <div className="topbar-controls">
+          {/* Keyboard Shortcuts Button */}
+          <div style={{ position: 'relative' }}>
+            <button
+              className="btn-shortcuts"
+              title="কীবোর্ড শর্টকাট"
+              aria-label="কীবোর্ড শর্টকাট"
+              onClick={() => setShowShortcuts((prev) => !prev)}
+            >
+              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.75}>
+                <rect x="2" y="6" width="20" height="13" rx="2" />
+                <path strokeLinecap="round" d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8M6 14h.01M18 14h.01" />
+              </svg>
+            </button>
+            <KeyboardShortcutsPanel
+              isOpen={showShortcuts}
+              onClose={() => setShowShortcuts(false)}
+            />
+          </div>
+
           {/* Language Toggle */}
           <div className="flex-center gap-3">
             <button
