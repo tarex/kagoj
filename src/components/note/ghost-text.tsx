@@ -42,8 +42,11 @@ export const GhostText = React.memo<GhostTextProps>(({
     >
       <div className="ghost-text-content">
         {currentText}
-        <span className="ghost-text-suggestion">
+        <span className="ghost-text-suggestion" data-ai={isAISuggestion ? 'true' : undefined}>
           {suggestion}
+        </span>
+        <span className="ghost-text-tab-hint">
+          <kbd>Tab</kbd>
         </span>
       </div>
     </div>

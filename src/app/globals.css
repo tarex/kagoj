@@ -616,6 +616,36 @@ html.dark .note-item.selected {
   to { opacity: 0.8; }
 }
 
+/* AI suggestion — slightly different shade for distinction */
+.ghost-text-suggestion[data-ai="true"] {
+  color: var(--accent-primary);
+  opacity: 0.55;
+  background-color: color-mix(in srgb, var(--accent-primary) 6%, transparent);
+}
+
+/* Tab hint badge */
+.ghost-text-tab-hint {
+  display: inline-block;
+  pointer-events: none;
+  margin-left: 6px;
+  vertical-align: baseline;
+  animation: ghostFadeIn 0.3s ease-out;
+}
+
+.ghost-text-tab-hint kbd {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-secondary);
+  border-radius: 4px;
+  padding: 0px 5px;
+  font-family: ui-monospace, 'SF Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  box-shadow: 0 1px 0 var(--border-secondary);
+  opacity: 0.7;
+  line-height: 1.6;
+}
+
 /* ── Empty State ── */
 .empty-state {
   display: flex;
