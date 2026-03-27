@@ -655,8 +655,8 @@ html.dark .note-item.selected {
   display: inline-block;
 }
 
-/* Mobile accept bar — hidden on desktop */
-.ghost-accept-bar {
+/* Mobile accept button — hidden on desktop */
+.ghost-accept-btn {
   display: none;
 }
 
@@ -1098,52 +1098,27 @@ html.dark .note-item.selected {
     display: none;
   }
 
-  .ghost-accept-bar {
+  /* Inline blue accept arrow next to ghost suggestion */
+  .ghost-accept-btn {
     display: flex;
     align-items: center;
-    gap: 8px;
-    position: absolute;
-    bottom: 12px;
-    right: 12px;
+    justify-content: center;
     z-index: 10;
-    background-color: var(--bg-elevated);
-    border: 1px solid var(--accent-primary);
-    border-radius: var(--radius-lg);
-    padding: 8px 14px;
-    box-shadow: var(--shadow-md);
+    width: 32px;
+    height: 32px;
+    background-color: var(--accent-primary);
+    color: white;
+    border: none;
+    border-radius: 50%;
     cursor: pointer;
-    font-family: var(--font-body);
-    font-size: 14px;
-    color: var(--text-primary);
-    max-width: calc(100vw - 48px);
+    box-shadow: var(--shadow-md);
     animation: popUp 0.15s ease-out;
     -webkit-tap-highlight-color: transparent;
   }
 
-  .ghost-accept-bar:active {
-    background-color: var(--accent-primary-light);
-    transform: scale(0.97);
-  }
-
-  .ghost-accept-text {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: var(--accent-primary);
-    font-weight: 500;
-  }
-
-  .ghost-accept-bar kbd {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-secondary);
-    border-radius: 4px;
-    padding: 1px 6px;
-    font-family: ui-monospace, 'SF Mono', monospace;
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--text-muted);
-    box-shadow: 0 1px 0 var(--border-secondary);
-    flex-shrink: 0;
+  .ghost-accept-btn:active {
+    background-color: var(--accent-primary-hover);
+    transform: translateY(-50%) scale(0.9);
   }
 
   /* Spelling overlay: match mobile editor padding */

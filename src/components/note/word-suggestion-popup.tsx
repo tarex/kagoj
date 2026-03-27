@@ -18,12 +18,18 @@ export const WordSuggestionPopup: React.FC<WordSuggestionPopupProps> = ({
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [selectionRange, setSelectionRange] = useState({ start: 0, end: 0 });
   const popupRef = useRef<HTMLDivElement>(null);
+  const selectionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const checkSelection = useCallback(() => {
     const textarea = textareaRef.current;
     if (!textarea || !isBanglaMode) {
       setSelectedWord('');
       setSuggestions([]);
+      return;
+    }
+
+    // Only check if textarea is focused
+    if (document.activeElement !== textarea) {
       return;
     }
 
@@ -100,41 +106,66 @@ export const WordSuggestionPopup: React.FC<WordSuggestionPopupProps> = ({
 
     // markerRect relative to mirror top (scroll already applied via mirror.scrollTop)
     // Then offset by textarea's viewport position
-    const x = textareaRect.left + (markerRect.left - mirrorRect.left) + markerRect.width / 2;
-    const y = textareaRect.top + (markerRect.top - mirrorRect.top) + markerRect.height + 6;
+    let x = textareaRect.left + (markerRect.left - mirrorRect.left) + markerRect.width / 2;
+    let y = textareaRect.top + (markerRect.top - mirrorRect.top) + markerRect.height + 6;
 
     document.body.removeChild(mirror);
 
+    // Clamp to viewport so popup doesn't go off-screen on mobile
+    const viewportWidth = window.innerWidth;
+    x = Math.max(100, Math.min(x, viewportWidth - 100));
+
+    // If popup would go below visible area, show above the selection
+    if (y > window.innerHeight - 120) {
+      y = textareaRect.top + (markerRect.top - mirrorRect.top) - 80;
+    }
+
     setPosition({ x, y });
   }, [textareaRef, isBanglaMode, getSuggestions]);
+
+  // Debounced selection check to avoid flicker on mobile
+  const debouncedCheckSelection = useCallback(() => {
+    if (selectionTimerRef.current) {
+      clearTimeout(selectionTimerRef.current);
+    }
+    selectionTimerRef.current = setTimeout(checkSelection, 150);
+  }, [checkSelection]);
 
   useEffect(() => {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
-    const handleSelectionTrigger = () => {
-      // Small delay to let selection settle
+    const handleMouseUp = () => {
       setTimeout(checkSelection, 50);
     };
 
-    // Also handle keyboard selection (shift+arrows)
+    // keyboard selection (shift+arrows)
     const handleKeyUp = (e: KeyboardEvent) => {
       if (e.shiftKey) {
         setTimeout(checkSelection, 50);
       }
     };
 
-    // mouseup for desktop, selectionchange for mobile (long-press select)
-    textarea.addEventListener('mouseup', handleSelectionTrigger);
+    // selectionchange for mobile (long-press select) — debounced
+    const handleSelectionChange = () => {
+      if (document.activeElement === textarea) {
+        debouncedCheckSelection();
+      }
+    };
+
+    textarea.addEventListener('mouseup', handleMouseUp);
     textarea.addEventListener('keyup', handleKeyUp);
-    document.addEventListener('selectionchange', handleSelectionTrigger);
+    document.addEventListener('selectionchange', handleSelectionChange);
 
     return () => {
-      textarea.removeEventListener('mouseup', handleSelectionTrigger);
+      textarea.removeEventListener('mouseup', handleMouseUp);
       textarea.removeEventListener('keyup', handleKeyUp);
-      document.removeEventListener('selectionchange', handleSelectionTrigger);
+      document.removeEventListener('selectionchange', handleSelectionChange);
+      if (selectionTimerRef.current) {
+        clearTimeout(selectionTimerRef.current);
+      }
     };
-  }, [textareaRef, checkSelection]);
+  }, [textareaRef, checkSelection, debouncedCheckSelection]);
 
   // Close on click/touch outside
   useEffect(() => {
@@ -147,9 +178,14 @@ export const WordSuggestionPopup: React.FC<WordSuggestionPopupProps> = ({
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('touchstart', handleClickOutside);
+    // Use a slight delay to avoid immediately closing on the same touch that opened it
+    const timer = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside, { passive: true });
+    }, 200);
+
     return () => {
+      clearTimeout(timer);
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('touchstart', handleClickOutside);
     };
@@ -183,6 +219,10 @@ export const WordSuggestionPopup: React.FC<WordSuggestionPopupProps> = ({
         transform: 'translateX(-50%)',
         zIndex: 1000,
       }}
+      onPointerDown={(e) => {
+        // Prevent textarea blur when tapping popup on mobile
+        e.preventDefault();
+      }}
     >
       <div className="word-suggestion-header">
         পরিবর্তন করুন
@@ -192,7 +232,9 @@ export const WordSuggestionPopup: React.FC<WordSuggestionPopupProps> = ({
           <button
             key={suggestion}
             className="word-suggestion-item"
-            onClick={() => {
+            onPointerDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
               onReplace(selectionRange.start, selectionRange.end, suggestion);
               setSelectedWord('');
               setSuggestions([]);
