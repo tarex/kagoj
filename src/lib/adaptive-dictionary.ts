@@ -1,4 +1,5 @@
 import { banglaDictionary as baseDictionary } from './bangla-dictionary';
+import { extendedBanglaWords } from './bangla-words-extended';
 
 const LEARNED_WORDS_KEY = 'bangla_learned_words';
 const WORD_FREQUENCY_KEY = 'bangla_word_frequency';
@@ -18,7 +19,9 @@ class AdaptiveDictionary {
   constructor() {
     this.learnedWords = new Set();
     this.wordFrequency = {};
-    this.combinedDictionary = [...baseDictionary];
+    // Combine base and extended dictionaries
+    const allBaseDictionary = [...new Set([...baseDictionary, ...extendedBanglaWords])];
+    this.combinedDictionary = allBaseDictionary;
     // Don't load from storage in constructor to avoid SSR issues
     // loadFromStorage will be called from initializeOnClient
   }
@@ -89,8 +92,8 @@ class AdaptiveDictionary {
   }
 
   private rebuildDictionary(): void {
-    // Combine base dictionary with learned words
-    const allWords = new Set([...baseDictionary, ...this.learnedWords]);
+    // Combine base, extended dictionary with learned words
+    const allWords = new Set([...baseDictionary, ...extendedBanglaWords, ...this.learnedWords]);
     
     // Sort by frequency (most used first) and then alphabetically
     this.combinedDictionary = Array.from(allWords).sort((a, b) => {
@@ -134,8 +137,8 @@ class AdaptiveDictionary {
       // Update frequency
       this.wordFrequency[word] = (this.wordFrequency[word] || 0) + 1;
 
-      // Add to learned words if not in base dictionary
-      if (!baseDictionary.includes(word) && !this.learnedWords.has(word)) {
+      // Add to learned words if not in base or extended dictionary
+      if (!baseDictionary.includes(word) && !extendedBanglaWords.includes(word) && !this.learnedWords.has(word)) {
         this.learnedWords.add(word);
         newWordsAdded++;
         console.log('Learned new word:', word);
@@ -159,8 +162,8 @@ class AdaptiveDictionary {
     // Update frequency
     this.wordFrequency[cleanedWord] = (this.wordFrequency[cleanedWord] || 0) + 1;
 
-    // Add to learned words if new
-    if (!baseDictionary.includes(cleanedWord) && !this.learnedWords.has(cleanedWord)) {
+    // Add to learned words if new (not in base or extended dictionary)
+    if (!baseDictionary.includes(cleanedWord) && !extendedBanglaWords.includes(cleanedWord) && !this.learnedWords.has(cleanedWord)) {
       this.learnedWords.add(cleanedWord);
       this.rebuildDictionary();
       console.log('Learned new word:', cleanedWord);

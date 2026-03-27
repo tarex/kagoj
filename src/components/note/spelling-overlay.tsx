@@ -34,7 +34,6 @@ export const SpellingOverlay: React.FC<SpellingOverlayProps> = ({
     const textarea = textareaRef.current;
     const overlay = overlayRef.current;
 
-    // Sync scroll position
     const syncScroll = () => {
       overlay.scrollTop = textarea.scrollTop;
       overlay.scrollLeft = textarea.scrollLeft;
@@ -46,10 +45,8 @@ export const SpellingOverlay: React.FC<SpellingOverlayProps> = ({
 
   const handleErrorClick = (error: SpellingError, event: React.MouseEvent) => {
     event.stopPropagation();
-    console.log('Error word clicked:', error);
     setActiveError(error);
-    
-    // Calculate popup position
+
     const rect = event.currentTarget.getBoundingClientRect();
     setPopupPosition({
       x: rect.left + rect.width / 2,
@@ -58,13 +55,11 @@ export const SpellingOverlay: React.FC<SpellingOverlayProps> = ({
   };
 
   const handleCorrect = (error: SpellingError) => {
-    console.log('Applying correction:', error);
     onCorrect(error);
     setActiveError(null);
   };
 
   const handleIgnore = (error: SpellingError) => {
-    console.log('Ignoring error:', error);
     if (onIgnore) {
       onIgnore(error);
     }
@@ -76,19 +71,15 @@ export const SpellingOverlay: React.FC<SpellingOverlayProps> = ({
 
     const elements: React.ReactNode[] = [];
     let lastIndex = 0;
-    let elementCounter = 0; // Counter for unique keys
+    let elementCounter = 0;
 
-    // Sort errors by position
     const sortedErrors = [...errors].sort((a, b) => a.startIndex - b.startIndex);
 
-    sortedErrors.forEach((error, index) => {
-      // Skip invalid errors
+    sortedErrors.forEach((error) => {
       if (error.startIndex < 0 || error.endIndex > text.length || error.startIndex >= error.endIndex) {
-        console.warn(`Skipping invalid error position: ${error.startIndex}-${error.endIndex} for word "${error.word}"`);
         return;
       }
-      
-      // Add transparent text before the error to maintain positioning
+
       if (error.startIndex > lastIndex) {
         elements.push(
           <span key={`text-before-${elementCounter++}`} style={{ color: 'transparent' }}>
@@ -97,10 +88,8 @@ export const SpellingOverlay: React.FC<SpellingOverlayProps> = ({
         );
       }
 
-      // Get the actual text at this position
       const actualText = text.substring(error.startIndex, error.endIndex);
-      
-      // Add the error word with red underline styling and click handler
+
       elements.push(
         <span
           key={`error-${error.startIndex}-${error.endIndex}`}
@@ -112,12 +101,12 @@ export const SpellingOverlay: React.FC<SpellingOverlayProps> = ({
           style={{
             textDecoration: 'underline',
             textDecorationStyle: 'wavy',
-            textDecorationColor: 'red',
+            textDecorationColor: 'var(--accent-danger)',
             textDecorationThickness: '2px',
             color: 'transparent',
             cursor: 'pointer',
             position: 'relative',
-            pointerEvents: 'auto', // Only enable clicks on error words
+            pointerEvents: 'auto',
             userSelect: 'none',
           }}
         >
@@ -127,7 +116,6 @@ export const SpellingOverlay: React.FC<SpellingOverlayProps> = ({
       lastIndex = error.endIndex;
     });
 
-    // Add remaining transparent text
     if (lastIndex < text.length) {
       elements.push(
         <span key={`text-final-${elementCounter++}`} style={{ color: 'transparent' }}>
@@ -143,23 +131,23 @@ export const SpellingOverlay: React.FC<SpellingOverlayProps> = ({
     <>
       <div
         ref={overlayRef}
-        className="spelling-overlay"
         style={{
           position: 'absolute',
           top: 0,
           left: 0,
           right: 0,
           bottom: 0,
-          padding: '48px 64px',
-          pointerEvents: 'none', // Allow all events to pass through to textarea
+          padding: '48px 56px',
+          pointerEvents: 'none',
           overflow: 'auto',
           fontSize: `${fontSize}px`,
-          lineHeight: fontSize * 1.8 + 'px',
-          fontFamily: 'SF Pro Text, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
+          lineHeight: 1.9,
+          letterSpacing: '0.01em',
+          fontFamily: 'var(--font-body)',
           whiteSpace: 'pre-wrap',
           wordWrap: 'break-word',
           zIndex: 3,
-          userSelect: 'none', // Prevent text selection on overlay
+          userSelect: 'none',
         }}
       >
         <div>
@@ -167,7 +155,7 @@ export const SpellingOverlay: React.FC<SpellingOverlayProps> = ({
         </div>
       </div>
 
-      {/* Correction Popup */}
+      {/* Correction Popup — theme-aware */}
       {activeError && (
         <div
           style={{
@@ -175,26 +163,29 @@ export const SpellingOverlay: React.FC<SpellingOverlayProps> = ({
             left: popupPosition.x,
             top: popupPosition.y,
             transform: 'translateX(-50%)',
-            background: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            padding: '12px',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+            backgroundColor: 'var(--bg-elevated)',
+            border: '1px solid var(--border-secondary)',
+            borderRadius: '12px',
+            padding: '14px',
+            boxShadow: 'var(--shadow-lg)',
             zIndex: 1000,
             minWidth: '200px',
             maxWidth: '300px',
+            animation: 'popUp 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
           onClick={(e) => e.stopPropagation()}
         >
           <div style={{
-            fontSize: '12px',
-            color: '#6b7280',
+            fontSize: '11px',
+            color: 'var(--text-muted)',
             marginBottom: '8px',
-            fontWeight: '500',
+            fontWeight: '600',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
           }}>
-            Spelling Error
+            বানান ত্রুটি
           </div>
-          
+
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -202,64 +193,35 @@ export const SpellingOverlay: React.FC<SpellingOverlayProps> = ({
             marginBottom: '12px',
           }}>
             <span style={{
-              fontSize: '14px',
-              color: '#ef4444',
+              fontSize: '15px',
+              color: 'var(--accent-danger)',
               textDecoration: 'line-through',
             }}>
               {activeError.word}
             </span>
-            <span style={{ color: '#6b7280' }}>→</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>→</span>
             <span style={{
-              fontSize: '14px',
-              color: '#10b981',
-              fontWeight: '500',
+              fontSize: '15px',
+              color: 'var(--accent-success)',
+              fontWeight: '600',
             }}>
               {activeError.correction}
             </span>
           </div>
-          
+
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
               onClick={() => handleCorrect(activeError)}
-              style={{
-                flex: 1,
-                padding: '8px 12px',
-                background: '#10b981',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '14px',
-                fontWeight: '500',
-                cursor: 'pointer',
-                transition: 'background 0.2s',
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#059669'}
-              onMouseLeave={(e) => e.currentTarget.style.background = '#10b981'}
+              className="spelling-btn spelling-btn-primary"
+              style={{ flex: 1 }}
             >
-              Fix
+              ঠিক করুন
             </button>
             <button
               onClick={() => handleIgnore(activeError)}
-              style={{
-                padding: '8px 12px',
-                background: 'transparent',
-                color: '#6b7280',
-                border: '1px solid #e5e7eb',
-                borderRadius: '6px',
-                fontSize: '14px',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#f3f4f6';
-                e.currentTarget.style.borderColor = '#d1d5db';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.borderColor = '#e5e7eb';
-              }}
+              className="spelling-btn"
             >
-              Ignore
+              এড়িয়ে যান
             </button>
           </div>
         </div>

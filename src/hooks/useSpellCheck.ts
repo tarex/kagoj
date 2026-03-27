@@ -1,11 +1,13 @@
 import { useState, useCallback, useRef } from 'react';
 import { adaptiveDictionary } from '@/lib/adaptive-dictionary';
+import { checkSpelling as localCheckSpelling, addToCustomDictionary, learnFromText } from '@/lib/local-spell-checker';
 
 interface SpellingError {
   word: string;
   correction: string;
   startIndex: number;
   endIndex: number;
+  confidence?: number;
 }
 
 export const useSpellCheck = (isBanglaMode: boolean) => {
@@ -25,31 +27,25 @@ export const useSpellCheck = (isBanglaMode: boolean) => {
       return;
     }
     
-    console.log('🔍 Checking spelling for entire document');
+    console.log('🔍 Checking spelling locally for entire document');
     setIsCheckingSpelling(true);
     setSpellingErrors([]); // Clear previous errors
     
     try {
-      const response = await fetch('/api/suggestions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text: text,
-          mode: 'spellcheck'
-        })
-      });
+      // First, learn from the text to improve adaptive dictionary
+      learnFromText(text);
       
-      if (!response.ok) {
-        throw new Error(`API responded with ${response.status}`);
-      }
+      // Use local spell checker instead of AI
+      const errors = localCheckSpelling(text);
       
-      const data = await response.json();
-      console.log('✅ Spell check response:', data);
+      console.log('✅ Local spell check complete');
       
-      if (data.errors && data.errors.length > 0) {
-        console.log(`Spell check found ${data.errors.length} errors:`, data.errors);
-        setSpellingErrors(data.errors);
-        setShowSpellingErrors(true);
+      if (errors && errors.length > 0) {
+        // Filter out low confidence suggestions
+        const highConfidenceErrors = errors.filter(e => !e.confidence || e.confidence >= 50);
+        console.log(`Spell check found ${highConfidenceErrors.length} errors:`, highConfidenceErrors);
+        setSpellingErrors(highConfidenceErrors);
+        setShowSpellingErrors(highConfidenceErrors.length > 0);
       } else {
         console.log('No spelling errors found');
         setSpellingErrors([]);
@@ -161,8 +157,9 @@ export const useSpellCheck = (isBanglaMode: boolean) => {
   const handleIgnoreSpelling = useCallback((error: SpellingError) => {
     console.log('Ignoring spelling error:', error);
     
-    // Add the "ignored" word to dictionary as it might be a valid word
+    // Add the "ignored" word to both dictionaries as it might be a valid word
     adaptiveDictionary.learnWord(error.word);
+    addToCustomDictionary(error.word);
     console.log(`Added "${error.word}" to dictionary as a valid word`);
     
     // Remove this specific error from the list

@@ -7,7 +7,6 @@ interface NoteEditorProps {
   onInput?: (e: any) => void;
   textareaRef: React.RefObject<HTMLTextAreaElement>;
   fontSize: number;
-  suggestions: string[];
 }
 
 export const NoteEditor = React.memo<NoteEditorProps>(({

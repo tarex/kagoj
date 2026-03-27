@@ -10,7 +10,7 @@ import { useNotes } from './use-notes';
 import { useSpellCheck } from '@/hooks/useSpellCheck';
 import { useDebounce } from '@/hooks/useDebounce';
 import { BanglaInputHandler } from '@/lib/bangla-input-handler';
-import { words } from '@/lib/bangla-suggestion';
+// import { words } from '@/lib/bangla-suggestion'; // Not needed - using adaptive dictionary
 import { adaptiveDictionary } from '@/lib/adaptive-dictionary';
 
 const FONT_SIZE_KEY = 'noteFontSize';
@@ -120,7 +120,6 @@ const NoteComponent: React.FC = () => {
     (text: string) => {
       if (text && isBanglaMode) {
         adaptiveDictionary.learnFromText(text);
-        console.log('Auto-learned from current text');
       }
     },
     30000, // Learn after 30 seconds of no typing
@@ -177,7 +176,6 @@ const NoteComponent: React.FC = () => {
     
     // Learn from all existing notes on initial load
     if (notes.length > 0) {
-      console.log('Learning from existing notes...');
       notes.forEach(note => {
         if (note.content) {
           adaptiveDictionary.learnFromText(note.content);
@@ -188,50 +186,12 @@ const NoteComponent: React.FC = () => {
 
 
   const updateGhostSuggestionInternal = useCallback((word: string) => {
-    console.log('updateGhostSuggestion called with:', word, 'isBanglaMode:', isBanglaMode);
     if (word && word.length >= 1 && isBanglaMode) {
-      // Get suggestions from adaptive dictionary with usage counts
-      const learnedSuggestions = adaptiveDictionary.getSuggestions(word, 10);
-      console.log('Learned suggestions:', learnedSuggestions);
-      
-      // Get static dictionary matches
-      const staticMatches = words.filter(w => 
-        w.startsWith(word) && w !== word
-      ).slice(0, 10); // Limit to 10 matches
-      
-      // Combine and prioritize by usage frequency
-      const allSuggestions: Array<{word: string, score: number}> = [];
-      
-      // Add learned words with higher scores based on usage
-      learnedSuggestions.forEach(w => {
-        const stats = adaptiveDictionary.getWordStats(w);
-        allSuggestions.push({
-          word: w,
-          score: stats ? stats.count * 100 : 10 // Much higher score for frequently used words
-        });
-      });
-      
-      // Add static matches with lower scores
-      staticMatches.forEach(w => {
-        if (!learnedSuggestions.includes(w)) {
-          const stats = adaptiveDictionary.getWordStats(w);
-          allSuggestions.push({
-            word: w,
-            score: stats ? stats.count * 100 : 1 // Base score for static words
-          });
-        }
-      });
-      
-      // Sort by score (highest first)
-      allSuggestions.sort((a, b) => b.score - a.score);
-      
-      console.log('Suggestions sorted by frequency:', allSuggestions.slice(0, 3));
-      
-      if (allSuggestions.length > 0) {
-        // Show the most frequently used match
-        const bestMatch = allSuggestions[0].word;
+      const suggestions = adaptiveDictionary.getSuggestions(word, 10);
+
+      if (suggestions.length > 0) {
+        const bestMatch = suggestions[0];
         const completion = bestMatch.substring(word.length);
-        console.log('Setting ghost suggestion:', completion, 'from', bestMatch);
         setGhostSuggestion(completion);
       } else {
         setGhostSuggestion('');
@@ -246,7 +206,8 @@ const NoteComponent: React.FC = () => {
 
   // Wrapper for spell check hook functions
   const handleSpellCheck = useCallback(() => {
-    checkSpelling(currentNote);
+    const textToCheck = textareaRef.current?.value || currentNote;
+    checkSpelling(textToCheck);
   }, [checkSpelling, currentNote]);
   
   const handleCorrection = useCallback((error: any) => {
@@ -258,7 +219,6 @@ const NoteComponent: React.FC = () => {
         const newPos = error.startIndex + error.correction.length;
         textareaRef.current!.selectionStart = textareaRef.current!.selectionEnd = newPos;
         textareaRef.current!.focus();
-        console.log('Correction applied successfully');
       }, 0);
     }
   }, [handleSpellingCorrection, currentNote, setCurrentNote]);
@@ -369,8 +329,7 @@ const NoteComponent: React.FC = () => {
             start--;
           }
           const word = text.substring(start, cursorPos);
-          console.log('After keypress - checking word:', word);
-          updateGhostSuggestion(word);
+            updateGhostSuggestion(word);
         }
       }, 10);
     }
@@ -378,7 +337,6 @@ const NoteComponent: React.FC = () => {
 
   // Add a direct input handler to catch actual typed characters
   const handleInput = useCallback((e: any) => {
-    console.log('handleInput called, isBanglaMode:', isBanglaMode);
     if (!isBanglaMode) {
       setGhostSuggestion('');
       return;
@@ -388,11 +346,7 @@ const NoteComponent: React.FC = () => {
     const text = textarea.value;
     const cursorPos = textarea.selectionStart;
     
-    console.log('Text:', text, 'Cursor:', cursorPos, 'Length:', text.length);
-    
-    // Only show suggestions when cursor is at the end of text
     if (cursorPos !== text.length) {
-      console.log('Cursor not at end, clearing suggestion');
       setGhostSuggestion('');
       return;
     }
@@ -404,7 +358,6 @@ const NoteComponent: React.FC = () => {
     }
     
     const currentWordAtCursor = text.substring(start, cursorPos);
-    console.log('Current word at cursor:', currentWordAtCursor);
     
     // Only update if we have a word
     if (currentWordAtCursor && currentWordAtCursor.length > 0) {
@@ -448,7 +401,6 @@ const NoteComponent: React.FC = () => {
         
         if (lastWord && lastWord.length >= 2) {
           adaptiveDictionary.learnWord(lastWord);
-          console.log('Learned word from typing:', lastWord);
         }
         
         // Clear word suggestion
@@ -471,7 +423,6 @@ const NoteComponent: React.FC = () => {
             start--;
           }
           const word = value.substring(start, cursorPos);
-          console.log('After change - checking word:', word);
           if (word && word.length > 0) {
             // Show word suggestions
             updateGhostSuggestion(word);
@@ -585,42 +536,16 @@ const NoteComponent: React.FC = () => {
           {/* Editor Main Area */}
           <div className="editor-main" style={{ position: 'relative' }}>
             <div className="editor-wrapper">
-              {/* Spell Check Loading Indicator */}
               {isCheckingSpelling && (
-                <div style={{
-                  position: 'absolute',
-                  top: '10px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  background: 'linear-gradient(90deg, #10b981, #059669)',
-                  color: 'white',
-                  padding: '8px 16px',
-                  borderRadius: '20px',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  zIndex: 100,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
-                  animation: 'pulse 1.5s infinite',
-                }}>
-                  <span style={{
-                    display: 'inline-block',
-                    width: '8px',
-                    height: '8px',
-                    borderRadius: '50%',
-                    background: 'white',
-                    animation: 'blink 1s infinite',
-                  }}></span>
-                  ✔️ Checking spelling...
+                <div className="spell-check-loading">
+                  <span className="spell-check-dot" />
+                  বানান পরীক্ষা হচ্ছে...
                 </div>
               )}
               
               {/* Removed Spelling Errors Indicator Alert Box */}
               
               <NoteEditor
-                suggestions={words}
                 value={currentNote}
                 onChange={handleChange}
                 onKeyDown={handleKeyPress}
@@ -648,120 +573,6 @@ const NoteComponent: React.FC = () => {
                   onIgnore={handleIgnoreSpelling}
                 />
               )}
-              {/* Debug info */}
-              <div style={{
-                position: 'fixed',
-                bottom: 10,
-                right: 10,
-                padding: '10px',
-                background: 'rgba(0,0,0,0.8)',
-                color: 'white',
-                fontSize: '12px',
-                borderRadius: '5px',
-                zIndex: 9999,
-              }}>
-                <div>Mode: {isBanglaMode ? 'বাংলা' : 'English'}</div>
-                <div>Ghost: "{ghostSuggestion ? ghostSuggestion.substring(0, 30) + '...' : ''}"</div>
-                <div>Spelling: {isCheckingSpelling ? 'Checking...' : `${spellingErrors.length} errors`}</div>
-                <div>Text length: {currentNote.length}</div>
-                <div style={{ marginTop: '5px', fontSize: '10px', opacity: 0.8 }}>
-                  Dictionary: {adaptiveDictionary.getStats().totalWords} words
-                  <br />
-                  Learned: {adaptiveDictionary.getStats().learnedWords} words
-                </div>
-                {ghostSuggestion && (
-                  <div style={{ marginTop: '5px', padding: '4px', background: 'rgba(59, 130, 246, 0.2)', borderRadius: '3px', fontSize: '10px' }}>
-                    <div>🎯 Tab: Complete word</div>
-                    <div>❌ Escape: Dismiss</div>
-                  </div>
-                )}
-                {spellingErrors.length > 0 && (
-                  <div style={{ marginTop: '5px', padding: '4px', background: 'rgba(239, 68, 68, 0.2)', borderRadius: '3px', fontSize: '10px' }}>
-                    <div style={{ marginBottom: '4px', fontWeight: 'bold' }}>Spelling Errors:</div>
-                    {spellingErrors.slice(0, 3).map((error, i) => (
-                      <div key={i}>{error.word} → {error.correction}</div>
-                    ))}
-                    {spellingErrors.length > 3 && <div>...and {spellingErrors.length - 3} more</div>}
-                  </div>
-                )}
-                <div style={{ display: 'flex', gap: '4px', marginTop: '5px' }}>
-                  <button
-                    onClick={() => {
-                      // Test with some Bengali words
-                      const testWords = ['আম', 'তু', 'কর', 'বাং', 'দে'];
-                      const word = testWords[Math.floor(Math.random() * testWords.length)];
-                      console.log('Testing with word:', word);
-                      updateGhostSuggestion(word);
-                    }}
-                    style={{
-                      padding: '4px 8px',
-                      background: '#3b82f6',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '3px',
-                      cursor: 'pointer',
-                      fontSize: '10px',
-                    }}
-                  >
-                    Test Word
-                  </button>
-                  <button
-                    onClick={() => {
-                      console.log('🔍 MANUAL SPELL CHECK TEST TRIGGERED');
-                      console.log('Running spell check test');
-                      checkSpelling(); // Check entire document
-                    }}
-                    style={{
-                      padding: '4px 8px',
-                      background: '#10b981',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '3px',
-                      cursor: 'pointer',
-                      fontSize: '10px',
-                    }}
-                  >
-                    Test Spell Check
-                  </button>
-                  <button
-                    onClick={() => {
-                      adaptiveDictionary.clearLearnedWords();
-                      alert('Cleared all learned words!');
-                    }}
-                    style={{
-                      padding: '4px 8px',
-                      background: '#ef4444',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '3px',
-                      cursor: 'pointer',
-                      fontSize: '10px',
-                    }}
-                  >
-                    Clear
-                  </button>
-                  <button
-                    onClick={() => {
-                      // Learn from current note
-                      if (currentNote) {
-                        adaptiveDictionary.learnFromText(currentNote);
-                        console.log('Learned from current text');
-                      }
-                    }}
-                    style={{
-                      padding: '4px 8px',
-                      background: '#10b981',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '3px',
-                      cursor: 'pointer',
-                      fontSize: '10px',
-                    }}
-                  >
-                    Learn
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         </div>

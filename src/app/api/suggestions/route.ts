@@ -23,7 +23,7 @@ Rules:
 Return ONLY valid JSON, no explanation:`;
 
       const { text: response } = await generateText({
-        model: openai('gpt-3.5-turbo'), // Using older model as requested
+        model: openai.chat('gpt-3.5-turbo'),
         prompt: prompt,
         temperature: 0.2, // Lower temperature for more consistent spell checking
         maxRetries: 2,

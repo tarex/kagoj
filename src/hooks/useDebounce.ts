@@ -28,5 +28,5 @@ export function useDebounce<T extends (...args: any[]) => any>(
     };
   }, [debouncedCallback]);
   
-  return debouncedCallback as T;
+  return debouncedCallback as unknown as T;
 }

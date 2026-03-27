@@ -1,19 +1,22 @@
 import type { Metadata } from 'next/types';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Literata, Noto_Sans_Bengali } from 'next/font/google';
 import './globals.css';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const literata = Literata({
+  variable: '--font-literata',
   subsets: ['latin'],
+  display: 'swap',
 });
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
+const notoBengali = Noto_Sans_Bengali({
+  variable: '--font-bangla',
+  subsets: ['bengali'],
+  display: 'swap',
+  weight: ['300', '400', '500', '600', '700'],
 });
 
 export const metadata: Metadata = {
-  title: 'Bangla AI Notebook',
+  title: 'কাগজ — Bangla Notebook',
   description:
     'Write Bangla text effortlessly with AI-powered suggestions and phonetic typing',
 };
@@ -24,9 +27,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="bn">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${literata.variable} ${notoBengali.variable} antialiased`}
       >
         {children}
       </body>

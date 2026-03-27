@@ -1,51 +1,159 @@
 # Bangla AI Notebook
 
-## Overview
+A web-based Bangla writing application with Avro-style phonetic typing, AI-powered spell-checking, adaptive dictionary learning, and ghost text word suggestions.
 
-Bangla AI Notebook is a web-based application designed to assist users in writing Bangla effortlessly with AI-powered suggestions and phonetic typing. The application provides real-time Bangla text completion, contextual suggestions, and an intuitive typing experience by automatically converting phonetic input into Bangla script without displaying the English letters first.
+## Getting Started
+
+### Prerequisites
+
+- **Node.js** 18.18+
+- **pnpm** (package manager)
+
+### Installation
+
+```bash
+# Clone the repo
+git clone <repo-url>
+cd notebook
+
+# Install dependencies
+pnpm install
+
+# Set up environment variables
+cp .env.example .env.local
+# Add your OpenAI API key to .env.local
+```
+
+### Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `OPENAI_API_KEY` | For AI spell-check | OpenAI API key for AI-powered spell-checking fallback |
+
+AI spell-checking is optional. The app works fully offline with the local spell-checker.
+
+### Running
+
+```bash
+# Development (with Turbopack)
+pnpm dev
+
+# Production build
+pnpm build
+
+# Start production server
+pnpm start
+
+# Lint
+pnpm lint
+```
+
+The dev server runs at `http://localhost:3000`.
 
 ## Features
 
-### 1. **AI-Powered Sentence Completion**
+### Phonetic Typing (Avro-style)
 
-- Provides intelligent sentence suggestions to help users complete their writing.
-- Works for general Bangla text, not just lyrics or predefined phrases.
-- Uses OpenAI GPT models or fine-tuned Bangla NLP models for contextual accuracy.
+Type in Romanized Bangla and see direct Bangla output. Example: typing `ami banglay gan gai` produces `আমি বাংলায় গান গাই`.
 
-### 2. **Instant Phonetic Typing (Avro-like but Improved)**
+- 100+ transliteration rules with context-aware pattern matching
+- Supports complex conjuncts and special characters
+- No English letters shown during typing — direct Bangla conversion
 
-- Users can type in Romanized Bangla (e.g., "ami banglay gan gai") and see direct Bangla output ("আমি বাংলায় গান গাই").
-- The system uses an enhanced Avro-style mapping for accurate transliteration, ensuring that Bangla characters appear directly without showing English letters first.
-- Supports a wide range of phonetic mappings for a seamless typing experience.
+### Spell-Checking
 
-### 3. **Real-Time Text Processing**
+- **Local-first**: Uses Levenshtein distance algorithm with confidence scoring
+- **AI fallback**: Optional OpenAI GPT-3.5-turbo for harder cases
+- Wavy red underline on errors with Fix/Ignore popup
+- Errors below 50% confidence are filtered out
 
-- As users type, the system instantly converts phonetic input to Bangla.
-- Works smoothly in text fields with no noticeable lag.
+### Adaptive Dictionary
 
-### 4. **Contextual AI Suggestions**
+- Learns words as you type (on space/punctuation boundaries)
+- Three-tier lookup: learned words > extended dictionary (5000+) > base dictionary (300)
+- Frequency tracking — commonly used words rank higher
+- Persists to localStorage with a 5000-word cap
 
-- Based on previous words, the AI predicts and suggests possible next words or phrases.
-- Helps improve the flow of writing for various content types, including articles, stories, and lyrics.
+### Ghost Text Suggestions
 
-### 5. **User-Friendly Interface**
+- Shows faded word completion suggestions as you type
+- Press `Tab` to accept, `Escape` to dismiss
+- Powered by the adaptive dictionary
 
-- Designed to be intuitive and distraction-free for seamless Bangla writing.
-- Optimized for both desktop and mobile web browsers.
+### Notes Management
 
-## Future Enhancements
+- Multiple notes with sidebar navigation
+- Auto-save every 2 seconds
+- Dark/light theme toggle
+- Adjustable font size
 
-- **Custom Dictionary Support:** Allow users to add custom words for better predictions.
-- **Offline Mode:** Enable local phonetic conversion without internet dependency.
-- **Voice-to-Text Integration:** Allow dictation in Bangla for hands-free writing.
-- **Code Editor Integration:** Support phonetic Bangla typing inside code editors (e.g., Cursor Editor, VS Code).
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+Shift+B` | Toggle Bangla/English mode |
+| `Tab` | Accept ghost text suggestion |
+| `Escape` | Dismiss ghost suggestion |
+| `Ctrl+B` | Bold |
+| `Ctrl+I` | Italic |
+| `Ctrl+U` | Underline |
+| `Ctrl+D` | Strikethrough |
+| `Ctrl+E` | Code |
+| `Ctrl+H` | Highlight |
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 16 (App Router, Turbopack) |
+| UI | React 19, Tailwind CSS 4 |
+| Language | TypeScript 5.9 (strict mode) |
+| AI | Vercel AI SDK v6, OpenAI GPT-3.5-turbo |
+| Validation | Zod 4 |
+| Testing | Puppeteer (E2E scripts in root) |
 
 ## Project Structure
 
-### Core Libraries
+```
+src/
+  app/
+    api/suggestions/route.ts   # AI spell-check API endpoint
+    layout.tsx                  # Root layout
+    page.tsx                    # Home page
+    globals.css                 # Global styles
 
-The project includes a set of reusable libraries and components in the `lib/` directory:
+  components/note/
+    index.tsx                   # Main orchestrator component
+    note-editor.tsx             # Memoized textarea
+    ghost-text.tsx              # Word completion overlay
+    spelling-overlay.tsx        # Spell-check error display
+    toolbar.tsx                 # Formatting buttons
+    note-list.tsx               # Sidebar note list
+    autocomplete.tsx            # Autocomplete dropdown
+    use-notes.ts                # Notes CRUD hook
 
----
+  hooks/
+    useSpellCheck.ts            # Spell-checking integration
+    useDebounce.ts              # Generic debounce hook
 
-This project aims to enhance the Bangla writing experience with AI-driven intelligence and seamless phonetic typing. 🚀
+  lib/
+    bangla-input-handler.ts     # Singleton phonetic input processor
+    context-pattern.ts          # 100+ transliteration rules
+    local-spell-checker.ts      # Levenshtein-based spell checker
+    adaptive-dictionary.ts      # Learning dictionary with frequency tracking
+    bangla-dictionary.ts        # Base dictionary (~300 words)
+    bangla-words-extended.ts    # Extended dictionary (~5000+ words)
+```
+
+## Data Persistence
+
+All data is stored in the browser's localStorage:
+
+| Key | Contents |
+|-----|----------|
+| `notes` | Saved notes array |
+| `currentNote` | Unsaved draft |
+| `noteFontSize` | Font size preference |
+| `noteTheme` | Dark/light theme |
+| `bangla_learned_words` | Adaptive dictionary words |
+| `bangla_word_frequency` | Word frequency map |
