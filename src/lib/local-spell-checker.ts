@@ -289,7 +289,7 @@ function isBanglaWord(word: string): boolean {
 // Clean and normalize a word
 function cleanWord(word: string): string {
   // Remove common punctuation but keep Bangla characters
-  return word.replace(/[।॥,;!?\.\(\)\[\]\{\}"'`]/, '').trim();
+  return word.replace(/[।॥,;!?\.\(\)\[\]\{\}"'`]/g, '').trim();
 }
 
 // Main spell checking function

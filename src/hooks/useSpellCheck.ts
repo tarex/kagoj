@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { adaptiveDictionary } from '@/lib/adaptive-dictionary';
-import { checkSpelling as localCheckSpelling, addToCustomDictionary, learnFromText } from '@/lib/local-spell-checker';
+import { checkSpelling as localCheckSpelling, learnFromText } from '@/lib/local-spell-checker';
 
 interface SpellingError {
   word: string;
@@ -107,7 +107,6 @@ export const useSpellCheck = (isBanglaMode: boolean) => {
     }
 
     setIsCheckingSpelling(true);
-    setSpellingErrors([]); // Clear previous errors
 
     // Run spell-check in idle time so it never blocks the main thread
     idleCallbackRef.current = scheduleIdle(() => {
@@ -150,7 +149,7 @@ export const useSpellCheck = (isBanglaMode: boolean) => {
     }
 
     spellCheckTimeoutRef.current = setTimeout(() => {
-      if (isBanglaMode && text.trim().length > 3) {
+      if (isBanglaMode && text.trim().length >= 3) {
         checkSpelling(text);
       }
     }, delay);
@@ -222,9 +221,8 @@ export const useSpellCheck = (isBanglaMode: boolean) => {
   }, []);
 
   const handleIgnoreSpelling = useCallback((error: SpellingError) => {
-    // Add the ignored word to dictionaries as a valid word
+    // Add the ignored word to the dictionary as a valid word
     adaptiveDictionary.learnWord(error.word);
-    addToCustomDictionary(error.word);
 
     setSpellingErrors(prev => {
       const filtered = prev.filter(e =>

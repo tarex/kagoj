@@ -52,6 +52,7 @@ const NoteComponent: React.FC = () => {
     scheduleSpellCheck,
     handleSpellingCorrection,
     handleIgnoreSpelling,
+    clearSpellCheck,
   } = useSpellCheck(isBanglaMode);
 
   const toggleLanguageMode = useCallback(() => {
@@ -188,6 +189,11 @@ const NoteComponent: React.FC = () => {
       });
     }
   }, []);
+
+  // Clear spell-check errors when switching notes
+  useEffect(() => {
+    clearSpellCheck();
+  }, [selectedNoteIndex, clearSpellCheck]);
 
   // Sync AI suggestion into ghost suggestion state
   useEffect(() => {
@@ -476,7 +482,7 @@ const NoteComponent: React.FC = () => {
       clearAISuggestion();
       setIsAISuggestionActive(false);
     }
-  }, [currentNote, scheduleSpellCheck, selectedNoteIndex, saveCurrentNote, isBanglaMode, setGhostSuggestion, updateGhostSuggestion, requestAISuggestion, clearAISuggestion]);
+  }, [currentNote, scheduleSpellCheck, saveCurrentNote, isBanglaMode, setGhostSuggestion, updateGhostSuggestion, requestAISuggestion, clearAISuggestion]);
 
   return (
     <div className="app-container">
