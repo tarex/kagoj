@@ -58,7 +58,10 @@ Plans:
   3. User can accept a correction or dismiss an error inline with a single action without leaving the text
   4. Editing a flagged word clears its error marker automatically without requiring re-check
   5. Spell-check runs in the background and never causes typing input to lag or stutter
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 03-01-PLAN.md — Phonetic similarity scoring, suffix-aware validation, error auto-invalidation
+- [ ] 03-02-PLAN.md — Keyboard-driven inline fix/ignore, background spell-check execution
 
 ## Progress
 
@@ -68,4 +71,4 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Dictionary Foundation | 2/2 | Complete   | 2026-03-27 |
 | 2. Ghost Text Intelligence | 2/2 | Complete   | 2026-03-27 |
-| 3. Spell Check Overhaul | 0/TBD | Not started | - |
+| 3. Spell Check Overhaul | 0/2 | Not started | - |
