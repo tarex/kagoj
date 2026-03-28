@@ -7,6 +7,10 @@ export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
 export default async function Image() {
+  const notoSansBengali = await fetch(
+    'https://fonts.gstatic.com/s/notosansbengali/v20/Cn-SJsCGWQxOjaGwMQ6fIiMywrNJIky6nvd8BjzVMvJx2mcSPVFpVEqE-6KmsolKl1st.woff2'
+  ).then((res) => res.arrayBuffer());
+
   return new ImageResponse(
     (
       <div
@@ -19,11 +23,10 @@ export default async function Image() {
           alignItems: 'center',
           position: 'relative',
           overflow: 'hidden',
-          // Warm paper-like background
           background: 'linear-gradient(145deg, #faf8f5 0%, #f0ece6 40%, #e8e2d8 100%)',
         }}
       >
-        {/* Subtle paper texture via noise overlay */}
+        {/* Subtle paper texture */}
         <div
           style={{
             position: 'absolute',
@@ -70,10 +73,11 @@ export default async function Image() {
             gap: 12,
           }}
         >
-          {/* Bangla title — large calligraphic feel */}
+          {/* Bangla title */}
           <div
             style={{
               fontSize: 120,
+              fontFamily: 'Noto Sans Bengali',
               fontWeight: 700,
               color: '#1a1a1a',
               letterSpacing: '-0.02em',
@@ -94,27 +98,14 @@ export default async function Image() {
             }}
           />
 
-          {/* English subtitle */}
-          <div
-            style={{
-              fontSize: 28,
-              fontWeight: 400,
-              color: '#6b5c4c',
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase' as const,
-            }}
-          >
-            সহজে বাংলা লিখুন
-          </div>
-
           {/* Tagline */}
           <div
             style={{
-              fontSize: 20,
-              fontWeight: 300,
-              color: '#9a8b78',
-              marginTop: 16,
-              letterSpacing: '0.02em',
+              fontSize: 28,
+              fontFamily: 'Noto Sans Bengali',
+              fontWeight: 400,
+              color: '#6b5c4c',
+              letterSpacing: '0.04em',
             }}
           >
             সহজে বাংলা লিখুন
@@ -122,54 +113,28 @@ export default async function Image() {
         </div>
 
         {/* Corner accents */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 32,
-            left: 72,
-            width: 24,
-            height: 24,
-            borderTop: '2px solid #c4a882',
-            borderLeft: '2px solid #c4a882',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            top: 32,
-            right: 72,
-            width: 24,
-            height: 24,
-            borderTop: '2px solid #c4a882',
-            borderRight: '2px solid #c4a882',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 32,
-            left: 72,
-            width: 24,
-            height: 24,
-            borderBottom: '2px solid #c4a882',
-            borderLeft: '2px solid #c4a882',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 32,
-            right: 72,
-            width: 24,
-            height: 24,
-            borderBottom: '2px solid #c4a882',
-            borderRight: '2px solid #c4a882',
-          }}
-        />
+        <div style={{ position: 'absolute', top: 32, left: 72, width: 24, height: 24, borderTop: '2px solid #c4a882', borderLeft: '2px solid #c4a882' }} />
+        <div style={{ position: 'absolute', top: 32, right: 72, width: 24, height: 24, borderTop: '2px solid #c4a882', borderRight: '2px solid #c4a882' }} />
+        <div style={{ position: 'absolute', bottom: 32, left: 72, width: 24, height: 24, borderBottom: '2px solid #c4a882', borderLeft: '2px solid #c4a882' }} />
+        <div style={{ position: 'absolute', bottom: 32, right: 72, width: 24, height: 24, borderBottom: '2px solid #c4a882', borderRight: '2px solid #c4a882' }} />
       </div>
     ),
     {
       ...size,
+      fonts: [
+        {
+          name: 'Noto Sans Bengali',
+          data: notoSansBengali,
+          style: 'normal',
+          weight: 400,
+        },
+        {
+          name: 'Noto Sans Bengali',
+          data: notoSansBengali,
+          style: 'normal',
+          weight: 700,
+        },
+      ],
     }
   );
 }

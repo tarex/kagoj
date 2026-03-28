@@ -1783,11 +1783,15 @@ textarea:focus-visible {
     font-size: 12pt !important;
     line-height: 1.8 !important;
     height: auto !important;
+    min-height: 0 !important;
     max-height: none !important;
     overflow: visible !important;
+    overflow-y: visible !important;
     resize: none !important;
     white-space: pre-wrap !important;
     word-wrap: break-word !important;
+    display: block !important;
+    position: static !important;
   }
 
   /* Page settings */

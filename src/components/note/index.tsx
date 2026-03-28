@@ -179,9 +179,15 @@ const NoteComponent: React.FC = () => {
     const textarea = textareaRef.current;
     if (textarea) {
       const prevHeight = textarea.style.height;
+      const prevOverflow = textarea.style.overflow;
       textarea.style.height = `${textarea.scrollHeight}px`;
-      window.print();
-      textarea.style.height = prevHeight;
+      textarea.style.overflow = 'visible';
+      // Wait for repaint so the browser captures the expanded height
+      requestAnimationFrame(() => {
+        window.print();
+        textarea.style.height = prevHeight;
+        textarea.style.overflow = prevOverflow;
+      });
     } else {
       window.print();
     }
