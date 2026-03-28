@@ -1,22 +1,18 @@
 import { ImageResponse } from 'next/og';
-import { readFile } from 'fs/promises';
-import { join } from 'path';
+import { taglineBase64 } from './og-tagline';
 
-export const runtime = 'nodejs';
+export const runtime = 'edge';
 
 export const alt = 'কাগজ - সহজে বাংলা লিখুন';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
 export default async function Image() {
-  const [notoSansBengali, taglinePng] = await Promise.all([
-    fetch(
+  const notoSansBengali = await fetch(
+    new URL(
       'https://fonts.gstatic.com/s/notosansbengali/v33/Cn-SJsCGWQxOjaGwMQ6fIiMywrNJIky6nvd8BjzVMvJx2mcSPVFpVEqE-6KmsolLudA.ttf',
-    ).then((res) => res.arrayBuffer()),
-    readFile(join(process.cwd(), 'public', 'tagline.png')),
-  ]);
-
-  const taglineBase64 = `data:image/png;base64,${taglinePng.toString('base64')}`;
+    ),
+  ).then((res) => res.arrayBuffer());
 
   return new ImageResponse(
     <div
@@ -75,7 +71,6 @@ export default async function Image() {
           style={{ opacity: 0.85 }}
         />
       </div>
-
     </div>,
     {
       ...size,

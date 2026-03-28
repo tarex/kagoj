@@ -102,112 +102,90 @@ export const contextPatterns = [
   // Rules for 'র্' (reph)
   {
     pattern: 'ররk',
-    contextPattern: '(o|a|i|I|u|U|e|O|OI|OU|rri)rr',
     replacement: 'র্ক',
   },
   {
     pattern: 'ররg',
-    contextPattern: '(o|a|i|I|u|U|e|O|OI|OU|rri)rr',
     replacement: 'র্গ',
   },
   {
     pattern: 'ররc',
-    contextPattern: '(o|a|i|I|u|U|e|O|OI|OU|rri)rr',
     replacement: 'র্চ',
   },
   {
     pattern: 'ররj',
-    contextPattern: '(o|a|i|I|u|U|e|O|OI|OU|rri)rr',
     replacement: 'র্জ',
   },
   {
     pattern: 'ররT',
-    contextPattern: '(o|a|i|I|u|U|e|O|OI|OU|rri)rr',
     replacement: 'র্ট',
   },
   {
     pattern: 'ররD',
-    contextPattern: '(o|a|i|I|u|U|e|O|OI|OU|rri)rr',
     replacement: 'র্ড',
   },
   {
     pattern: 'ররN',
-    contextPattern: '(o|a|i|I|u|U|e|O|OI|OU|rri)rr',
     replacement: 'র্ণ',
   },
   {
     pattern: 'ররt',
-    contextPattern: '(o|a|i|I|u|U|e|O|OI|OU|rri)rr',
     replacement: 'র্ত',
   },
   {
     pattern: 'ররd',
-    contextPattern: '(o|a|i|I|u|U|e|O|OI|OU|rri)rr',
     replacement: 'র্দ',
   },
   {
     pattern: 'ররn',
-    contextPattern: '(o|a|i|I|u|U|e|O|OI|OU|rri)rr',
     replacement: 'র্ন',
   },
   {
     pattern: 'ররp',
-    contextPattern: '(o|a|i|I|u|U|e|O|OI|OU|rri)rr',
     replacement: 'র্প',
   },
   {
     pattern: 'ররf',
-    contextPattern: '(o|a|i|I|u|U|e|O|OI|OU|rri)rr',
     replacement: 'র্ফ',
   },
   {
     pattern: 'ররb',
-    contextPattern: '(o|a|i|I|u|U|e|O|OI|OU|rri)rr',
     replacement: 'র্ব',
   },
   {
     pattern: 'ররv',
-    contextPattern: '(o|a|i|I|u|U|e|O|OI|OU|rri)rr',
     replacement: 'র্ভ',
   },
   {
     pattern: 'ররm',
-    contextPattern: '(o|a|i|I|u|U|e|O|OI|OU|rri)rr',
     replacement: 'র্ম',
   },
   {
     pattern: 'ররz',
-    contextPattern: '(o|a|i|I|u|U|e|O|OI|OU|rri)rr',
     replacement: 'র্য',
   },
   {
     pattern: 'ররl',
-    contextPattern: '(o|a|i|I|u|U|e|O|OI|OU|rri)rr',
     replacement: 'র্ল',
   },
   {
     pattern: 'ররS',
-    contextPattern: '(o|a|i|I|u|U|e|O|OI|OU|rri)rr',
     replacement: 'র্শ',
   },
   {
     pattern: 'ররs',
-    contextPattern: '(o|a|i|I|u|U|e|O|OI|OU|rri)rr',
     replacement: 'র্স',
   },
   {
     pattern: 'ররh',
-    contextPattern: '(o|a|i|I|u|U|e|O|OI|OU|rri)rr',
     replacement: 'র্হ',
   },
   {
     pattern: 'ররR',
-    contextPattern: '(o|a|i|I|u|U|e|O|OI|OU|rri)rr',
     replacement: 'র্ড়',
   },
   {
     pattern: 'রর(y|Y)',
-    contextPattern: '(o|a|i|I|u|U|e|O|OI|OU|rri)rr',
     replacement: 'র্য়',
   },
 
