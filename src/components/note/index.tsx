@@ -1034,8 +1034,8 @@ const NoteComponent: React.FC = () => {
                   onAccept={acceptGhostSuggestion}
                 />
               )}
-              {/* Spelling Error Overlay */}
-              {showSpellingErrors && spellingErrors.length > 0 && (
+              {/* Spelling Error Overlay — disabled, needs rethink */}
+              {/* {showSpellingErrors && spellingErrors.length > 0 && (
                 <SpellingOverlay
                   text={currentNote}
                   errors={spellingErrors}
@@ -1044,7 +1044,7 @@ const NoteComponent: React.FC = () => {
                   onCorrect={handleCorrection}
                   onIgnore={handleIgnoreSpelling}
                 />
-              )}
+              )} */}
               {/* Word Suggestion Popup — shows when user highlights a word */}
               <WordSuggestionPopup
                 textareaRef={textareaRef}
