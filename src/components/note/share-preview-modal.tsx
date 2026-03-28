@@ -53,10 +53,8 @@ export function SharePreviewModal({
     }
   }, [captureRef]);
 
-  // Regenerate preview when aspect ratio or content changes
   useEffect(() => {
     if (!isOpen) return;
-    // Wait for CaptureFrame to re-render with new aspect ratio
     const timer = setTimeout(() => {
       generatePreview();
     }, 100);
@@ -73,6 +71,14 @@ export function SharePreviewModal({
     return () => document.removeEventListener('keydown', handler);
   }, [isOpen, onClose]);
 
+  // Lock body scroll on mobile when modal is open
+  useEffect(() => {
+    if (!isOpen) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = original; };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const statusLabel =
@@ -81,9 +87,10 @@ export function SharePreviewModal({
     copyStatus === 'fallback' ? 'Downloaded' :
     null;
 
+  const busy = isCapturing || generating;
+
   return (
     <>
-      {/* CaptureFrame stays off-screen but receives aspectRatio */}
       <CaptureFrame
         content={content}
         title={title}
@@ -92,42 +99,61 @@ export function SharePreviewModal({
         captureRef={captureRef}
       />
 
-      {/* Modal backdrop */}
+      {/* Backdrop */}
       <div
         className="share-modal-backdrop"
         onClick={onClose}
         style={{
           position: 'fixed',
           inset: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          backgroundColor: 'rgba(0, 0, 0, 0.75)',
           zIndex: 9999,
           display: 'flex',
-          alignItems: 'center',
+          alignItems: 'flex-end',
           justifyContent: 'center',
-          padding: '24px',
+          padding: 0,
         }}
       >
-        {/* Modal content */}
+        {/* Modal -- bottom sheet on mobile, centered card on desktop */}
         <div
           onClick={(e) => e.stopPropagation()}
+          className="share-modal"
           style={{
             backgroundColor: '#242424',
-            borderRadius: '12px',
-            maxWidth: '640px',
             width: '100%',
-            maxHeight: '90vh',
+            maxWidth: '640px',
+            maxHeight: '92vh',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
+            borderTopLeftRadius: '16px',
+            borderTopRightRadius: '16px',
+            borderBottomLeftRadius: 0,
+            borderBottomRightRadius: 0,
+            /* Safe area for PWA / notch devices */
+            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
           }}
         >
+          {/* Drag handle (mobile affordance) */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            padding: '8px 0 0',
+          }}>
+            <div style={{
+              width: '36px',
+              height: '4px',
+              borderRadius: '2px',
+              backgroundColor: '#555',
+            }} />
+          </div>
+
           {/* Header */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '16px 20px',
-            borderBottom: '1px solid #333',
+            padding: '10px 16px 12px',
           }}>
             <span style={{ color: '#e8e8e8', fontSize: '15px', fontWeight: 500 }}>Share as Image</span>
             <button
@@ -137,12 +163,19 @@ export function SharePreviewModal({
                 border: 'none',
                 color: '#888',
                 cursor: 'pointer',
-                padding: '4px',
+                padding: '8px',
+                margin: '-8px',
                 lineHeight: 0,
+                /* Larger touch target */
+                minWidth: '44px',
+                minHeight: '44px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
               aria-label="Close"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <path d="M18 6L6 18M6 6l12 12" />
               </svg>
             </button>
@@ -150,18 +183,20 @@ export function SharePreviewModal({
 
           {/* Preview area */}
           <div style={{
-            padding: '20px',
+            padding: '8px 16px 12px',
             overflow: 'auto',
             flex: 1,
             display: 'flex',
             justifyContent: 'center',
-            alignItems: 'flex-start',
+            alignItems: 'center',
+            minHeight: '120px',
+            WebkitOverflowScrolling: 'touch',
           }}>
             {generating || !previewUrl ? (
               <div style={{
                 color: '#666',
                 fontSize: '13px',
-                padding: '60px 0',
+                padding: '40px 0',
               }}>
                 Generating preview...
               </div>
@@ -171,36 +206,42 @@ export function SharePreviewModal({
                 alt="Capture preview"
                 style={{
                   maxWidth: '100%',
-                  maxHeight: '50vh',
-                  borderRadius: '6px',
+                  maxHeight: '40vh',
+                  borderRadius: '8px',
                   border: '1px solid #333',
                 }}
               />
             )}
           </div>
 
-          {/* Aspect ratio picker */}
+          {/* Aspect ratio picker -- scrollable row on mobile */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            padding: '0 20px 16px',
+            padding: '4px 16px 12px',
             justifyContent: 'center',
+            overflowX: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            flexShrink: 0,
           }}>
             {ASPECT_RATIOS.map((r) => (
               <button
                 key={r.key}
                 onClick={() => setAspectRatio(r.key)}
                 style={{
-                  padding: '6px 14px',
-                  borderRadius: '6px',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
                   border: aspectRatio === r.key ? '1px solid #4ade80' : '1px solid #444',
                   background: aspectRatio === r.key ? 'rgba(74, 222, 128, 0.1)' : 'transparent',
                   color: aspectRatio === r.key ? '#4ade80' : '#999',
-                  fontSize: '12px',
+                  fontSize: '13px',
                   fontWeight: 500,
                   cursor: 'pointer',
                   transition: 'all 150ms',
+                  flexShrink: 0,
+                  /* Touch-friendly size */
+                  minHeight: '40px',
                 }}
               >
                 {r.label}
@@ -208,75 +249,96 @@ export function SharePreviewModal({
             ))}
           </div>
 
-          {/* Actions */}
+          {/* Actions -- full-width stacked on very small screens */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             gap: '10px',
-            padding: '12px 20px 16px',
+            padding: '12px 16px 16px',
             borderTop: '1px solid #333',
-            justifyContent: 'flex-end',
+            flexShrink: 0,
           }}>
             {statusLabel && (
               <span style={{
                 color: copyStatus === 'fallback' ? '#fbbf24' : '#4ade80',
                 fontSize: '12px',
-                marginRight: 'auto',
+                position: 'absolute',
+                top: '-24px',
               }}>
                 {statusLabel}
               </span>
             )}
             <button
               onClick={onCopy}
-              disabled={isCapturing || generating}
+              disabled={busy}
               style={{
-                padding: '8px 18px',
-                borderRadius: '8px',
+                flex: 1,
+                padding: '12px 16px',
+                borderRadius: '10px',
                 border: '1px solid #444',
                 background: 'transparent',
                 color: '#e8e8e8',
-                fontSize: '13px',
-                cursor: isCapturing ? 'not-allowed' : 'pointer',
-                opacity: isCapturing ? 0.5 : 1,
+                fontSize: '14px',
+                cursor: busy ? 'not-allowed' : 'pointer',
+                opacity: busy ? 0.5 : 1,
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
+                justifyContent: 'center',
+                gap: '8px',
+                minHeight: '48px',
               }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
                 <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
               </svg>
-              Copy
+              {copyStatus === 'copied' ? 'Copied!' : 'Copy'}
             </button>
             <button
               onClick={onDownload}
-              disabled={isCapturing || generating}
+              disabled={busy}
               style={{
-                padding: '8px 18px',
-                borderRadius: '8px',
+                flex: 1,
+                padding: '12px 16px',
+                borderRadius: '10px',
                 border: 'none',
                 background: '#e8e8e8',
                 color: '#1a1a1a',
-                fontSize: '13px',
+                fontSize: '14px',
                 fontWeight: 500,
-                cursor: isCapturing ? 'not-allowed' : 'pointer',
-                opacity: isCapturing ? 0.5 : 1,
+                cursor: busy ? 'not-allowed' : 'pointer',
+                opacity: busy ? 0.5 : 1,
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
+                justifyContent: 'center',
+                gap: '8px',
+                minHeight: '48px',
               }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="7 10 12 15 17 10" />
                 <line x1="12" y1="15" x2="12" y2="3" />
               </svg>
-              Download
+              {copyStatus === 'downloaded' ? 'Saved!' : 'Download'}
             </button>
           </div>
         </div>
       </div>
+
+      {/* Desktop override: center the modal instead of bottom-sheet */}
+      <style>{`
+        @media (min-width: 640px) {
+          .share-modal-backdrop {
+            align-items: center !important;
+            padding: 24px !important;
+          }
+          .share-modal {
+            border-radius: 12px !important;
+            max-height: 85vh !important;
+          }
+        }
+      `}</style>
     </>
   );
 }
