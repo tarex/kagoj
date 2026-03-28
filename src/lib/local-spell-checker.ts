@@ -1,4 +1,5 @@
 import { adaptiveDictionary } from './adaptive-dictionary';
+import { bigramStore } from './bigram-store';
 
 // Bangla phonetic similarity groups — characters in the same group cost 0.5 to substitute
 // Groups: aspirated/unaspirated pairs and sibilant variants
@@ -290,8 +291,8 @@ export function checkSpelling(text: string): SpellingError[] {
   return errors;
 }
 
-// Get fuzzy suggestions for a word using phonetic distance
-export function getSpellingSuggestions(word: string, limit: number = 5): string[] {
+// Get fuzzy suggestions for a word using phonetic distance + context
+export function getSpellingSuggestions(word: string, limit: number = 5, prevWord?: string): string[] {
   if (!word || word.length < 2) return [];
 
   // 1. Check common mistakes first
@@ -309,10 +310,15 @@ export function getSpellingSuggestions(word: string, limit: number = 5): string[
 
   // 3. Score by phonetic distance, keep only close matches
   const maxDist = Math.min(3, Math.ceil(word.length * 0.6));
-  const scored: { word: string; distance: number }[] = [];
+
+  // Get context-aware next-words from bigrams for re-ranking
+  const contextWords = prevWord ? new Set(bigramStore.getSuggestions(prevWord, 50)) : new Set<string>();
+
+  const scored: { word: string; score: number }[] = [];
 
   if (commonFix) {
-    scored.push({ word: commonFix, distance: 0 });
+    // Common fix gets best score; boost if it also fits context
+    scored.push({ word: commonFix, score: contextWords.has(commonFix) ? -1 : 0 });
   }
 
   for (const candidate of candidates) {
@@ -320,12 +326,14 @@ export function getSpellingSuggestions(word: string, limit: number = 5): string[
     if (Math.abs(candidate.length - word.length) > maxDist) continue;
     const dist = phoneticDistance(word, candidate);
     if (dist <= maxDist) {
-      scored.push({ word: candidate, distance: dist });
+      // Context boost: subtract 0.5 from distance if candidate is a known collocate
+      const contextBoost = contextWords.has(candidate) ? 0.5 : 0;
+      scored.push({ word: candidate, score: dist - contextBoost });
     }
   }
 
-  // Sort by distance (closest first), then shorter words first
-  scored.sort((a, b) => a.distance - b.distance || a.word.length - b.word.length);
+  // Sort by score (lowest first), then shorter words first
+  scored.sort((a, b) => a.score - b.score || a.word.length - b.word.length);
 
   return scored.slice(0, limit).map(s => s.word);
 }

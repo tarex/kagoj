@@ -234,9 +234,9 @@ export const useSpellCheck = (isBanglaMode: boolean) => {
     });
   }, []);
 
-  const getWordSuggestions = useCallback((word: string): string[] => {
+  const getWordSuggestions = useCallback((word: string, prevWord?: string): string[] => {
     if (!word || word.length < 2) return [];
-    return getSpellingSuggestions(word, 5);
+    return getSpellingSuggestions(word, 5, prevWord);
   }, []);
 
   const clearSpellCheck = useCallback(() => {

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 interface WordSuggestionPopupProps {
   textareaRef: React.RefObject<HTMLTextAreaElement>;
   isBanglaMode: boolean;
-  getSuggestions: (word: string) => string[];
+  getSuggestions: (word: string, prevWord?: string) => string[];
   onReplace: (start: number, end: number, replacement: string) => void;
 }
 
@@ -52,7 +52,12 @@ export const WordSuggestionPopup: React.FC<WordSuggestionPopupProps> = ({
       return;
     }
 
-    const wordSuggestions = getSuggestions(word);
+    // Extract previous word for context-aware suggestions
+    const textBefore = textarea.value.substring(0, start);
+    const prevWords = textBefore.split(/[\s\.,;!?।]+/).filter(w => w.length >= 2);
+    const prevWord = prevWords.length > 0 ? prevWords[prevWords.length - 1] : undefined;
+
+    const wordSuggestions = getSuggestions(word, prevWord);
     // Filter out the word itself
     const filtered = wordSuggestions.filter(s => s !== word);
 
