@@ -1,9 +1,7 @@
-# kagoj
-
-<h1 align="center">বাংলা AI Notebook</h1>
+<h1 align="center">কাগজ — সহজে বাংলা লিখুন</h1>
 
 <p align="center">
-  <strong>A modern, offline-first Bangla writing app with phonetic typing, AI spell-checking, and adaptive learning.</strong>
+  <strong>A modern, offline-first Bangla writing app where every keystroke produces native Bangla characters — no English letters on screen, ever.</strong>
 </p>
 
 <p align="center">
@@ -27,43 +25,30 @@
 
 ## Why?
 
-Writing Bangla on a computer shouldn't require installing special keyboard software or memorizing complex layouts. **বাংলা AI Notebook** lets you type Bangla using regular English keys — just type how it sounds, and the app converts it instantly.
+Most phonetic Bangla tools show English letters on screen while you type, then convert them after you press space or confirm. **কাগজ** takes a different approach — every keystroke produces native Bangla characters directly. You never see romanized text. Just type how it sounds and Bangla appears instantly.
 
 ```
-ami banglay gan gai  →  আমি বাংলায় গান গাই
+You press:  a  m  i  [space]  b  a  n  g  l  a  y
+You see:    আ  ম  ি  [space]  ব  া  ং  ল  া  য়
 ```
 
-No server required. No account needed. Everything runs in your browser.
+No server required. No account needed. Your writing stays on your device — everything is saved to localStorage, never sent to any server. You own your text.
 
 ---
 
 ## Features
 
-### Phonetic Typing (Avro-style)
+### Native Bangla Typing (Avro-style)
 
-Type Romanized Bangla and see instant Bangla output. No English letters shown during typing — direct conversion as you type.
+Type using your regular English keyboard and see Bangla characters appear immediately — no romanized text on screen, no conversion step. Each keystroke directly produces native Bangla output.
 
 - **100+ transliteration rules** with context-aware pattern matching
 - Supports complex conjuncts (`ক্ষ`, `জ্ঞ`, `ষ্ট`) and special characters
 - Seamless toggle between Bangla and English modes
 
-### Smart Spell-Checking
+### Smart Spell-Checking (paused — being reworked)
 
-```
-┌─────────────────────────────────────┐
-│  আমি বাংলায় গান গাি               │
-│                   ~~~~              │
-│              ┌──────────┐           │
-│              │ গাই  Fix │           │
-│              │   Ignore │           │
-│              └──────────┘           │
-└─────────────────────────────────────┘
-```
-
-- **Local-first** — Levenshtein distance algorithm with confidence scoring
-- **AI fallback** — Optional OpenAI integration for harder cases
-- Wavy underline on errors with one-click Fix / Ignore
-- Low-confidence errors (< 50%) are automatically filtered out
+Built-in spell checker with local Levenshtein matching and optional AI fallback. Currently disabled while the feature is being rethought for better accuracy.
 
 ### Adaptive Dictionary
 
@@ -104,8 +89,8 @@ Translucent word completions appear as you type. Press **Tab** to accept, **Esca
 
 ```bash
 # Clone the repo
-git clone https://github.com/AKTareq/bangla-notebook.git
-cd bangla-notebook
+git clone https://github.com/tarex/kagoj.git
+cd kagoj
 
 # Install dependencies
 pnpm install
@@ -118,15 +103,15 @@ Open [http://localhost:3000](http://localhost:3000) and start writing.
 
 ### Environment Variables (Optional)
 
-AI spell-checking is **optional**. The app works fully offline with the local spell-checker.
+The app works fully offline. AI features require an API key but spell-checking is currently paused.
 
 ```bash
 cp .env.example .env.local
 ```
 
-| Variable         | Required | Description                                |
-| ---------------- | -------- | ------------------------------------------ |
-| `OPENAI_API_KEY` | No       | Enables AI-powered spell-checking fallback |
+| Variable         | Required | Description                                         |
+| ---------------- | -------- | --------------------------------------------------- |
+| `OPENAI_API_KEY` | No       | Enables AI-powered features (spell-check is paused) |
 
 ---
 
@@ -142,25 +127,19 @@ cp .env.example .env.local
 ┌──────────────────────────┐    ┌──────────────────────────┐
 │   BanglaInputHandler     │    │   Adaptive Dictionary    │
 │                          │    │                          │
-│  Phonetic → Bangla       │───▶│  Learn word on boundary  │
-│  "ami" → "আমি"           │    │  Track frequency         │
+│  Keystroke → Bangla      │───▶│  Learn word on boundary  │
+│  "a" → "আ", "m" → "ম"   │    │  Track frequency         │
 │  Context-aware rules     │    │  Suggest completions     │
 └──────────────────────────┘    └──────────────────────────┘
-               │                           │
-               ▼                           ▼
-┌──────────────────────────┐    ┌──────────────────────────┐
-│   Spell Checker          │    │   Ghost Text             │
-│                          │    │                          │
-│  Local (Levenshtein)     │    │  Faded word completion   │
-│  AI fallback (optional)  │    │  Tab to accept           │
-│  Confidence filtering    │    │  Dictionary-powered      │
-└──────────────────────────┘    └──────────────────────────┘
-               │
-               ▼
-┌──────────────────────────────────────────────────────────┐
-│                   SpellingOverlay                         │
-│            Wavy underlines + Fix/Ignore popup             │
-└──────────────────────────────────────────────────────────┘
+                                           │
+                                           ▼
+                                ┌──────────────────────────┐
+                                │   Ghost Text             │
+                                │                          │
+                                │  Faded word completion   │
+                                │  Tab to accept           │
+                                │  Dictionary-powered      │
+                                └──────────────────────────┘
 ```
 
 ---
@@ -234,8 +213,7 @@ tests/                      # Puppeteer E2E test scripts
 - **Offline-first** — No server dependency for core functionality
 - **Singleton pattern** — BanglaInputHandler and AdaptiveDictionary are singletons for consistent state
 - **Three-tier dictionary** — Adaptive → Extended → Base, with frequency-weighted ranking
-- **Confidence-based filtering** — Spell-check errors below 50% confidence are suppressed to reduce noise
-- **Throttled persistence** — Saves and spell-checks are debounced/throttled to keep typing smooth
+- **Throttled persistence** — Saves are debounced/throttled to keep typing smooth
 
 ---
 
@@ -274,9 +252,14 @@ Contributions are welcome! Here's how to get started:
 
 ---
 
+## Acknowledgements
+
+- **[Avro Phonetic](https://www.omicronlab.com/avro-keyboard.html)** by [OmicronLab](https://www.omicronlab.com/) — the phonetic Bangla typing approach that inspired this project's transliteration engine. কাগজ builds on the same idea (type English keys, get Bangla) but uses its own context-aware rules and produces native characters per-keystroke rather than converting after confirmation.
+- The 50,000+ word Bangla dictionary was generated from verb conjugation paradigms, noun case forms, and curated vocabulary — not sourced from an external corpus.
+
 ## License
 
-MIT &copy; [Tareq](https://github.com/AKTareq)
+MIT &copy; [Tareq](https://github.com/tarex)
 
 ---
 
