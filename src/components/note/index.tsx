@@ -7,9 +7,11 @@ import { GhostText } from './ghost-text';
 import { SpellingOverlay } from './spelling-overlay';
 import { WordSuggestionPopup } from './word-suggestion-popup';
 import { Toolbar } from './toolbar';
+import { CaptureFrame } from './capture-frame';
 import { KeyboardShortcutsPanel } from './keyboard-shortcuts-panel';
 import { Onboarding } from './onboarding';
 import { useNotes } from './use-notes';
+import { useShareImage } from '../../hooks/useShareImage';
 import { useSpellCheck } from '@/hooks/useSpellCheck';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useAISuggestion, AI_TRIGGER_DELAY_MS } from '@/hooks/useAISuggestion';
@@ -80,6 +82,9 @@ const NoteComponent: React.FC = () => {
   } = useSpellCheck(isBanglaMode);
 
   const { pushSnapshot, undo, redo, canUndo, canRedo, resetHistory } = useUndoRedo();
+
+  const { captureRef, captureAndDownload, isCapturing } = useShareImage();
+  const [captureContent, setCaptureContent] = useState<string>('');
 
   const toggleSidebar = useCallback(() => {
     setSidebarOpen((prev) => !prev);
@@ -210,6 +215,33 @@ const NoteComponent: React.FC = () => {
       document.body.removeChild(textarea);
     }
   }, [currentNote]);
+
+  const handleShareImage = useCallback(() => {
+    // CRITICAL: Read selection synchronously BEFORE any React state update
+    // causes re-render and focus loss
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const hasSelection = start !== end;
+
+    // Determine content to capture
+    const textToCapture = hasSelection
+      ? currentNote.substring(start, end)
+      : currentNote;
+
+    // Set content for CaptureFrame, then trigger capture after render
+    setCaptureContent(textToCapture);
+
+    // Use requestAnimationFrame to ensure CaptureFrame renders with new content
+    // before capture fires
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        captureAndDownload(currentTitle).catch(console.error);
+      });
+    });
+  }, [currentNote, currentTitle, captureAndDownload]);
 
   useEffect(() => {
     if (isBanglaMode) {
@@ -1032,6 +1064,11 @@ const NoteComponent: React.FC = () => {
               {/* Print-only div: textarea is a replaced element that can't split
                   across pages, so we mirror content in a div for print layout */}
               <div className="print-content" aria-hidden="true" suppressHydrationWarning>{currentNote}</div>
+              <CaptureFrame
+                content={captureContent || currentNote}
+                title={currentTitle}
+                captureRef={captureRef}
+              />
               {ghostSuggestion && (
                 <GhostText
                   currentText={currentNote}
@@ -1075,6 +1112,7 @@ const NoteComponent: React.FC = () => {
             onInsertBullet={insertBullet}
             onInsertNumberedList={insertNumberedList}
             onPrint={handlePrint}
+            onShareImage={handleShareImage}
             onCopyToClipboard={handleCopyToClipboard}
             isBanglaMode={isBanglaMode}
             fontSize={fontSize}
