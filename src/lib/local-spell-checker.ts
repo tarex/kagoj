@@ -300,42 +300,65 @@ export function checkSpelling(text: string): SpellingError[] {
   return errors;
 }
 
-// Get fuzzy suggestions for a word using phonetic distance + context
+// Get suggestions for a highlighted word — phonetic distance + context + validation
 export function getSpellingSuggestions(word: string, limit: number = 5, prevWord?: string): string[] {
   if (!word || word.length < 2) return [];
+
+  const isKnown = adaptiveDictionary.isKnownWord(word);
 
   // 1. Check common mistakes first
   const commonFix = commonMistakes[word];
 
-  // 2. Get candidates from multiple prefix lengths to cast a wider net
+  // 2. Get candidates — use narrow prefix range for known words, wider for unknown
   const candidates = new Set<string>();
-  for (let prefixLen = Math.max(1, word.length - 3); prefixLen <= Math.min(word.length, word.length - 1); prefixLen++) {
+  const minPrefixLen = isKnown
+    ? Math.max(2, word.length - 1)   // known word: tight prefix (only close variants)
+    : Math.max(1, word.length - 2);  // unknown word: slightly wider for typo recovery
+  const maxPrefixLen = word.length;
+
+  for (let prefixLen = minPrefixLen; prefixLen <= maxPrefixLen; prefixLen++) {
     if (prefixLen < 1) continue;
     const prefix = word.slice(0, prefixLen);
-    for (const s of adaptiveDictionary.getSuggestions(prefix, 30)) {
+    for (const s of adaptiveDictionary.getSuggestions(prefix, 20)) {
       candidates.add(s);
     }
   }
 
-  // 3. Score by phonetic distance, keep only close matches
-  const maxDist = Math.min(3, Math.ceil(word.length * 0.6));
+  // For known words, also add suffix variants (করে → করেছি, করেছে, etc.)
+  if (isKnown) {
+    for (const suffix of BANGLA_SUFFIXES) {
+      const suffixed = word + suffix;
+      if (adaptiveDictionary.isKnownWord(suffixed)) {
+        candidates.add(suffixed);
+      }
+    }
+  }
+
+  // 3. Strict distance threshold — only genuinely close words
+  const maxDist = isKnown
+    ? Math.min(1.5, word.length * 0.3)  // known: very tight (essentially same-sounding variants)
+    : Math.min(2, word.length * 0.4);   // unknown: moderate for typo correction
 
   // Get context-aware next-words from bigrams for re-ranking
   const contextWords = prevWord ? new Set(bigramStore.getSuggestions(prevWord, 50)) : new Set<string>();
 
   const scored: { word: string; score: number }[] = [];
 
-  if (commonFix) {
-    // Common fix gets best score; boost if it also fits context
+  if (commonFix && adaptiveDictionary.isKnownWord(commonFix)) {
     scored.push({ word: commonFix, score: contextWords.has(commonFix) ? -1 : 0 });
   }
 
   for (const candidate of candidates) {
     if (candidate === word) continue;
-    if (Math.abs(candidate.length - word.length) > maxDist) continue;
+
+    // Every suggestion must be a real dictionary word
+    if (!adaptiveDictionary.isKnownWord(candidate)) continue;
+
+    // Length difference filter (tighter than distance alone)
+    if (Math.abs(candidate.length - word.length) > 3) continue;
+
     const dist = phoneticDistance(word, candidate);
     if (dist <= maxDist) {
-      // Context boost: subtract 0.5 from distance if candidate is a known collocate
       const contextBoost = contextWords.has(candidate) ? 0.5 : 0;
       scored.push({ word: candidate, score: dist - contextBoost });
     }
