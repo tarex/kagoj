@@ -1087,12 +1087,14 @@ const NoteComponent: React.FC = () => {
               {/* Print-only div: textarea is a replaced element that can't split
                   across pages, so we mirror content in a div for print layout */}
               <div className="print-content" aria-hidden="true" suppressHydrationWarning>{currentNote}</div>
-              <CaptureFrame
-                content={captureContent || currentNote}
-                title={currentTitle}
-                fontSize={fontSize}
-                captureRef={captureRef}
-              />
+              {isClient && (
+                <CaptureFrame
+                  content={captureContent || currentNote}
+                  title={currentTitle}
+                  fontSize={fontSize}
+                  captureRef={captureRef}
+                />
+              )}
               {ghostSuggestion && (
                 <GhostText
                   currentText={currentNote}
