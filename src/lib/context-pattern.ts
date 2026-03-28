@@ -145,7 +145,7 @@ export const contextPatterns = [
     replacement: 'র্প',
   },
   {
-    pattern: 'ররf',
+    pattern: 'রর(f|F)',
     replacement: 'র্ফ',
   },
   {
@@ -257,7 +257,8 @@ export const contextPatterns = [
   { pattern: 's', replacement: 'স' },
   { pattern: '(h|H)', replacement: 'হ' },
   { pattern: 'R', replacement: 'ড়' },
-  { pattern: '(w|W)', replacement: 'ও' },
+  { pattern: 'w', replacement: 'ও' },
+  { pattern: 'W', replacement: 'ঔ' },
   { pattern: '(x|X)', replacement: 'ক্স' },
   { pattern: '(y|Y)', replacement: 'য়' },
 
@@ -290,6 +291,7 @@ export const contextPatterns = [
   { pattern: ',,', replacement: '্' },
   { pattern: '\\:', replacement: 'ঃ' },
   { pattern: '\\^', replacement: 'ঁ' },
+  { pattern: '।।\\.', replacement: '...' },
   { pattern: '\\.', replacement: '।' },
   { pattern: '\\$', replacement: '৳' },
   { pattern: 'ঃ`', replacement: ':' },
