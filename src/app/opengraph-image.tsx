@@ -8,7 +8,7 @@ export const contentType = 'image/png';
 
 export default async function Image() {
   const notoSansBengali = await fetch(
-    'https://fonts.gstatic.com/s/notosansbengali/v20/Cn-SJsCGWQxOjaGwMQ6fIiMywrNJIky6nvd8BjzVMvJx2mcSPVFpVEqE-6KmsolKl1st.woff2',
+    'https://fonts.gstatic.com/s/notosansbengali/v33/Cn-SJsCGWQxOjaGwMQ6fIiMywrNJIky6nvd8BjzVMvJx2mcSPVFpVEqE-6KmsolLudA.ttf',
   ).then((res) => res.arrayBuffer());
 
   return new ImageResponse(
