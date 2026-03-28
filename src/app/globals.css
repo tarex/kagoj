@@ -48,6 +48,7 @@
 
   /* Spacing rhythm */
   --topbar-height: 52px;
+  --safe-area-top: env(safe-area-inset-top, 0px);
   --sidebar-width: 272px;
   --editor-max-width: 860px;
 
@@ -146,12 +147,14 @@ h6 {
   top: 0;
   left: 0;
   right: 0;
-  height: var(--topbar-height);
+  height: calc(var(--topbar-height) + var(--safe-area-top));
+  padding-top: var(--safe-area-top);
   border-bottom: 1px solid color-mix(in srgb, var(--border-primary) 50%, transparent);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
+  padding-left: 24px;
+  padding-right: 24px;
   z-index: 100;
   background-color: var(--bg-primary);
   transition: all var(--transition-base);
@@ -214,8 +217,8 @@ h6 {
 .main-content {
   display: flex;
   flex: 1;
-  margin-top: var(--topbar-height);
-  height: calc(100dvh - var(--topbar-height));
+  margin-top: calc(var(--topbar-height) + var(--safe-area-top));
+  height: calc(100dvh - var(--topbar-height) - var(--safe-area-top));
   background-color: var(--bg-primary);
 }
 
@@ -983,7 +986,7 @@ html.dark .toolbar-btn:active {
 /* ── Spelling Modal Overlay ── */
 .spelling-modal-overlay {
   position: fixed;
-  top: var(--topbar-height);
+  top: calc(var(--topbar-height) + var(--safe-area-top));
   left: var(--sidebar-width);
   right: 0;
   bottom: 0;
@@ -1211,7 +1214,7 @@ html.dark .toolbar-btn:active {
   /* Sidebar: off-screen drawer */
   .sidebar {
     position: fixed;
-    top: var(--topbar-height);
+    top: calc(var(--topbar-height) + var(--safe-area-top));
     left: 0;
     bottom: 0;
     width: var(--sidebar-width);
@@ -1230,7 +1233,7 @@ html.dark .toolbar-btn:active {
   .sidebar-backdrop {
     position: fixed;
     inset: 0;
-    top: var(--topbar-height);
+    top: calc(var(--topbar-height) + var(--safe-area-top));
     background-color: rgb(0 0 0 / 0.4);
     z-index: 105;
     animation: fadeIn 0.2s ease-out;
@@ -1239,7 +1242,7 @@ html.dark .toolbar-btn:active {
 
   /* Topbar: compact */
   .topbar {
-    padding: 0 12px;
+    padding: var(--safe-area-top) 12px 0;
   }
 
   .topbar-title {
@@ -1329,6 +1332,16 @@ html.dark .toolbar-btn:active {
 
   .toolbar-btn[data-tooltip]::after {
     display: none;
+  }
+
+  /* Accent the share button on mobile -- primary action */
+  .toolbar-btn-share {
+    background: var(--accent-primary);
+    color: #fff;
+    border-radius: 10px;
+  }
+  .toolbar-btn-share:active {
+    background: var(--accent-primary-hover);
   }
 
   .toolbar-btn-sm {
@@ -1590,7 +1603,7 @@ textarea:focus-visible {
 /* ── Keyboard Shortcuts Panel ── */
 .shortcuts-panel {
   position: fixed;
-  top: calc(var(--topbar-height) + 8px);
+  top: calc(var(--topbar-height) + var(--safe-area-top) + 8px);
   right: 24px;
   background-color: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
   backdrop-filter: blur(16px);
