@@ -41,10 +41,10 @@ export function useAISuggestion(isBanglaMode: boolean): UseAISuggestionReturn {
         return;
       }
 
-      // Trim context to last 200 chars
+      // Send more context for better topic awareness (up to 500 chars)
       const trimmedContext =
-        cursorContext.length > 200
-          ? cursorContext.slice(-200)
+        cursorContext.length > 500
+          ? cursorContext.slice(-500)
           : cursorContext;
 
       if (trimmedContext.length === 0) return;

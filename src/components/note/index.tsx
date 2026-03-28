@@ -777,7 +777,7 @@ const NoteComponent: React.FC = () => {
         if (lastChar === ' ' && isBanglaMode) {
           if (aiTriggerRef.current) clearTimeout(aiTriggerRef.current);
           aiTriggerRef.current = setTimeout(() => {
-            const cursorContext = value.length > 200 ? value.slice(-200) : value;
+            const cursorContext = value.length > 500 ? value.slice(-500) : value;
             requestAISuggestion(cursorContext, value);
           }, AI_TRIGGER_DELAY_MS);
         }
