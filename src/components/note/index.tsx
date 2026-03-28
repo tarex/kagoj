@@ -106,6 +106,22 @@ const NoteComponent: React.FC = () => {
     });
   }, []);
 
+  // Scroll textarea so the cursor line is visible
+  const scrollCursorIntoView = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    requestAnimationFrame(() => {
+      const { selectionStart, value } = textarea;
+      const textBeforeCursor = value.substring(0, selectionStart);
+      const lineNumber = textBeforeCursor.split('\n').length;
+      const lineHeight = parseFloat(getComputedStyle(textarea).lineHeight) || fontSize * 1.9;
+      const cursorY = lineNumber * lineHeight;
+      const visibleBottom = textarea.scrollTop + textarea.clientHeight;
+      if (cursorY > visibleBottom - lineHeight) {
+        textarea.scrollTop = cursorY - textarea.clientHeight + lineHeight * 2;
+      }
+    });
+  }, [fontSize]);
 
   // Text formatting helpers
   const insertFormatting = (startTag: string, endTag: string = startTag) => {
@@ -564,6 +580,7 @@ const NoteComponent: React.FC = () => {
         setCurrentNote,
         e
       );
+      scrollCursorIntoView();
 
       // processInputKeyPress calls preventDefault(), so handleChange won't fire.
       // Compute ghost suggestion from the DOM which was updated synchronously.
@@ -615,6 +632,7 @@ const NoteComponent: React.FC = () => {
     );
 
     if (!result) return;
+    scrollCursorIntoView();
 
     const { text: newText, cursorPosition: newCursorPos } = result;
 
@@ -696,6 +714,7 @@ const NoteComponent: React.FC = () => {
     const value = e.target.value;
     const prevValue = currentNote;
     setCurrentNote(value);
+    scrollCursorIntoView();
 
     // Push undo snapshot
     pushSnapshot(value, currentTitle, e.target.selectionStart);
@@ -1011,7 +1030,7 @@ const NoteComponent: React.FC = () => {
               />
               {/* Print-only div: textarea is a replaced element that can't split
                   across pages, so we mirror content in a div for print layout */}
-              <div className="print-content" aria-hidden="true">{currentNote}</div>
+              <div className="print-content" aria-hidden="true" suppressHydrationWarning>{currentNote}</div>
               {ghostSuggestion && (
                 <GhostText
                   currentText={currentNote}
