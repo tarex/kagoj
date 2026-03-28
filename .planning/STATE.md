@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Share as Image
 status: unknown
-stopped_at: Completed 04-01-PLAN.md — CaptureFrame and useShareImage hook built
-last_updated: "2026-03-28T05:01:56.602Z"
+stopped_at: Completed 04-02-PLAN.md — capture pipeline wired into toolbar and note editor
+last_updated: "2026-03-28T05:05:15.869Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 2
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -48,6 +48,7 @@ Plan: 2 of 2
 
 *Updated after each plan completion*
 | Phase 04-capture-foundation P01 | 8 | 2 tasks | 3 files |
+| Phase 04-capture-foundation P02 | 5 | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,8 @@ Recent decisions affecting current work:
 - [Phase 04-capture-foundation]: Off-screen positioning via left:-9999px not display:none for html-to-image capture
 - [Phase 04-capture-foundation]: CaptureFrame hardcodes dark background — dark mode is the export aesthetic, no customization
 - [Phase 04-capture-foundation]: 150ms delay after document.fonts.ready required for font race condition
+- [Phase 04-capture-foundation]: isCapturing destructured but unused in phase 04-02 — Phase 05 adds loading spinner
+- [Phase 04-capture-foundation]: captureContent || currentNote fallback in CaptureFrame prevents empty initial render
 
 ### Pending Todos
 
@@ -77,6 +80,6 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-03-28
-Last session: 2026-03-28T05:01:56.599Z
-Stopped at: Completed 04-01-PLAN.md — CaptureFrame and useShareImage hook built
+Last session: 2026-03-28T05:05:15.867Z
+Stopped at: Completed 04-02-PLAN.md — capture pipeline wired into toolbar and note editor
 Resume file: None

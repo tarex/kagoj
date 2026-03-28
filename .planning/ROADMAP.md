@@ -82,7 +82,7 @@ Plans:
 
 Plans:
 - [x] 04-01-PLAN.md — CaptureFrame component + useShareImage hook + html-to-image install
-- [ ] 04-02-PLAN.md — Toolbar camera icon + full/selected capture wiring + PNG download
+- [x] 04-02-PLAN.md — Toolbar camera icon + full/selected capture wiring + PNG download
 
 ### Phase 5: Clipboard and UX Polish
 **Goal**: Users can copy the captured image to their clipboard across Chrome, Safari, and Firefox, and receive clear feedback throughout the capture and copy flow

@@ -10,18 +10,18 @@ Requirements for the Share as Image milestone. Each maps to roadmap phases.
 ### Capture
 
 - [x] **CAPT-01**: User can capture full note content as a styled image matching the editor UI
-- [ ] **CAPT-02**: User can capture selected text as a styled image matching the editor UI
+- [x] **CAPT-02**: User can capture selected text as a styled image matching the editor UI
 - [x] **CAPT-03**: Captured image renders Bangla text correctly (no tofu/fallback fonts)
 - [x] **CAPT-04**: Captured image preserves dark mode styling
 
 ### Output
 
-- [ ] **OUT-01**: User can download captured image as PNG file
+- [x] **OUT-01**: User can download captured image as PNG file
 - [ ] **OUT-02**: User can copy captured image to clipboard
 
 ### UI
 
-- [ ] **UI-01**: Camera/share icon appears in the floating toolbar
+- [x] **UI-01**: Camera/share icon appears in the floating toolbar
 - [ ] **UI-02**: User sees loading/success feedback during capture
 
 ## v1.1 Requirements (Completed)
@@ -91,12 +91,12 @@ Requirements for the Share as Image milestone. Each maps to roadmap phases.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | CAPT-01 | Phase 4 | Complete |
-| CAPT-02 | Phase 4 | Pending |
+| CAPT-02 | Phase 4 | Complete |
 | CAPT-03 | Phase 4 | Complete |
 | CAPT-04 | Phase 4 | Complete |
-| OUT-01 | Phase 4 | Pending |
+| OUT-01 | Phase 4 | Complete |
 | OUT-02 | Phase 5 | Pending |
-| UI-01 | Phase 4 | Pending |
+| UI-01 | Phase 4 | Complete |
 | UI-02 | Phase 5 | Pending |
 
 **Coverage:**
