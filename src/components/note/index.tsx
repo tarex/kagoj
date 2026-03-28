@@ -726,7 +726,7 @@ const NoteComponent: React.FC = () => {
           if (aiTriggerRef.current) clearTimeout(aiTriggerRef.current);
           aiTriggerRef.current = setTimeout(() => {
             const cursorContext = value.length > 200 ? value.slice(-200) : value;
-            requestAISuggestion(cursorContext);
+            requestAISuggestion(cursorContext, value);
           }, AI_TRIGGER_DELAY_MS);
         }
       } else if (lastChar === '।' || lastChar === '.' || lastChar === '?' || lastChar === '!') {

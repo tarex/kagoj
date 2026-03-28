@@ -15,7 +15,7 @@ let lastRequestTime = 0;
 export interface UseAISuggestionReturn {
   aiSuggestion: string;
   isLoadingAI: boolean;
-  requestAISuggestion: (cursorContext: string) => void;
+  requestAISuggestion: (cursorContext: string, fullText?: string) => void;
   clearAISuggestion: () => void;
 }
 
@@ -35,7 +35,7 @@ export function useAISuggestion(isBanglaMode: boolean): UseAISuggestionReturn {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const requestAISuggestion = useCallback(
-    (cursorContext: string) => {
+    (cursorContext: string, fullText?: string) => {
       if (!isBanglaMode) {
         setAiSuggestion('');
         return;
@@ -48,6 +48,20 @@ export function useAISuggestion(isBanglaMode: boolean): UseAISuggestionReturn {
           : cursorContext;
 
       if (trimmedContext.length === 0) return;
+
+      // Extract the last complete sentence for additional context
+      const text = fullText ?? cursorContext;
+      const sentenceBreaks = /[।.!?\n]/;
+      let lastSentence: string | undefined;
+      const textBeforeCursor = text.length > 500 ? text.slice(-500) : text;
+      const sentences = textBeforeCursor.split(sentenceBreaks).filter(s => s.trim().length > 0);
+      if (sentences.length >= 2) {
+        lastSentence = sentences[sentences.length - 2].trim();
+      }
+
+      // Extract the current partial word (if cursor is mid-word)
+      const words = trimmedContext.trimEnd().split(/\s+/);
+      const currentWord = words.length > 0 ? words[words.length - 1] : undefined;
 
       // Cache key derived from last 100 chars
       const cacheKey =
@@ -79,7 +93,11 @@ export function useAISuggestion(isBanglaMode: boolean): UseAISuggestionReturn {
       fetch('/api/suggestions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: '', mode: 'ghost', cursorContext: trimmedContext }),
+        body: JSON.stringify({
+          cursorContext: trimmedContext,
+          lastSentence,
+          currentWord,
+        }),
         signal: controller.signal,
       })
         .then(async (res) => {
