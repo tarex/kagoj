@@ -21,10 +21,10 @@ export const metadata: Metadata = {
     ? new URL(`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`)
     : new URL('http://localhost:3000'),
   title: 'কাগজ - সহজে বাংলা লিখুন',
-  description: 'সহজে বাংলা লিখুন - AI suggestions & phonetic typing',
+  description: 'Type English keys, see Bangla instantly. Phonetic Bangla writing app with per-keystroke transliteration, adaptive dictionary, and ghost text suggestions. Works offline.',
   openGraph: {
     title: 'কাগজ - সহজে বাংলা লিখুন',
-    description: 'সহজে বাংলা লিখুন - AI suggestions & phonetic typing',
+    description: 'Type English keys, see Bangla instantly. Phonetic Bangla writing app with per-keystroke transliteration, adaptive dictionary, and ghost text suggestions.',
     siteName: 'কাগজ',
     locale: 'bn_BD',
     type: 'website',
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'কাগজ - সহজে বাংলা লিখুন',
-    description: 'সহজে বাংলা লিখুন - AI suggestions & phonetic typing',
+    description: 'Type English keys, see Bangla instantly. Phonetic Bangla writing with per-keystroke transliteration. Works offline.',
   },
   appleWebApp: {
     capable: true,
