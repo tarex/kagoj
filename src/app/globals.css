@@ -312,44 +312,6 @@ h1, h2, h3, h4, h5, h6 {
   background-color: var(--text-muted);
 }
 
-.sidebar-footer {
-  padding: 14px 16px;
-  border-top: 1px solid var(--border-primary);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  opacity: 0.5;
-  transition: opacity var(--transition-base);
-}
-
-.sidebar-footer:hover {
-  opacity: 0.85;
-}
-
-.sidebar-credit-line {
-  font-size: 11px;
-  color: var(--text-muted);
-  line-height: 1.5;
-}
-
-.sidebar-credit-line:first-child {
-  font-style: italic;
-  font-size: 10.5px;
-  letter-spacing: 0.01em;
-}
-
-.sidebar-credit-link {
-  color: var(--text-tertiary);
-  text-decoration: none;
-  font-weight: 600;
-  transition: color var(--transition-fast);
-}
-
-.sidebar-credit-link:hover {
-  color: var(--accent-primary);
-}
-
 .sidebar-title {
   font-family: var(--font-body);
   font-size: 11px;
@@ -485,6 +447,31 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--accent-primary);
   border-color: color-mix(in srgb, var(--accent-primary) 30%, transparent);
   background-color: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-tertiary));
+}
+
+.btn-github {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-primary);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  transition: all 200ms ease;
+  text-decoration: none;
+}
+
+.btn-github:hover {
+  border-color: var(--border-accent);
+  background-color: var(--bg-accent);
+  color: var(--text-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 12%, transparent);
+}
+
+.btn-github:active {
+  transform: scale(0.9);
 }
 
 /* ── Buttons ── */
