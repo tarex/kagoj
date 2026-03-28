@@ -1090,6 +1090,7 @@ const NoteComponent: React.FC = () => {
               <CaptureFrame
                 content={captureContent || currentNote}
                 title={currentTitle}
+                fontSize={fontSize}
                 captureRef={captureRef}
               />
               {ghostSuggestion && (

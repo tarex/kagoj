@@ -7,7 +7,7 @@ describe('CaptureFrame', () => {
   it('renders content text', () => {
     const ref = createRef<HTMLDivElement>();
     render(
-      <CaptureFrame content="hello world" title="Test" captureRef={ref} />
+      <CaptureFrame content="hello world" title="Test" fontSize={24} captureRef={ref} />
     );
     expect(screen.getByText('hello world')).toBeInTheDocument();
   });
@@ -15,7 +15,7 @@ describe('CaptureFrame', () => {
   it('renders title when provided', () => {
     const ref = createRef<HTMLDivElement>();
     render(
-      <CaptureFrame content="body" title="My Title" captureRef={ref} />
+      <CaptureFrame content="body" title="My Title" fontSize={24} captureRef={ref} />
     );
     expect(screen.getByText('My Title')).toBeInTheDocument();
   });
@@ -23,7 +23,7 @@ describe('CaptureFrame', () => {
   it('does not render title when empty', () => {
     const ref = createRef<HTMLDivElement>();
     const { container } = render(
-      <CaptureFrame content="body" title="" captureRef={ref} />
+      <CaptureFrame content="body" title="" fontSize={24} captureRef={ref} />
     );
     // Only the content div should exist, no title div
     const children = container.querySelector('[class="capture-frame dark"]')?.children;
@@ -33,7 +33,7 @@ describe('CaptureFrame', () => {
   it('is positioned off-screen', () => {
     const ref = createRef<HTMLDivElement>();
     const { container } = render(
-      <CaptureFrame content="text" title="" captureRef={ref} />
+      <CaptureFrame content="text" title="" fontSize={24} captureRef={ref} />
     );
     const frame = container.querySelector('.capture-frame');
     expect(frame).toHaveStyle({ position: 'fixed', left: '-9999px' });
@@ -42,7 +42,7 @@ describe('CaptureFrame', () => {
   it('has dark background color', () => {
     const ref = createRef<HTMLDivElement>();
     const { container } = render(
-      <CaptureFrame content="text" title="" captureRef={ref} />
+      <CaptureFrame content="text" title="" fontSize={24} captureRef={ref} />
     );
     const frame = container.querySelector('.capture-frame');
     expect(frame).toHaveStyle({ backgroundColor: '#1a1a1a' });
@@ -51,7 +51,7 @@ describe('CaptureFrame', () => {
   it('has aria-hidden true', () => {
     const ref = createRef<HTMLDivElement>();
     const { container } = render(
-      <CaptureFrame content="text" title="" captureRef={ref} />
+      <CaptureFrame content="text" title="" fontSize={24} captureRef={ref} />
     );
     const frame = container.querySelector('.capture-frame');
     expect(frame).toHaveAttribute('aria-hidden', 'true');
@@ -60,7 +60,7 @@ describe('CaptureFrame', () => {
   it('attaches captureRef to the root div', () => {
     const ref = createRef<HTMLDivElement>();
     render(
-      <CaptureFrame content="text" title="" captureRef={ref} />
+      <CaptureFrame content="text" title="" fontSize={24} captureRef={ref} />
     );
     expect(ref.current).toBeInstanceOf(HTMLDivElement);
     expect(ref.current?.classList.contains('capture-frame')).toBe(true);
@@ -69,7 +69,7 @@ describe('CaptureFrame', () => {
   it('has dark class for CSS variable inheritance', () => {
     const ref = createRef<HTMLDivElement>();
     const { container } = render(
-      <CaptureFrame content="text" title="" captureRef={ref} />
+      <CaptureFrame content="text" title="" fontSize={24} captureRef={ref} />
     );
     const frame = container.querySelector('.capture-frame');
     expect(frame?.classList.contains('dark')).toBe(true);
@@ -78,7 +78,7 @@ describe('CaptureFrame', () => {
   it('has correct width of 860px', () => {
     const ref = createRef<HTMLDivElement>();
     const { container } = render(
-      <CaptureFrame content="text" title="" captureRef={ref} />
+      <CaptureFrame content="text" title="" fontSize={24} captureRef={ref} />
     );
     const frame = container.querySelector('.capture-frame');
     expect(frame).toHaveStyle({ width: '860px' });
@@ -87,7 +87,7 @@ describe('CaptureFrame', () => {
   it('has 32px padding', () => {
     const ref = createRef<HTMLDivElement>();
     const { container } = render(
-      <CaptureFrame content="text" title="" captureRef={ref} />
+      <CaptureFrame content="text" title="" fontSize={24} captureRef={ref} />
     );
     const frame = container.querySelector('.capture-frame');
     expect(frame).toHaveStyle({ padding: '32px' });
@@ -96,7 +96,7 @@ describe('CaptureFrame', () => {
   it('uses pre-wrap whitespace for text formatting', () => {
     const ref = createRef<HTMLDivElement>();
     const { container } = render(
-      <CaptureFrame content="line1\nline2" title="" captureRef={ref} />
+      <CaptureFrame content="line1\nline2" title="" fontSize={24} captureRef={ref} />
     );
     const frame = container.querySelector('.capture-frame');
     expect(frame).toHaveStyle({ whiteSpace: 'pre-wrap' });
