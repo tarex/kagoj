@@ -283,6 +283,15 @@ export function checkSpelling(text: string): SpellingError[] {
             endIndex,
             confidence
           });
+        } else {
+          // Unknown word with no close correction — still flag it
+          errors.push({
+            word,
+            correction: '',
+            startIndex,
+            endIndex,
+            confidence: 50
+          });
         }
       }
     }

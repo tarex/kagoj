@@ -238,33 +238,45 @@ export const SpellingOverlay: React.FC<SpellingOverlayProps> = ({
             <span style={{
               fontSize: '15px',
               color: 'var(--accent-danger)',
-              textDecoration: 'line-through',
+              textDecoration: activeError.correction ? 'line-through' : 'none',
             }}>
               {activeError.word}
             </span>
-            <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>→</span>
-            <span style={{
-              fontSize: '15px',
-              color: 'var(--accent-success)',
-              fontWeight: '600',
-            }}>
-              {activeError.correction}
-            </span>
+            {activeError.correction && (
+              <>
+                <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>→</span>
+                <span style={{
+                  fontSize: '15px',
+                  color: 'var(--accent-success)',
+                  fontWeight: '600',
+                }}>
+                  {activeError.correction}
+                </span>
+              </>
+            )}
+            {!activeError.correction && (
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                অজানা শব্দ
+              </span>
+            )}
           </div>
 
           <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-            <button
-              onClick={() => handleCorrect(activeError)}
-              className="spelling-btn spelling-btn-primary"
-              style={{ flex: 1 }}
-            >
-              ঠিক করুন
-            </button>
+            {activeError.correction && (
+              <button
+                onClick={() => handleCorrect(activeError)}
+                className="spelling-btn spelling-btn-primary"
+                style={{ flex: 1 }}
+              >
+                ঠিক করুন
+              </button>
+            )}
             <button
               onClick={() => handleIgnore(activeError)}
               className="spelling-btn"
+              style={!activeError.correction ? { flex: 1 } : undefined}
             >
-              এড়িয়ে যান
+              {activeError.correction ? 'এড়িয়ে যান' : 'শব্দ শিখুন'}
             </button>
           </div>
 

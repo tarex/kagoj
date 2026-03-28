@@ -144,7 +144,7 @@ const NoteComponent: React.FC = () => {
   const formatCode = useCallback(() => insertFormatting('`'), []);
   const formatHighlight = useCallback(() => insertFormatting('=='), []);
   const insertBullet = useCallback(() => insertFormatting('• ', ''), []);
-  const insertNumberedList = useCallback(() => insertFormatting('1. ', ''), []);
+  const insertNumberedList = useCallback(() => insertFormatting('১। ', ''), []);
 
   // Undo/Redo handlers
   const handleUndo = useCallback(() => {
@@ -655,7 +655,7 @@ const NoteComponent: React.FC = () => {
       const beforeBoundary = newText.substring(0, newCursorPos - 1);
       const words = beforeBoundary.split(/[\s\.,;!?।]+/);
       const lastWord = words[words.length - 1];
-      if (lastWord && lastWord.length >= 2) {
+      if (lastWord && lastWord.length >= 2 && adaptiveDictionary.isKnownWord(lastWord)) {
         adaptiveDictionary.learnWord(lastWord);
       }
       setGhostSuggestion('');
@@ -747,7 +747,13 @@ const NoteComponent: React.FC = () => {
         const lastWord = words[words.length - 1];
         
         if (lastWord && lastWord.length >= 2) {
-          adaptiveDictionary.learnWord(lastWord);
+          // Only boost frequency for words already in the dictionary.
+          // Unknown words are NOT auto-learned — this prevents misspellings
+          // from entering the dictionary before spell check can flag them.
+          const isBangla = /[\u0980-\u09FF]/.test(lastWord);
+          if (isBangla && adaptiveDictionary.isKnownWord(lastWord)) {
+            adaptiveDictionary.learnWord(lastWord);
+          }
 
           // Learn bigram: second-to-last word → last word
           const prevWord = words.length >= 2 ? words[words.length - 2] : undefined;
@@ -1059,10 +1065,6 @@ const NoteComponent: React.FC = () => {
             onFormatHighlight={formatHighlight}
             onInsertBullet={insertBullet}
             onInsertNumberedList={insertNumberedList}
-            onUndo={handleUndo}
-            onRedo={handleRedo}
-            canUndo={canUndo()}
-            canRedo={canRedo()}
             onPrint={handlePrint}
             onCopyToClipboard={handleCopyToClipboard}
             isBanglaMode={isBanglaMode}

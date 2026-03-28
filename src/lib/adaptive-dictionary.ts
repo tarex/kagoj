@@ -144,22 +144,33 @@ class AdaptiveDictionary {
   public learnFromText(text: string): void {
     if (!text) return;
 
-    // Split text into words
+    // Split text into words and count occurrences
     const words = text.split(/[\s\n]+/);
-    let newWordsAdded = 0;
+    const wordCounts = new Map<string, number>();
 
     for (const rawWord of words) {
       const word = this.cleanWord(rawWord);
-
-      // Skip if too short or not Bangla
       if (word.length < MIN_WORD_LENGTH || !this.isBanglaWord(word)) {
+        continue;
+      }
+      wordCounts.set(word, (wordCounts.get(word) ?? 0) + 1);
+    }
+
+    let newWordsAdded = 0;
+
+    for (const [word, count] of wordCounts) {
+      const isKnown = this.trie.search(word);
+
+      // Only learn unknown words if they appear 2+ times in the text
+      // (single-occurrence unknowns are likely misspellings)
+      if (!isKnown && count < 2) {
         continue;
       }
 
       // Update frequency with recency
       const existing = this.wordFrequency[word];
       const prev = existing ? normalizeEntry(existing) : { count: 0, lastUsed: Date.now() };
-      const updated: WordFrequencyEntry = { count: prev.count + 1, lastUsed: Date.now() };
+      const updated: WordFrequencyEntry = { count: prev.count + count, lastUsed: Date.now() };
       this.wordFrequency[word] = updated;
 
       // Insert into trie with recency-weighted score
