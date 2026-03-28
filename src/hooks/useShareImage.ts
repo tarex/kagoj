@@ -39,24 +39,28 @@ export function useShareImage(): UseShareImageReturn {
     // 150ms delay required — race condition exists even after fonts.ready settles
     await new Promise<void>((resolve) => setTimeout(resolve, 150));
 
+    const options = {
+      pixelRatio: Math.max(window.devicePixelRatio, 2),
+      cacheBust: true,
+      backgroundColor: '#1a1a1a',
+      style: {
+        // Override position so the clone renders in-flow for capture
+        position: 'static' as const,
+        left: 'auto',
+      },
+    };
+
     let blob: Blob | null;
     try {
-      blob = await toBlob(captureRef.current, {
-        pixelRatio: Math.max(window.devicePixelRatio, 2),
-        cacheBust: true,
-        filter: (node: HTMLElement) => {
-          return node.tagName !== 'SCRIPT';
-        },
-      });
+      blob = await toBlob(captureRef.current, options);
     } catch (toBlobError) {
       // Firefox crash workaround for html-to-image Issue #508:
       // rule.style.fontFamily access throws in some Firefox versions >= 1.11.12
       const errorMessage = toBlobError instanceof Error ? toBlobError.message : String(toBlobError);
       if (errorMessage.includes('fontFamily') || errorMessage.includes('style')) {
-        // Retry without filter option
         blob = await toBlob(captureRef.current, {
-          pixelRatio: Math.max(window.devicePixelRatio, 2),
-          cacheBust: true,
+          ...options,
+          cacheBust: false,
         });
       } else {
         throw toBlobError;
