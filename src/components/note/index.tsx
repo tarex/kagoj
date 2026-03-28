@@ -192,6 +192,23 @@ const NoteComponent: React.FC = () => {
     }
   }, []);
 
+  const handleCopyToClipboard = useCallback(async () => {
+    const text = currentNote ?? '';
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
+  }, [currentNote]);
+
   useEffect(() => {
     if (isBanglaMode) {
       banglaInputHandler.enable();
@@ -355,16 +372,38 @@ const NoteComponent: React.FC = () => {
       // Get trie-based suggestions (unigram)
       const trieSuggestions = adaptiveDictionary.getSuggestions(word, 10);
 
-      // Get bigram-boosted suggestions if we have a previous word
       let bestMatch: string | undefined;
+
       if (prevWord) {
+        // 1. Check user-learned bigrams first (strongest signal)
         const bigramHits = bigramStore.getSuggestionsWithPrefix(prevWord, word, 5);
         if (bigramHits.length > 0) {
           bestMatch = bigramHits[0];
         }
+
+        // 2. If no user bigrams, check pre-seeded collocations against trie suggestions
+        if (!bestMatch && trieSuggestions.length > 0) {
+          const collocationHits = bigramStore.getSuggestionsWithPrefix(prevWord, word, 5);
+          // Also check if any trie suggestion forms a known collocation
+          const collocationSet = new Set(collocationHits);
+          const contextualMatch = trieSuggestions.find(s => collocationSet.has(s));
+          if (contextualMatch) {
+            bestMatch = contextualMatch;
+          }
+        }
+
+        // 3. Re-rank trie suggestions: prefer those that are known next-words for prevWord
+        if (!bestMatch && trieSuggestions.length > 1) {
+          const nextWords = bigramStore.getSuggestions(prevWord, 20);
+          const nextWordSet = new Set(nextWords);
+          const contextRanked = trieSuggestions.find(s => nextWordSet.has(s));
+          if (contextRanked) {
+            bestMatch = contextRanked;
+          }
+        }
       }
 
-      // Fall back to trie if no bigram match
+      // Fall back to plain trie if no contextual match
       if (!bestMatch && trieSuggestions.length > 0) {
         bestMatch = trieSuggestions[0];
       }
@@ -1012,6 +1051,7 @@ const NoteComponent: React.FC = () => {
             canUndo={canUndo()}
             canRedo={canRedo()}
             onPrint={handlePrint}
+            onCopyToClipboard={handleCopyToClipboard}
             isBanglaMode={isBanglaMode}
             fontSize={fontSize}
             onFontSizeChange={(newSize: number) => {
