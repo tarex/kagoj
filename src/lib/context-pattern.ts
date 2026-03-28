@@ -257,8 +257,7 @@ export const contextPatterns = [
   { pattern: 's', replacement: 'স' },
   { pattern: '(h|H)', replacement: 'হ' },
   { pattern: 'R', replacement: 'ড়' },
-  { pattern: 'w', replacement: 'ও' },
-  { pattern: 'W', replacement: 'ঔ' },
+  { pattern: '(w|W)', replacement: 'ও' },
   { pattern: '(x|X)', replacement: 'ক্স' },
   { pattern: '(y|Y)', replacement: 'য়' },
 
