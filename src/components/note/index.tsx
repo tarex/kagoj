@@ -15,7 +15,6 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { useAISuggestion, AI_TRIGGER_DELAY_MS } from '@/hooks/useAISuggestion';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
 import { BanglaInputHandler } from '@/lib/bangla-input-handler';
-// import { words } from '@/lib/bangla-suggestion'; // Not needed - using adaptive dictionary
 import { adaptiveDictionary } from '@/lib/adaptive-dictionary';
 import { bigramStore } from '@/lib/bigram-store';
 import { banglaCollocations } from '@/lib/bangla-collocations';

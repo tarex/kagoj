@@ -242,28 +242,6 @@ class AdaptiveDictionary {
     return this.trie.search(word);
   }
 
-  public getWordStats(word: string): { count: number } | null {
-    const raw = this.wordFrequency[word];
-    if (raw) {
-      const entry = normalizeEntry(raw);
-      return { count: entry.count };
-    }
-    return null;
-  }
-
-  public getStats(): { totalWords: number; learnedWords: number; topWords: [string, number][] } {
-    const topWords: [string, number][] = Object.entries(this.wordFrequency)
-      .map(([w, raw]) => [w, normalizeEntry(raw).count] as [string, number])
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10);
-
-    return {
-      totalWords: this.trie.size(),
-      learnedWords: this.learnedWords.size,
-      topWords,
-    };
-  }
-
   public removeWord(word: string): void {
     const normalizedWord = word.trim().toLowerCase();
 

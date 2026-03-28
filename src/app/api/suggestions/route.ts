@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 
 const EMPTY_RESPONSE = NextResponse.json({ suggestion: '', source: 'ai' });
+
+const requestSchema = z.object({
+  cursorContext: z.string().min(1),
+});
 
 export async function POST(req: Request) {
   if (!process.env.OPENAI_API_KEY) {
@@ -8,11 +13,13 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { cursorContext } = await req.json();
+    const parsed = requestSchema.safeParse(await req.json());
 
-    if (typeof cursorContext !== 'string' || cursorContext.length === 0) {
+    if (!parsed.success) {
       return EMPTY_RESPONSE;
     }
+
+    const { cursorContext } = parsed.data;
 
     // Dynamic import so the app doesn't crash when @ai-sdk/openai can't find the key at module load
     const { openai } = await import('@ai-sdk/openai');

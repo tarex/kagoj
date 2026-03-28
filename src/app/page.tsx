@@ -1,5 +1,3 @@
-'use client';
-
 import NoteComponent from '@/components/note';
 
 export default function Home() {

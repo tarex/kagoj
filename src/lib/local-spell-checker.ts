@@ -34,21 +34,6 @@ const BANGLA_SUFFIXES = [
   'গুলো', 'গুলি', 'দের', 'তে', 'কে', 'রা', 'ের', 'র', 'ে', 'য়', 'তি', 'নি',
 ];
 
-// Common Bangla character combinations that are valid
-const validBanglaCharCombinations = [
-  'ক্ষ', 'জ্ঞ', 'ঞ্চ', 'ঞ্জ', 'ঞ্ছ', 'ন্ত', 'ন্থ', 'ন্দ', 'ন্ধ', 'ন্ন',
-  'ন্ব', 'ন্ম', 'ন্য', 'প্ত', 'প্ন', 'প্প', 'প্য', 'প্র', 'প্ল', 'ব্দ',
-  'ব্ধ', 'ব্ব', 'ব্য', 'ব্র', 'ব্ল', 'ম্ন', 'ম্প', 'ম্ব', 'ম্ভ', 'ম্ম',
-  'ম্য', 'ম্র', 'ম্ল', 'য্য', 'র্ক', 'র্গ', 'র্ঘ', 'র্চ', 'র্জ', 'র্ণ',
-  'র্ত', 'র্থ', 'র্দ', 'র্ধ', 'র্ন', 'র্প', 'র্ফ', 'র্ব', 'র্ভ', 'র্ম',
-  'র্য', 'র্ল', 'র্শ', 'র্ষ', 'র্স', 'র্হ', 'ল্ক', 'ল্গ', 'ল্ট', 'ল্ড',
-  'ল্প', 'ল্ব', 'ল্ম', 'ল্য', 'ল্ল', 'শ্চ', 'শ্ছ', 'শ্ন', 'শ্ব', 'শ্ম',
-  'শ্য', 'শ্র', 'শ্ল', 'ষ্ক', 'ষ্ট', 'ষ্ঠ', 'ষ্ণ', 'ষ্প', 'ষ্ফ', 'ষ্ম',
-  'ষ্য', 'স্ক', 'স্খ', 'স্ট', 'স্ত', 'স্থ', 'স্ন', 'স্প', 'স্ফ', 'স্ব',
-  'স্ম', 'স্য', 'স্র', 'স্ল', 'হ্ণ', 'হ্ন', 'হ্ব', 'হ্ম', 'হ্য', 'হ্র',
-  'হ্ল', 'ড়্গ'
-];
-
 // Common spelling mistakes and their corrections
 const commonMistakes: { [key: string]: string } = {
   // Common typos
@@ -187,37 +172,6 @@ export interface SpellingError {
   confidence: number;
 }
 
-// Levenshtein distance for fuzzy matching
-function levenshteinDistance(str1: string, str2: string): number {
-  const len1 = str1.length;
-  const len2 = str2.length;
-  const dp: number[][] = Array(len1 + 1).fill(null).map(() => Array(len2 + 1).fill(0));
-
-  for (let i = 0; i <= len1; i++) {
-    dp[i][0] = i;
-  }
-
-  for (let j = 0; j <= len2; j++) {
-    dp[0][j] = j;
-  }
-
-  for (let i = 1; i <= len1; i++) {
-    for (let j = 1; j <= len2; j++) {
-      if (str1[i - 1] === str2[j - 1]) {
-        dp[i][j] = dp[i - 1][j - 1];
-      } else {
-        dp[i][j] = Math.min(
-          dp[i - 1][j] + 1,    // deletion
-          dp[i][j - 1] + 1,    // insertion
-          dp[i - 1][j - 1] + 1 // substitution
-        );
-      }
-    }
-  }
-
-  return dp[len1][len2];
-}
-
 /**
  * Phonetic-aware distance: like Levenshtein but substitution within the same
  * phonetic group costs 0.5 instead of 1.0.
@@ -280,18 +234,6 @@ function findClosestWord(word: string, maxDistance: number = 2): string | null {
   return closestWord;
 }
 
-// Check if a word contains valid Bangla characters
-function isBanglaWord(word: string): boolean {
-  const banglaRegex = /^[\u0980-\u09FF]+$/;
-  return banglaRegex.test(word);
-}
-
-// Clean and normalize a word
-function cleanWord(word: string): string {
-  // Remove common punctuation but keep Bangla characters
-  return word.replace(/[।॥,;!?\.\(\)\[\]\{\}"'`]/g, '').trim();
-}
-
 // Main spell checking function
 export function checkSpelling(text: string): SpellingError[] {
   const errors: SpellingError[] = [];
@@ -348,22 +290,6 @@ export function checkSpelling(text: string): SpellingError[] {
   return errors;
 }
 
-// Function to add word to custom dictionary
-export function addToCustomDictionary(word: string): void {
-  adaptiveDictionary.learnWord(word);
-}
-
-// Function to check if a single word is spelled correctly
-export function isSpelledCorrectly(word: string): boolean {
-  const cleanedWord = cleanWord(word);
-
-  if (cleanedWord.length <= 2) {
-    return true; // Don't check very short words
-  }
-
-  return adaptiveDictionary.isKnownWord(cleanedWord);
-}
-
 // Get fuzzy suggestions for a word using phonetic distance
 export function getSpellingSuggestions(word: string, limit: number = 5): string[] {
   if (!word || word.length < 2) return [];
@@ -404,10 +330,3 @@ export function getSpellingSuggestions(word: string, limit: number = 5): string[
   return scored.slice(0, limit).map(s => s.word);
 }
 
-// Export function to learn from user's text
-export function learnFromText(text: string): void {
-  adaptiveDictionary.learnFromText(text);
-}
-
-// Keep for type compatibility — unused but referenced elsewhere
-export { validBanglaCharCombinations };
