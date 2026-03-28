@@ -756,11 +756,24 @@ const NoteComponent: React.FC = () => {
           }
         }
         
-        // Clear word suggestion
-        setGhostSuggestion('');
-        setIsAISuggestionActive(false);
+        // Immediate next-word prediction from bigrams (no AI delay)
+        if (lastChar === ' ' && isBanglaMode && lastWord && lastWord.length >= 2) {
+          const nextWordPredictions = bigramStore.getSuggestions(lastWord, 1);
+          if (nextWordPredictions.length > 0) {
+            setGhostSuggestion(nextWordPredictions[0]);
+            setGhostCursorPos(value.length);
+            setIsAISuggestionActive(true); // treat as full-word insertion like AI
+          } else {
+            setGhostSuggestion('');
+            setIsAISuggestionActive(false);
+          }
+        } else {
+          setGhostSuggestion('');
+          setIsAISuggestionActive(false);
+        }
 
         // Trigger AI suggestion after user types a space and pauses 500ms
+        // (will override bigram prediction if AI returns something better)
         if (lastChar === ' ' && isBanglaMode) {
           if (aiTriggerRef.current) clearTimeout(aiTriggerRef.current);
           aiTriggerRef.current = setTimeout(() => {
