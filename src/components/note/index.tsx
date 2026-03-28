@@ -537,6 +537,13 @@ const NoteComponent: React.FC = () => {
   }, [ghostSuggestion, isAISuggestionActive, clearAISuggestion, setCurrentNote]);
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Handle Ctrl+Tab to toggle language mode
+    if (e.key === 'Tab' && e.shiftKey) {
+      e.preventDefault();
+      toggleLanguageMode();
+      return;
+    }
+
     // Handle Tab key for accepting word suggestion
     if (e.key === 'Tab' && ghostSuggestion) {
       e.preventDefault();
