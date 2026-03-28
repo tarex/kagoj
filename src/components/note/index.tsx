@@ -64,6 +64,7 @@ const NoteComponent: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const aiTriggerRef = useRef<NodeJS.Timeout | null>(null);
+  const printRestoreRef = useRef<{ height: string; overflow: string } | null>(null);
 
   const { aiSuggestion, isLoadingAI: _isLoadingAI, requestAISuggestion, clearAISuggestion } = useAISuggestion(isBanglaMode);
   
@@ -173,23 +174,39 @@ const NoteComponent: React.FC = () => {
     }
   }, [redo, setCurrentNote, setCurrentTitle]);
 
-  // Print handler — expand textarea to full content height before printing
+  // Print handler — beforeprint listener handles textarea expansion
   const handlePrint = useCallback(() => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      const prevHeight = textarea.style.height;
-      const prevOverflow = textarea.style.overflow;
+    window.print();
+  }, []);
+
+  // Expand textarea to full scrollHeight before browser captures print layout,
+  // then restore original values after print dialog closes.
+  useEffect(() => {
+    const handleBeforePrint = () => {
+      const textarea = textareaRef.current;
+      if (!textarea) return;
+      printRestoreRef.current = {
+        height: textarea.style.height,
+        overflow: textarea.style.overflow,
+      };
       textarea.style.height = `${textarea.scrollHeight}px`;
       textarea.style.overflow = 'visible';
-      // Wait for repaint so the browser captures the expanded height
-      requestAnimationFrame(() => {
-        window.print();
-        textarea.style.height = prevHeight;
-        textarea.style.overflow = prevOverflow;
-      });
-    } else {
-      window.print();
-    }
+    };
+
+    const handleAfterPrint = () => {
+      const textarea = textareaRef.current;
+      if (!textarea || !printRestoreRef.current) return;
+      textarea.style.height = printRestoreRef.current.height;
+      textarea.style.overflow = printRestoreRef.current.overflow;
+      printRestoreRef.current = null;
+    };
+
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
   }, []);
 
   const handleCopyToClipboard = useCallback(async () => {

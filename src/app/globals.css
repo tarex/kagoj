@@ -1753,7 +1753,7 @@ textarea:focus-visible {
     padding: 16px 0 !important;
     font-size: 12pt !important;
     line-height: 1.8 !important;
-    height: auto !important;
+    /* height set by JS beforeprint handler */
     min-height: 0 !important;
     max-height: none !important;
     overflow: visible !important;
