@@ -32,7 +32,18 @@ const BANGLA_PHONETIC_GROUPS: Map<string, number> = new Map([
 
 // Common Bangla suffixes for suffix-aware validation (longest first)
 const BANGLA_SUFFIXES = [
-  'গুলো', 'গুলি', 'দের', 'তে', 'কে', 'রা', 'ের', 'র', 'ে', 'য়', 'তি', 'নি',
+  // Multi-suffix compounds
+  'গুলোর', 'গুলোকে', 'গুলোতে', 'দেরকে', 'দেরই',
+  // Primary suffixes
+  'গুলো', 'গুলি', 'দের', 'তে', 'কে', 'রা', 'ের', 'তা', 'নো',
+  'তেই', 'তেও', 'কেই', 'কেও', 'রাই', 'রাও', 'দেরও',
+  // Verb suffixes
+  'ছি', 'ছে', 'ছো', 'ছেন', 'লাম', 'লে', 'লেন', 'তাম', 'তেন',
+  'ছিল', 'ছিলে', 'ছিলাম', 'ছিলেন',
+  // Emphasis / case
+  'ই', 'ও', 'ও',
+  // Short suffixes last
+  'র', 'ে', 'য়', 'তি', 'নি',
 ];
 
 // Common spelling mistakes and their corrections
@@ -255,7 +266,7 @@ export function checkSpelling(text: string): SpellingError[] {
 
     // Check if word is in the trie-backed adaptive dictionary
     if (!adaptiveDictionary.isKnownWord(word)) {
-      // Suffix-aware validation: strip common suffixes and check stem
+      // Suffix-aware validation: strip suffixes (including compound suffixes) and check stem
       let knownViaSuffix = false;
       for (const suffix of BANGLA_SUFFIXES) {
         if (word.length > suffix.length && word.endsWith(suffix)) {
@@ -267,31 +278,41 @@ export function checkSpelling(text: string): SpellingError[] {
         }
       }
 
+      // Also check: if the word has a conjunct (্) it's likely a valid complex word
+      const hasConjunct = word.includes('্');
+
       if (!knownViaSuffix) {
-        // Try to find a correction
-        const correction = findClosestWord(word);
-
-        if (correction && correction !== word) {
-          // Calculate confidence based on phonetic distance
-          const distance = phoneticDistance(word, correction);
-          const confidence = Math.max(0, 100 - (distance * 25)); // 25% reduction per edit distance
-
+        // Only flag if we have a KNOWN common mistake or a very close correction
+        const commonFix = commonMistakes[word];
+        if (commonFix) {
+          // Definite known mistake — always flag
           errors.push({
             word,
-            correction,
+            correction: commonFix,
             startIndex,
             endIndex,
-            confidence
+            confidence: 95,
           });
-        } else {
-          // Unknown word with no close correction — still flag it
-          errors.push({
-            word,
-            correction: '',
-            startIndex,
-            endIndex,
-            confidence: 50
-          });
+        } else if (!hasConjunct) {
+          // Try phonetic correction — but only flag if distance is very small
+          // (high confidence it's actually a typo, not just a word we don't know)
+          const correction = findClosestWord(word);
+          if (correction && correction !== word) {
+            const distance = phoneticDistance(word, correction);
+            // Only flag if distance ≤ 1 (one character off — likely a real typo)
+            if (distance <= 1) {
+              const confidence = Math.max(0, 100 - (distance * 30));
+              errors.push({
+                word,
+                correction,
+                startIndex,
+                endIndex,
+                confidence,
+              });
+            }
+          }
+          // If no close correction found, do NOT flag — it's probably a valid
+          // word that's just not in our dictionary
         }
       }
     }

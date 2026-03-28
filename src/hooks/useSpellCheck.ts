@@ -115,7 +115,7 @@ export const useSpellCheck = (isBanglaMode: boolean) => {
         const errors = localCheckSpelling(text);
 
         if (errors && errors.length > 0) {
-          const highConfidenceErrors = errors.filter(e => !e.confidence || e.confidence >= 50);
+          const highConfidenceErrors = errors.filter(e => !e.confidence || e.confidence >= 65);
           setSpellingErrors(highConfidenceErrors);
           setShowSpellingErrors(highConfidenceErrors.length > 0);
         } else {
