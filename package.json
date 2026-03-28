@@ -12,6 +12,7 @@
     "@ai-sdk/openai": "^3.0.48",
     "@types/lodash.debounce": "^4.0.9",
     "ai": "^6.0.140",
+    "html-to-image": "^1.11.13",
     "lodash.debounce": "^4.0.8",
     "lodash.throttle": "^4.1.1",
     "next": "16.2.1",
