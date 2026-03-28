@@ -1672,6 +1672,11 @@ textarea:focus-visible {
   }
 }
 
+/* Print content mirror — hidden on screen, shown only in print */
+.print-content {
+  display: none;
+}
+
 /* ── Print Stylesheet ── */
 @media print {
   /* Reset backgrounds and colors for printing */
@@ -1748,21 +1753,20 @@ textarea:focus-visible {
     opacity: 1 !important;
   }
 
-  /* Editor text — force full content height for printing */
+  /* Hide textarea (replaced element — can't split across pages) */
   .text-editor {
+    display: none !important;
+  }
+
+  /* Show print-only content div (flows & splits across pages naturally) */
+  .print-content {
+    display: block !important;
     padding: 16px 0 !important;
     font-size: 12pt !important;
     line-height: 1.8 !important;
-    /* height set by JS beforeprint handler */
-    min-height: 0 !important;
-    max-height: none !important;
-    overflow: visible !important;
-    overflow-y: visible !important;
-    resize: none !important;
     white-space: pre-wrap !important;
     word-wrap: break-word !important;
-    display: block !important;
-    position: static !important;
+    font-family: var(--font-body) !important;
   }
 
   /* Page settings */

@@ -64,7 +64,7 @@ const NoteComponent: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const aiTriggerRef = useRef<NodeJS.Timeout | null>(null);
-  const printRestoreRef = useRef<{ height: string; overflow: string } | null>(null);
+
 
   const { aiSuggestion, isLoadingAI: _isLoadingAI, requestAISuggestion, clearAISuggestion } = useAISuggestion(isBanglaMode);
   
@@ -174,39 +174,8 @@ const NoteComponent: React.FC = () => {
     }
   }, [redo, setCurrentNote, setCurrentTitle]);
 
-  // Print handler — beforeprint listener handles textarea expansion
   const handlePrint = useCallback(() => {
     window.print();
-  }, []);
-
-  // Expand textarea to full scrollHeight before browser captures print layout,
-  // then restore original values after print dialog closes.
-  useEffect(() => {
-    const handleBeforePrint = () => {
-      const textarea = textareaRef.current;
-      if (!textarea) return;
-      printRestoreRef.current = {
-        height: textarea.style.height,
-        overflow: textarea.style.overflow,
-      };
-      textarea.style.height = `${textarea.scrollHeight}px`;
-      textarea.style.overflow = 'visible';
-    };
-
-    const handleAfterPrint = () => {
-      const textarea = textareaRef.current;
-      if (!textarea || !printRestoreRef.current) return;
-      textarea.style.height = printRestoreRef.current.height;
-      textarea.style.overflow = printRestoreRef.current.overflow;
-      printRestoreRef.current = null;
-    };
-
-    window.addEventListener('beforeprint', handleBeforePrint);
-    window.addEventListener('afterprint', handleAfterPrint);
-    return () => {
-      window.removeEventListener('beforeprint', handleBeforePrint);
-      window.removeEventListener('afterprint', handleAfterPrint);
-    };
   }, []);
 
   const handleCopyToClipboard = useCallback(async () => {
@@ -1030,7 +999,7 @@ const NoteComponent: React.FC = () => {
             />
             <div className="title-divider"><hr /></div>
             <div className="editor-wrapper">
-              
+
               <NoteEditor
                 value={currentNote}
                 onChange={handleChange}
@@ -1040,6 +1009,9 @@ const NoteComponent: React.FC = () => {
                 textareaRef={textareaRef}
                 fontSize={fontSize}
               />
+              {/* Print-only div: textarea is a replaced element that can't split
+                  across pages, so we mirror content in a div for print layout */}
+              <div className="print-content" aria-hidden="true">{currentNote}</div>
               {ghostSuggestion && (
                 <GhostText
                   currentText={currentNote}
