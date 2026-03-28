@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Share as Image
 status: unknown
-stopped_at: Completed 04-02-PLAN.md — capture pipeline wired into toolbar and note editor
-last_updated: "2026-03-28T05:05:15.869Z"
+stopped_at: Completed 05-01-PLAN.md — clipboard copy wired with Safari/Firefox support and toolbar feedback
+last_updated: "2026-03-28T05:16:37.265Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 2
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  completed_phases: 2
+  total_plans: 3
+  completed_plans: 3
 ---
 
 # Project State
@@ -20,12 +20,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** Bangla writing must feel natural and fluid
-**Current focus:** Phase 04 — capture-foundation
+**Current focus:** Phase 05 — clipboard-and-ux-polish
 
 ## Current Position
 
-Phase: 04 (capture-foundation) — EXECUTING
-Plan: 2 of 2
+Phase: 05 (clipboard-and-ux-polish) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -49,6 +49,7 @@ Plan: 2 of 2
 *Updated after each plan completion*
 | Phase 04-capture-foundation P01 | 8 | 2 tasks | 3 files |
 | Phase 04-capture-foundation P02 | 5 | 1 tasks | 2 files |
+| Phase 05-clipboard-and-ux-polish P01 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,8 @@ Recent decisions affecting current work:
 - [Phase 04-capture-foundation]: 150ms delay after document.fonts.ready required for font race condition
 - [Phase 04-capture-foundation]: isCapturing destructured but unused in phase 04-02 — Phase 05 adds loading spinner
 - [Phase 04-capture-foundation]: captureContent || currentNote fallback in CaptureFrame prevents empty initial render
+- [Phase 05-clipboard-and-ux-polish]: Safari clipboard requires unresolved Promise passed to ClipboardItem; Firefox detected via typeof ClipboardItem, falls back to download with status label
+- [Phase 05-clipboard-and-ux-polish]: Inline toolbar status labels used instead of toast system for clipboard feedback — avoids new UI infrastructure
 
 ### Pending Todos
 
@@ -80,6 +83,6 @@ None yet.
 ## Session Continuity
 
 Last activity: 2026-03-28
-Last session: 2026-03-28T05:05:15.867Z
-Stopped at: Completed 04-02-PLAN.md — capture pipeline wired into toolbar and note editor
+Last session: 2026-03-28T05:16:37.262Z
+Stopped at: Completed 05-01-PLAN.md — clipboard copy wired with Safari/Firefox support and toolbar feedback
 Resume file: None

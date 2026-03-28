@@ -17,12 +17,12 @@ Requirements for the Share as Image milestone. Each maps to roadmap phases.
 ### Output
 
 - [x] **OUT-01**: User can download captured image as PNG file
-- [ ] **OUT-02**: User can copy captured image to clipboard
+- [x] **OUT-02**: User can copy captured image to clipboard
 
 ### UI
 
 - [x] **UI-01**: Camera/share icon appears in the floating toolbar
-- [ ] **UI-02**: User sees loading/success feedback during capture
+- [x] **UI-02**: User sees loading/success feedback during capture
 
 ## v1.1 Requirements (Completed)
 
@@ -95,9 +95,9 @@ Requirements for the Share as Image milestone. Each maps to roadmap phases.
 | CAPT-03 | Phase 4 | Complete |
 | CAPT-04 | Phase 4 | Complete |
 | OUT-01 | Phase 4 | Complete |
-| OUT-02 | Phase 5 | Pending |
+| OUT-02 | Phase 5 | Complete |
 | UI-01 | Phase 4 | Complete |
-| UI-02 | Phase 5 | Pending |
+| UI-02 | Phase 5 | Complete |
 
 **Coverage:**
 - v1.2 requirements: 8 total

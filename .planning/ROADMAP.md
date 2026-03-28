@@ -64,7 +64,7 @@ Plans:
 **Milestone Goal:** Let users capture their Bangla text as a shareable PNG image using the actual editor UI aesthetic, with download and clipboard copy.
 
 - [ ] **Phase 4: Capture Foundation** - Build the styled PNG capture pipeline: mirror div, Bangla font pre-check, dark mode preservation, full/selected-text capture, and PNG download
-- [ ] **Phase 5: Clipboard and UX Polish** - Add clipboard copy with browser-specific handling (Safari/Firefox), loading states, and success feedback
+- [x] **Phase 5: Clipboard and UX Polish** - Add clipboard copy with browser-specific handling (Safari/Firefox), loading states, and success feedback (completed 2026-03-28)
 
 ## Phase Details
 
@@ -95,7 +95,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 05-01-PLAN.md -- Clipboard copy (Safari Promise pattern, Firefox fallback) + loading/success feedback
+- [x] 05-01-PLAN.md -- Clipboard copy (Safari Promise pattern, Firefox fallback) + loading/success feedback
 
 ## Progress
 
@@ -107,4 +107,4 @@ Plans:
 | 2. Ghost Text Intelligence | v1.1 | 2/2 | Complete | 2026-03-27 |
 | 3. Spell Check Overhaul | v1.1 | 2/2 | Complete | 2026-03-28 |
 | 4. Capture Foundation | v1.2 | 2/2 | Complete |  |
-| 5. Clipboard and UX Polish | v1.2 | 0/1 | Not started | - |
+| 5. Clipboard and UX Polish | v1.2 | 1/1 | Complete   | 2026-03-28 |
