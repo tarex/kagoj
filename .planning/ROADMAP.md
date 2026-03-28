@@ -1,4 +1,4 @@
-# Roadmap: কাগজ — Bangla AI Notebook
+# Roadmap: কাগজ -- Bangla AI Notebook
 
 ## Milestones
 
@@ -25,11 +25,11 @@ Three phases transformed the writing engine in v1.1: vocabulary foundation, AI g
   4. Phonetic transliteration processes each keystroke in under 5ms with no perceptible lag
 **Plans**: 2 plans
 Plans:
-- [x] 01-01-PLAN.md — Create trie data structure and comprehensive 50k+ word dictionary
-- [x] 01-02-PLAN.md — Refactor AdaptiveDictionary to use trie, update spell-checker, remove old files
+- [x] 01-01-PLAN.md -- Create trie data structure and comprehensive 50k+ word dictionary
+- [x] 01-02-PLAN.md -- Refactor AdaptiveDictionary to use trie, update spell-checker, remove old files
 
 ### Phase 2: Ghost Text Intelligence
-**Goal**: Writers see AI-powered phrase and sentence completions as ghost text — not just single words — with a clearly visible UI and Tab hint
+**Goal**: Writers see AI-powered phrase and sentence completions as ghost text -- not just single words -- with a clearly visible UI and Tab hint
 **Depends on**: Phase 1
 **Requirements**: GHOST-01, GHOST-02, GHOST-03, PERF-02
 **Success Criteria** (what must be TRUE):
@@ -39,8 +39,8 @@ Plans:
   4. Ghost text is visually distinct and readable against both light and dark backgrounds
 **Plans**: 2 plans
 Plans:
-- [x] 02-01-PLAN.md — AI suggestion API endpoint + LRU cache + useAISuggestion hook
-- [x] 02-02-PLAN.md — Wire AI into editor, Tab hint badge, visual AI/dictionary distinction
+- [x] 02-01-PLAN.md -- AI suggestion API endpoint + LRU cache + useAISuggestion hook
+- [x] 02-02-PLAN.md -- Wire AI into editor, Tab hint badge, visual AI/dictionary distinction
 
 ### Phase 3: Spell Check Overhaul
 **Goal**: Writers experience accurate spell-checking with far fewer false positives, phonetically-aware suggestions, and an inline fix/ignore flow that never interrupts writing
@@ -54,8 +54,8 @@ Plans:
   5. Spell-check runs in the background and never causes typing input to lag or stutter
 **Plans**: 2 plans
 Plans:
-- [x] 03-01-PLAN.md — Phonetic similarity scoring, suffix-aware validation, error auto-invalidation
-- [x] 03-02-PLAN.md — Keyboard-driven inline fix/ignore, background spell-check execution
+- [x] 03-01-PLAN.md -- Phonetic similarity scoring, suffix-aware validation, error auto-invalidation
+- [x] 03-02-PLAN.md -- Keyboard-driven inline fix/ignore, background spell-check execution
 
 </details>
 
@@ -69,7 +69,7 @@ Plans:
 ## Phase Details
 
 ### Phase 4: Capture Foundation
-**Goal**: Users can capture their Bangla note content as a correctly styled PNG — matching the editor's dark aesthetic, rendering Bangla script correctly, and downloadable as a file
+**Goal**: Users can capture their Bangla note content as a correctly styled PNG -- matching the editor's dark aesthetic, rendering Bangla script correctly, and downloadable as a file
 **Depends on**: Phase 3
 **Requirements**: CAPT-01, CAPT-02, CAPT-03, CAPT-04, OUT-01, UI-01
 **Success Criteria** (what must be TRUE):
@@ -81,8 +81,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [x] 04-01-PLAN.md — CaptureFrame component + useShareImage hook + html-to-image install
-- [x] 04-02-PLAN.md — Toolbar camera icon + full/selected capture wiring + PNG download
+- [x] 04-01-PLAN.md -- CaptureFrame component + useShareImage hook + html-to-image install
+- [x] 04-02-PLAN.md -- Toolbar camera icon + full/selected capture wiring + PNG download
 
 ### Phase 5: Clipboard and UX Polish
 **Goal**: Users can copy the captured image to their clipboard across Chrome, Safari, and Firefox, and receive clear feedback throughout the capture and copy flow
@@ -92,19 +92,19 @@ Plans:
   1. User can copy the captured image to clipboard in Chrome and Safari without errors
   2. Firefox users see a graceful fallback (download prompt with explanation) instead of a silent failure
   3. User sees a loading indicator while capture is in progress and a success message after copy or download completes
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 05-01: Browser-specific clipboard handling (Chrome/Safari Promise pattern, Firefox fallback) + loading/success feedback states
+- [ ] 05-01-PLAN.md -- Clipboard copy (Safari Promise pattern, Firefox fallback) + loading/success feedback
 
 ## Progress
 
-**Execution Order:** Phases execute in order: 1 → 2 → 3 → 4 → 5
+**Execution Order:** Phases execute in order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. Dictionary Foundation | v1.1 | 2/2 | Complete | 2026-03-27 |
 | 2. Ghost Text Intelligence | v1.1 | 2/2 | Complete | 2026-03-27 |
 | 3. Spell Check Overhaul | v1.1 | 2/2 | Complete | 2026-03-28 |
-| 4. Capture Foundation | v1.2 | 1/2 | In Progress|  |
+| 4. Capture Foundation | v1.2 | 2/2 | Complete |  |
 | 5. Clipboard and UX Polish | v1.2 | 0/1 | Not started | - |
