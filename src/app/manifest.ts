@@ -2,9 +2,9 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'কাগজ — সহজে বাংলা লিখুন',
+    name: 'কাগজ - সহজে বাংলা লিখুন',
     short_name: 'কাগজ',
-    description: 'সহজে বাংলা লিখুন — AI suggestions & phonetic typing',
+    description: 'সহজে বাংলা লিখুন - AI suggestions & phonetic typing',
     start_url: '/',
     display: 'standalone',
     background_color: '#0a0a0a',
@@ -35,7 +35,7 @@ export default function manifest(): MetadataRoute.Manifest {
       {
         name: 'নতুন নোট',
         short_name: 'নতুন',
-        description: 'Create a new note',
+        description: 'নতুন নোট তৈরি করুন',
         url: '/?action=new',
       },
     ],

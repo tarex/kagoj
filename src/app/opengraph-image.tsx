@@ -1,15 +1,22 @@
 import { ImageResponse } from 'next/og';
+import { readFile } from 'fs/promises';
+import { join } from 'path';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 export const alt = 'কাগজ - সহজে বাংলা লিখুন';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
 export default async function Image() {
-  const notoSansBengali = await fetch(
-    'https://fonts.gstatic.com/s/notosansbengali/v33/Cn-SJsCGWQxOjaGwMQ6fIiMywrNJIky6nvd8BjzVMvJx2mcSPVFpVEqE-6KmsolLudA.ttf',
-  ).then((res) => res.arrayBuffer());
+  const [notoSansBengali, taglinePng] = await Promise.all([
+    fetch(
+      'https://fonts.gstatic.com/s/notosansbengali/v33/Cn-SJsCGWQxOjaGwMQ6fIiMywrNJIky6nvd8BjzVMvJx2mcSPVFpVEqE-6KmsolLudA.ttf',
+    ).then((res) => res.arrayBuffer()),
+    readFile(join(process.cwd(), 'public', 'tagline.png')),
+  ]);
+
+  const taglineBase64 = `data:image/png;base64,${taglinePng.toString('base64')}`;
 
   return new ImageResponse(
     <div
@@ -22,47 +29,18 @@ export default async function Image() {
         alignItems: 'center',
         position: 'relative',
         overflow: 'hidden',
-        background:
-          'linear-gradient(145deg, #faf8f5 0%, #f0ece6 40%, #e8e2d8 100%)',
+        background: '#fafafa',
       }}
     >
-      {/* Subtle paper texture */}
+      {/* Subtle warm accent strip at top */}
       <div
         style={{
           position: 'absolute',
           top: 0,
           left: 0,
           right: 0,
-          bottom: 0,
-          opacity: 0.04,
-          background:
-            'repeating-linear-gradient(0deg, #000 0px, transparent 1px, transparent 28px)',
-        }}
-      />
-
-      {/* Top decorative line */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 40,
-          left: 80,
-          right: 80,
-          height: 2,
-          background:
-            'linear-gradient(90deg, transparent, #c4a882, transparent)',
-        }}
-      />
-
-      {/* Bottom decorative line */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 40,
-          left: 80,
-          right: 80,
-          height: 2,
-          background:
-            'linear-gradient(90deg, transparent, #c4a882, transparent)',
+          height: 4,
+          background: 'linear-gradient(90deg, #c4a882, #d4b892, #c4a882)',
         }}
       />
 
@@ -72,103 +50,36 @@ export default async function Image() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 12,
+          gap: 28,
         }}
       >
         {/* Bangla title */}
         <div
           style={{
-            fontSize: 120,
+            fontSize: 140,
             fontFamily: 'Noto Sans Bengali',
             fontWeight: 700,
             color: '#1a1a1a',
             letterSpacing: '-0.02em',
-            lineHeight: 1.1,
+            lineHeight: 1,
           }}
         >
           কাগজ
         </div>
 
-        {/* Thin divider */}
-        <div
-          style={{
-            width: 80,
-            height: 1,
-            background: '#c4a882',
-            marginTop: 4,
-            marginBottom: 4,
-          }}
+        {/* Tagline as pre-rendered image */}
+        <img
+          src={taglineBase64}
+          width={360}
+          height={60}
+          style={{ opacity: 0.85 }}
         />
-
-        {/* Tagline */}
-        <div
-          style={{
-            fontSize: 28,
-            fontFamily: 'Noto Sans Bengali',
-            fontWeight: 400,
-            color: '#6b5c4c',
-            letterSpacing: '0.04em',
-          }}
-        >
-          সহজে বাংলা লিখুন
-        </div>
       </div>
 
-      {/* Corner accents */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 32,
-          left: 72,
-          width: 24,
-          height: 24,
-          borderTop: '2px solid #c4a882',
-          borderLeft: '2px solid #c4a882',
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          top: 32,
-          right: 72,
-          width: 24,
-          height: 24,
-          borderTop: '2px solid #c4a882',
-          borderRight: '2px solid #c4a882',
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 32,
-          left: 72,
-          width: 24,
-          height: 24,
-          borderBottom: '2px solid #c4a882',
-          borderLeft: '2px solid #c4a882',
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 32,
-          right: 72,
-          width: 24,
-          height: 24,
-          borderBottom: '2px solid #c4a882',
-          borderRight: '2px solid #c4a882',
-        }}
-      />
     </div>,
     {
       ...size,
       fonts: [
-        {
-          name: 'Noto Sans Bengali',
-          data: notoSansBengali,
-          style: 'normal',
-          weight: 400,
-        },
         {
           name: 'Noto Sans Bengali',
           data: notoSansBengali,

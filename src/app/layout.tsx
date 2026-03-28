@@ -20,19 +20,19 @@ export const metadata: Metadata = {
   metadataBase: process.env.VERCEL_PROJECT_PRODUCTION_URL
     ? new URL(`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`)
     : new URL('http://localhost:3000'),
-  title: 'কাগজ — সহজে বাংলা লিখুন',
-  description: 'সহজে বাংলা লিখুন — AI suggestions & phonetic typing',
+  title: 'কাগজ - সহজে বাংলা লিখুন',
+  description: 'সহজে বাংলা লিখুন - AI suggestions & phonetic typing',
   openGraph: {
-    title: 'কাগজ — সহজে বাংলা লিখুন',
-    description: 'সহজে বাংলা লিখুন — AI suggestions & phonetic typing',
+    title: 'কাগজ - সহজে বাংলা লিখুন',
+    description: 'সহজে বাংলা লিখুন - AI suggestions & phonetic typing',
     siteName: 'কাগজ',
     locale: 'bn_BD',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'কাগজ — সহজে বাংলা লিখুন',
-    description: 'সহজে বাংলা লিখুন — AI suggestions & phonetic typing',
+    title: 'কাগজ - সহজে বাংলা লিখুন',
+    description: 'সহজে বাংলা লিখুন - AI suggestions & phonetic typing',
   },
   appleWebApp: {
     capable: true,

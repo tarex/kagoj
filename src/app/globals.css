@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 /* ═══════════════════════════════════════════════════════════
-   কাগজ — Warm Manuscript Design System
+   কাগজ - Warm Manuscript Design System
    A literary, Bangla-first writing experience
    ═══════════════════════════════════════════════════════════ */
 
@@ -49,7 +49,7 @@
   /* Spacing rhythm */
   --topbar-height: 52px;
   --sidebar-width: 272px;
-  --editor-max-width: 960px;
+  --editor-max-width: 700px;
 
   /* Background pattern */
   --dot-color: rgba(0, 0, 0, 0.09);
@@ -107,14 +107,23 @@ body {
   font-family: var(--font-body);
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  transition: background-color var(--transition-slow), color var(--transition-slow);
+  transition:
+    background-color var(--transition-slow),
+    color var(--transition-slow);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: 'kern' 1, 'liga' 1;
+  font-feature-settings:
+    'kern' 1,
+    'liga' 1;
 }
 
 /* ── Typography ── */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-display);
   font-weight: 600;
   line-height: 1.25;
@@ -138,14 +147,13 @@ h1, h2, h3, h4, h5, h6 {
   left: 0;
   right: 0;
   height: var(--topbar-height);
-  border-bottom: 1px solid var(--border-primary);
+  border-bottom: 1px solid color-mix(in srgb, var(--border-primary) 50%, transparent);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
   z-index: 100;
-  backdrop-filter: blur(12px);
-  background-color: color-mix(in srgb, var(--bg-secondary) 85%, transparent);
+  background-color: var(--bg-primary);
   transition: all var(--transition-base);
 }
 
@@ -199,7 +207,7 @@ h1, h2, h3, h4, h5, h6 {
 .topbar-controls {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 12px;
 }
 
 /* ── Main Content ── */
@@ -215,7 +223,7 @@ h1, h2, h3, h4, h5, h6 {
 .sidebar {
   width: var(--sidebar-width);
   background-color: var(--bg-secondary);
-  border-right: 1px solid var(--border-primary);
+  border-right: 1px solid color-mix(in srgb, var(--border-primary) 50%, transparent);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -332,7 +340,7 @@ h1, h2, h3, h4, h5, h6 {
   width: 68px;
   height: 32px;
   background-color: var(--bg-tertiary);
-  border: 1px solid var(--border-primary);
+  border: none;
   border-radius: 16px;
   cursor: pointer;
   padding: 3px;
@@ -342,8 +350,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .lang-toggle:hover {
-  border-color: var(--border-accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  background-color: var(--bg-accent);
 }
 
 .lang-toggle:active {
@@ -386,22 +393,21 @@ h1, h2, h3, h4, h5, h6 {
   position: relative;
   width: 36px;
   height: 36px;
-  border: 1px solid var(--border-primary);
-  border-radius: 50%;
-  background-color: var(--bg-tertiary);
+  border: none;
+  border-radius: var(--radius-md);
+  background-color: transparent;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all var(--transition-fast);
   flex-shrink: 0;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 .theme-toggle:hover {
-  border-color: var(--border-accent);
-  background-color: var(--bg-accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .theme-toggle:active {
@@ -444,9 +450,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .theme-toggle.dark {
-  color: var(--accent-primary);
-  border-color: color-mix(in srgb, var(--accent-primary) 30%, transparent);
-  background-color: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-tertiary));
+  color: var(--text-muted);
 }
 
 .btn-github {
@@ -455,23 +459,21 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: center;
   width: 36px;
   height: 36px;
-  border: 1px solid var(--border-primary);
-  border-radius: 50%;
+  border: none;
+  border-radius: var(--radius-md);
   background: transparent;
   color: var(--text-muted);
-  transition: all 200ms ease;
+  transition: all var(--transition-fast);
   text-decoration: none;
 }
 
 .btn-github:hover {
-  border-color: var(--border-accent);
-  background-color: var(--bg-accent);
+  background-color: var(--bg-tertiary);
   color: var(--text-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 12%, transparent);
 }
 
 .btn-github:active {
-  transform: scale(0.9);
+  transform: scale(0.95);
 }
 
 /* ── Buttons ── */
@@ -542,7 +544,9 @@ h1, h2, h3, h4, h5, h6 {
     0 4px 12px -2px rgba(0, 0, 0, 0.08);
   backdrop-filter: blur(24px) saturate(1.6);
   -webkit-backdrop-filter: blur(24px) saturate(1.6);
-  transition: background var(--transition-base), box-shadow var(--transition-base);
+  transition:
+    background var(--transition-base),
+    box-shadow var(--transition-base);
 }
 
 .toolbar-sep {
@@ -585,11 +589,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .toolbar-btn:active {
-  background: linear-gradient(
-    to bottom,
-    var(--bg-tertiary),
-    var(--bg-accent)
-  );
+  background: linear-gradient(to bottom, var(--bg-tertiary), var(--bg-accent));
   border-color: color-mix(in srgb, var(--border-secondary) 50%, transparent);
   color: var(--text-primary);
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -626,8 +626,12 @@ h1, h2, h3, h4, h5, h6 {
   white-space: nowrap;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.15s ease, transform 0.15s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12), 0 0 0 1px color-mix(in srgb, var(--border-primary) 40%, transparent);
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.12),
+    0 0 0 1px color-mix(in srgb, var(--border-primary) 40%, transparent);
   z-index: 1000;
 }
 
@@ -686,7 +690,8 @@ h1, h2, h3, h4, h5, h6 {
 .note-item.selected {
   background-color: var(--accent-primary-light);
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 15%, transparent);
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--accent-primary) 15%, transparent);
 }
 
 html.dark .note-item.selected {
@@ -701,7 +706,11 @@ html.dark .editor-toolbar {
     color-mix(in srgb, var(--bg-primary) 70%, transparent)
   );
   border-color: color-mix(in srgb, var(--border-secondary) 35%, transparent);
-  border-top-color: color-mix(in srgb, var(--border-secondary) 50%, transparent);
+  border-top-color: color-mix(
+    in srgb,
+    var(--border-secondary) 50%,
+    transparent
+  );
   box-shadow:
     inset 0 1px 0 0 color-mix(in srgb, white 5%, transparent),
     0 0 0 0.5px color-mix(in srgb, var(--border-secondary) 30%, transparent),
@@ -779,13 +788,7 @@ html.dark .toolbar-btn:active {
   padding-top: 48px;
   padding-bottom: 72px;
 
-  /* Subtle manuscript dot grid + soft radial wash */
-  background-image:
-    radial-gradient(circle, var(--dot-color) 0.8px, transparent 0.8px),
-    radial-gradient(circle at 20% 50%, color-mix(in srgb, var(--bg-tertiary) 20%, transparent) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, color-mix(in srgb, var(--bg-tertiary) 15%, transparent) 0%, transparent 40%);
-  background-size: 28px 28px, 100% 100%, 100% 100%;
-  background-position: 14px 14px, 0 0, 0 0;
+  background-image: none;
 }
 
 .editor-main::-webkit-scrollbar {
@@ -807,15 +810,13 @@ html.dark .toolbar-btn:active {
   height: 100%;
   max-width: var(--editor-max-width);
   margin: 0 auto;
-  border-left: 1px solid color-mix(in srgb, var(--border-primary) 25%, transparent);
-  border-right: 1px solid color-mix(in srgb, var(--border-primary) 25%, transparent);
 }
 
 /* ── Text Editor ── */
 .text-editor {
   width: 100%;
   height: 100%;
-  padding: 48px 56px;
+  padding: 32px 40px;
   background-color: transparent;
   color: var(--text-primary);
   border: none;
@@ -823,14 +824,12 @@ html.dark .toolbar-btn:active {
   resize: none;
   font-family: var(--font-body);
   font-size: 16px;
-  line-height: 1.9;
+  line-height: 2;
   letter-spacing: 0.01em;
-  transition: all var(--transition-base);
   position: relative;
   z-index: 2;
   caret-color: var(--accent-primary);
 }
-
 
 .text-editor:focus {
   border: none;
@@ -854,14 +853,14 @@ html.dark .toolbar-btn:active {
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 48px 56px;
+  padding: 32px 40px;
   pointer-events: none;
   overflow-y: auto;
   overflow-x: hidden;
   z-index: 1;
   font-family: var(--font-body);
   font-size: 16px;
-  line-height: 1.9;
+  line-height: 2;
   letter-spacing: 0.01em;
   color: transparent;
 }
@@ -886,12 +885,16 @@ html.dark .toolbar-btn:active {
 }
 
 @keyframes ghostFadeIn {
-  from { opacity: 0; }
-  to { opacity: 0.8; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.8;
+  }
 }
 
 /* AI suggestion — slightly different shade for distinction */
-.ghost-text-suggestion[data-ai="true"] {
+.ghost-text-suggestion[data-ai='true'] {
   color: var(--accent-primary);
   opacity: 0.55;
   background-color: color-mix(in srgb, var(--accent-primary) 6%, transparent);
@@ -957,8 +960,14 @@ html.dark .toolbar-btn:active {
 }
 
 @keyframes popUp {
-  from { opacity: 0; transform: translateY(6px) scale(0.97); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* ── Spelling Overlay (inline underlines) ── */
@@ -983,8 +992,12 @@ html.dark .toolbar-btn:active {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .spelling-container {
@@ -999,8 +1012,14 @@ html.dark .toolbar-btn:active {
 }
 
 @keyframes modalIn {
-  from { transform: scale(0.96) translateY(8px); opacity: 0; }
-  to { transform: scale(1) translateY(0); opacity: 1; }
+  from {
+    transform: scale(0.96) translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
 }
 
 .spelling-header {
@@ -1117,8 +1136,12 @@ html.dark .toolbar-btn:active {
 }
 
 @keyframes wordSuggestionIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .word-suggestion-header {
@@ -1165,7 +1188,7 @@ html.dark .toolbar-btn:active {
 
   .text-editor,
   .ghost-text-overlay {
-    padding: 32px 36px !important;
+    padding: 28px 32px !important;
   }
 }
 
@@ -1389,10 +1412,18 @@ html.dark .toolbar-btn:active {
   justify-content: space-between;
 }
 
-.gap-1 { gap: 4px; }
-.gap-2 { gap: 8px; }
-.gap-3 { gap: 12px; }
-.gap-4 { gap: 16px; }
+.gap-1 {
+  gap: 4px;
+}
+.gap-2 {
+  gap: 8px;
+}
+.gap-3 {
+  gap: 12px;
+}
+.gap-4 {
+  gap: 16px;
+}
 
 /* ── Scrolling ── */
 * {
@@ -1429,7 +1460,9 @@ textarea:focus-visible {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ── Selection Color ── */
@@ -1447,13 +1480,13 @@ textarea:focus-visible {
   border: none;
   background: transparent;
   font-family: var(--font-body);
-  font-size: 30px;
+  font-size: 28px;
   font-weight: 600;
   color: var(--text-primary);
-  padding: 0 56px;
+  padding: 0 40px;
   outline: none;
   line-height: 1.4;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   caret-color: var(--accent-primary);
 }
 
@@ -1479,7 +1512,7 @@ textarea:focus-visible {
   width: 100%;
   max-width: var(--editor-max-width);
   margin: 12px auto 0;
-  padding: 0 56px;
+  padding: 0 40px;
   box-sizing: border-box;
 }
 
@@ -1537,7 +1570,8 @@ textarea:focus-visible {
   background-color: var(--bg-accent);
   border-color: var(--border-accent);
   color: var(--text-primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--accent-primary) 12%, transparent);
 }
 
 .btn-shortcuts:hover .btn-shortcuts-label {
@@ -1634,7 +1668,9 @@ textarea:focus-visible {
   font-weight: 600;
   color: var(--text-secondary);
   padding: 2px 7px;
-  box-shadow: 0 1px 0 var(--border-secondary), inset 0 -1px 0 color-mix(in srgb, var(--border-secondary) 40%, transparent);
+  box-shadow:
+    0 1px 0 var(--border-secondary),
+    inset 0 -1px 0 color-mix(in srgb, var(--border-secondary) 40%, transparent);
   white-space: nowrap;
   min-width: 22px;
   text-align: center;
@@ -1647,15 +1683,15 @@ textarea:focus-visible {
 /* ── Responsive: Title Input & Spelling Overlay ── */
 @media (max-width: 900px) {
   .note-title-input {
-    padding: 32px 36px 0 36px;
+    padding: 0 32px;
   }
 
   .title-divider {
-    padding: 0 36px;
+    padding: 0 32px;
   }
 
   .spelling-overlay-inner {
-    padding: 32px 36px !important;
+    padding: 28px 32px !important;
   }
 }
 
