@@ -13,10 +13,19 @@ export const useNotes = () => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [currentNote, setCurrentNote] = useState<string>('');
   const [currentTitle, setCurrentTitleState] = useState<string>('');
-  const [selectedNoteIndex, setSelectedNoteIndex] = useState<number | null>(
+  const [selectedNoteIndex, setSelectedNoteIndexState] = useState<number | null>(
     null
   );
   const [isInitialized, setIsInitialized] = useState(false);
+
+  const setSelectedNoteIndex = useCallback((index: number | null) => {
+    setSelectedNoteIndexState(index);
+    if (index !== null) {
+      localStorage.setItem('selectedNoteIndex', String(index));
+    } else {
+      localStorage.removeItem('selectedNoteIndex');
+    }
+  }, []);
 
   const saveNotes = useCallback(
     throttle((notesToSave: Note[]) => {
@@ -46,6 +55,16 @@ export const useNotes = () => {
       const savedCurrentTitle = localStorage.getItem('currentTitle');
       if (savedCurrentTitle) {
         setCurrentTitleState(savedCurrentTitle);
+      }
+
+      const savedIndex = localStorage.getItem('selectedNoteIndex');
+      if (savedIndex !== null) {
+        const index = parseInt(savedIndex, 10);
+        if (!isNaN(index) && Array.isArray(savedNotes) && index >= 0 && index < savedNotes.length) {
+          setSelectedNoteIndexState(index);
+        } else {
+          localStorage.removeItem('selectedNoteIndex');
+        }
       }
 
       setIsInitialized(true);

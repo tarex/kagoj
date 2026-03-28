@@ -73,7 +73,7 @@ export const contextPatterns = [
   { pattern: '([দনব])d', contextPattern: '[^o`]', replacement: '$1্দ' },
   { pattern: '([গঘণতধনপমশসহ])n', contextPattern: '[^o`]', replacement: '$1্ন' },
   { pattern: '([পমলষস])p', contextPattern: '[^o`]', replacement: '$1্প' },
-  { pattern: '([স])f', contextPattern: '[^o`]', replacement: '$1্ফ' },
+  { pattern: '([স])(f|F)', contextPattern: '[^o`]', replacement: '$1্ফ' },
   { pattern: '([বমল])b', contextPattern: '[^o`]', replacement: '$1্ব' },
   { pattern: '([দম])(v|V)', contextPattern: '[^o`]', replacement: '$1্ভ' },
   {
@@ -88,7 +88,7 @@ export const contextPatterns = [
   },
   { pattern: '([কগপ-বমলশসহ])l', contextPattern: '[^o`]', replacement: '$1্ল' },
   { pattern: '([কনপ])s', contextPattern: '[^o`]', replacement: '$1্স' },
-  { pattern: '([ক-হড়ঢ়য়])w', contextPattern: '[^o`]', replacement: '$1্ব' },
+  { pattern: '([ক-হড়ঢ়য়])(w|W)', contextPattern: '[^o`]', replacement: '$1্ব' },
   { pattern: '([ক-হড়ঢ়য়])y', contextPattern: '[^o`]', replacement: '$1্য' },
   { pattern: 'নc', contextPattern: '[^o`]', replacement: 'ঞ্চ' },
 
@@ -246,7 +246,7 @@ export const contextPatterns = [
   { pattern: 'd', replacement: 'দ' },
   { pattern: 'n', replacement: 'ন' },
   { pattern: '(p|P)', replacement: 'প' },
-  { pattern: 'f', replacement: 'ফ' },
+  { pattern: '(f|F)', replacement: 'ফ' },
   { pattern: '(b|B)', replacement: 'ব' },
   { pattern: '(v|V)', replacement: 'ভ' },
   { pattern: '(m|M)', replacement: 'ম' },
@@ -257,8 +257,8 @@ export const contextPatterns = [
   { pattern: 's', replacement: 'স' },
   { pattern: '(h|H)', replacement: 'হ' },
   { pattern: 'R', replacement: 'ড়' },
-  { pattern: 'w', replacement: 'ও' },
-  { pattern: 'x', replacement: 'ক্স' },
+  { pattern: '(w|W)', replacement: 'ও' },
+  { pattern: '(x|X)', replacement: 'ক্স' },
   { pattern: '(y|Y)', replacement: 'য়' },
 
   // Rules for '্য'
