@@ -49,7 +49,7 @@
   /* Spacing rhythm */
   --topbar-height: 52px;
   --sidebar-width: 272px;
-  --editor-max-width: 700px;
+  --editor-max-width: 860px;
 
   /* Background pattern */
   --dot-color: rgba(0, 0, 0, 0.09);
@@ -788,7 +788,10 @@ html.dark .toolbar-btn:active {
   padding-top: 48px;
   padding-bottom: 72px;
 
-  background-image: none;
+  background-image:
+    radial-gradient(circle, var(--dot-color) 0.8px, transparent 0.8px);
+  background-size: 28px 28px;
+  background-position: 14px 14px;
 }
 
 .editor-main::-webkit-scrollbar {
@@ -810,6 +813,8 @@ html.dark .toolbar-btn:active {
   height: 100%;
   max-width: var(--editor-max-width);
   margin: 0 auto;
+  border-left: 1px solid color-mix(in srgb, var(--border-primary) 25%, transparent);
+  border-right: 1px solid color-mix(in srgb, var(--border-primary) 25%, transparent);
 }
 
 /* ── Text Editor ── */
