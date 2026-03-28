@@ -296,7 +296,9 @@ export function checkSpelling(text: string): SpellingError[] {
       const hasConjunct = word.includes('্');
 
       if (!knownViaSuffix) {
-        // Only flag if we have a KNOWN common mistake or a very close correction
+        // Only flag known common mistakes — no fuzzy guessing.
+        // Bangla has too many valid word forms for distance-based
+        // detection to work without a massive false-positive rate.
         const commonFix = commonMistakes[normalizedWord] ?? commonMistakes[word];
         if (commonFix) {
           errors.push({
@@ -306,22 +308,6 @@ export function checkSpelling(text: string): SpellingError[] {
             endIndex,
             confidence: 95,
           });
-        } else if (!hasConjunct) {
-          const correction = findClosestWord(word);
-          // Use normalized comparison to avoid "same word" false positives
-          if (correction && normalizeUnicode(correction) !== normalizedWord) {
-            const distance = phoneticDistance(word, correction);
-            if (distance <= 1) {
-              const confidence = Math.max(0, 100 - (distance * 30));
-              errors.push({
-                word,
-                correction,
-                startIndex,
-                endIndex,
-                confidence,
-              });
-            }
-          }
         }
       }
     }
