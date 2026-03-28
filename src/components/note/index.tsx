@@ -20,7 +20,7 @@ import { bigramStore } from '@/lib/bigram-store';
 import { banglaCollocations } from '@/lib/bangla-collocations';
 
 const FONT_SIZE_KEY = 'noteFontSize';
-const DEFAULT_FONT_SIZE = 28;
+const DEFAULT_FONT_SIZE = 24;
 const THEME_KEY = 'noteTheme';
 
 /** Extract the previous Bangla word before a given position in text */

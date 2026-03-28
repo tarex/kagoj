@@ -622,6 +622,37 @@ h1, h2, h3, h4, h5, h6 {
   transform: none;
 }
 
+/* Tooltips */
+.toolbar-btn[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12), 0 0 0 1px color-mix(in srgb, var(--border-primary) 40%, transparent);
+  z-index: 1000;
+}
+
+.toolbar-btn[data-tooltip]:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.toolbar-btn[data-tooltip]:disabled::after {
+  display: none;
+}
+
 .toolbar-btn-sm {
   width: 34px;
   height: 34px;
@@ -1279,6 +1310,10 @@ html.dark .toolbar-btn:active {
   .toolbar-btn {
     width: 40px;
     height: 40px;
+  }
+
+  .toolbar-btn[data-tooltip]::after {
+    display: none;
   }
 
   .toolbar-btn-sm {

@@ -9,11 +9,8 @@ interface ToolbarProps {
   onFormatHighlight: () => void;
   onInsertBullet: () => void;
   onInsertNumberedList: () => void;
-  onUndo: () => void;
-  onRedo: () => void;
-  canUndo: boolean;
-  canRedo: boolean;
   onPrint: () => void;
+  onCopyToClipboard: () => void;
   isBanglaMode: boolean;
   fontSize: number;
   onFontSizeChange: (size: number) => void;
@@ -30,7 +27,8 @@ const ToolbarBtn: React.FC<{
   <button
     onClick={onClick}
     className="toolbar-btn"
-    title={title}
+    data-tooltip={title}
+    aria-label={title}
     disabled={disabled}
   >
     {children}
@@ -46,35 +44,14 @@ export const Toolbar: React.FC<ToolbarProps> = React.memo(({
   onFormatHighlight,
   onInsertBullet,
   onInsertNumberedList,
-  onUndo,
-  onRedo,
-  canUndo,
-  canRedo,
   onPrint,
+  onCopyToClipboard,
   isBanglaMode,
   fontSize,
   onFontSizeChange,
 }) => {
   return (
     <div className="editor-toolbar">
-      {/* Undo / Redo — hidden on mobile */}
-      <span className="toolbar-hide-mobile" style={{ display: 'contents' }}>
-        <ToolbarBtn onClick={onUndo} title="Undo (Ctrl+Z)" disabled={!canUndo}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 7v6h6" />
-            <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6.69 3L3 13" />
-          </svg>
-        </ToolbarBtn>
-        <ToolbarBtn onClick={onRedo} title="Redo (Ctrl+Shift+Z)" disabled={!canRedo}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 7v6h-6" />
-            <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6.69 3L21 13" />
-          </svg>
-        </ToolbarBtn>
-
-        <ToolbarSep />
-      </span>
-
       {/* Text style */}
       <ToolbarBtn onClick={onFormatBold} title="Bold (Ctrl+B)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -126,11 +103,11 @@ export const Toolbar: React.FC<ToolbarProps> = React.memo(({
           <rect x="8" y="17" width="13" height="2" rx="1" />
         </svg>
       </ToolbarBtn>
-      <ToolbarBtn onClick={onInsertNumberedList} title="Numbered list">
+      <ToolbarBtn onClick={onInsertNumberedList} title="সংখ্যা তালিকা">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-          <text x="1" y="8" fontSize="7" fontWeight="600" fontFamily="system-ui">1</text>
-          <text x="1" y="14.5" fontSize="7" fontWeight="600" fontFamily="system-ui">2</text>
-          <text x="1" y="21" fontSize="7" fontWeight="600" fontFamily="system-ui">3</text>
+          <text x="1" y="8" fontSize="7" fontWeight="600" fontFamily="system-ui">১</text>
+          <text x="1" y="14.5" fontSize="7" fontWeight="600" fontFamily="system-ui">২</text>
+          <text x="1" y="21" fontSize="7" fontWeight="600" fontFamily="system-ui">৩</text>
           <rect x="9" y="5" width="12" height="2" rx="1" />
           <rect x="9" y="11" width="12" height="2" rx="1" />
           <rect x="9" y="17" width="12" height="2" rx="1" />
@@ -146,7 +123,7 @@ export const Toolbar: React.FC<ToolbarProps> = React.memo(({
             className="toolbar-btn toolbar-btn-sm"
             onClick={() => onFontSizeChange(Math.max(12, fontSize - 2))}
             aria-label="Decrease font size"
-            title="Decrease font size"
+            data-tooltip="Decrease font size"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <line x1="5" y1="12" x2="19" y2="12" />
@@ -157,7 +134,7 @@ export const Toolbar: React.FC<ToolbarProps> = React.memo(({
             className="toolbar-btn toolbar-btn-sm"
             onClick={() => onFontSizeChange(Math.min(28, fontSize + 2))}
             aria-label="Increase font size"
-            title="Increase font size"
+            data-tooltip="Increase font size"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <line x1="12" y1="5" x2="12" y2="19" />
@@ -167,6 +144,13 @@ export const Toolbar: React.FC<ToolbarProps> = React.memo(({
         </div>
 
         <ToolbarSep />
+
+        <ToolbarBtn onClick={onCopyToClipboard} title="Copy all text">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+          </svg>
+        </ToolbarBtn>
 
         <ToolbarBtn onClick={onPrint} title="Print (Ctrl+P)">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
