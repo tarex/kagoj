@@ -7,7 +7,7 @@ import { GhostText } from './ghost-text';
 import { SpellingOverlay } from './spelling-overlay';
 import { WordSuggestionPopup } from './word-suggestion-popup';
 import { Toolbar } from './toolbar';
-import { CaptureFrame } from './capture-frame';
+import { SharePreviewModal } from './share-preview-modal';
 import { KeyboardShortcutsPanel } from './keyboard-shortcuts-panel';
 import { Onboarding } from './onboarding';
 import { useNotes } from './use-notes';
@@ -84,7 +84,8 @@ const NoteComponent: React.FC = () => {
   const { pushSnapshot, undo, redo, canUndo, canRedo, resetHistory } = useUndoRedo();
 
   const { captureRef, captureAndDownload, captureAndCopy, isCapturing, copyStatus } = useShareImage();
-  const [captureContent, setCaptureContent] = useState<string>('');
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [shareContent, setShareContent] = useState('');
 
   const toggleSidebar = useCallback(() => {
     setSidebarOpen((prev) => !prev);
@@ -216,36 +217,8 @@ const NoteComponent: React.FC = () => {
     }
   }, [currentNote]);
 
-  const handleShareImage = useCallback(() => {
-    // CRITICAL: Read selection synchronously BEFORE any React state update
-    // causes re-render and focus loss
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const hasSelection = start !== end;
-
-    // Determine content to capture
-    const textToCapture = hasSelection
-      ? currentNote.substring(start, end)
-      : currentNote;
-
-    // Set content for CaptureFrame, then trigger capture after render
-    setCaptureContent(textToCapture);
-
-    // Use requestAnimationFrame to ensure CaptureFrame renders with new content
-    // before capture fires
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        captureAndDownload(currentTitle).catch(console.error);
-      });
-    });
-  }, [currentNote, currentTitle, captureAndDownload]);
-
-  const handleCopyImage = useCallback(() => {
-    // CRITICAL: Read selection synchronously BEFORE any React state update
-    // causes re-render and focus loss
+  const openShareModal = useCallback(() => {
+    // Read selection synchronously BEFORE any React state update
     const textarea = textareaRef.current;
     if (!textarea) return;
 
@@ -257,14 +230,17 @@ const NoteComponent: React.FC = () => {
       ? currentNote.substring(start, end)
       : currentNote;
 
-    setCaptureContent(textToCapture);
+    setShareContent(textToCapture);
+    setShareModalOpen(true);
+  }, [currentNote]);
 
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        captureAndCopy(currentTitle).catch(console.error);
-      });
-    });
-  }, [currentNote, currentTitle, captureAndCopy]);
+  const handleShareDownload = useCallback(() => {
+    captureAndDownload(currentTitle).catch(console.error);
+  }, [currentTitle, captureAndDownload]);
+
+  const handleShareCopy = useCallback(() => {
+    captureAndCopy(currentTitle).catch(console.error);
+  }, [currentTitle, captureAndCopy]);
 
   useEffect(() => {
     if (isBanglaMode) {
@@ -1087,12 +1063,18 @@ const NoteComponent: React.FC = () => {
               {/* Print-only div: textarea is a replaced element that can't split
                   across pages, so we mirror content in a div for print layout */}
               <div className="print-content" aria-hidden="true" suppressHydrationWarning>{currentNote}</div>
-              {isClient && (
-                <CaptureFrame
-                  content={captureContent || currentNote}
+              {isClient && shareModalOpen && (
+                <SharePreviewModal
+                  isOpen={shareModalOpen}
+                  content={shareContent || currentNote}
                   title={currentTitle}
                   fontSize={fontSize}
                   captureRef={captureRef}
+                  onClose={() => setShareModalOpen(false)}
+                  onDownload={handleShareDownload}
+                  onCopy={handleShareCopy}
+                  isCapturing={isCapturing}
+                  copyStatus={copyStatus}
                 />
               )}
               {ghostSuggestion && (
@@ -1138,8 +1120,7 @@ const NoteComponent: React.FC = () => {
             onInsertBullet={insertBullet}
             onInsertNumberedList={insertNumberedList}
             onPrint={handlePrint}
-            onShareImage={handleShareImage}
-            onCopyImage={handleCopyImage}
+            onShareImage={openShareModal}
             onCopyToClipboard={handleCopyToClipboard}
             isBanglaMode={isBanglaMode}
             fontSize={fontSize}
@@ -1147,8 +1128,6 @@ const NoteComponent: React.FC = () => {
               setFontSize(newSize);
               localStorage.setItem(FONT_SIZE_KEY, String(newSize));
             }}
-            isCapturing={isCapturing}
-            copyStatus={copyStatus}
           />
         </div>
       </div>

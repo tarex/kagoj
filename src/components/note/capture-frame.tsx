@@ -1,18 +1,22 @@
 import React, { useEffect, useState } from 'react';
 
+export type AspectRatio = 'auto' | '1:1' | '4:5' | '16:9';
+
+export const ASPECT_RATIOS: { key: AspectRatio; label: string; width: number; minHeight?: number }[] = [
+  { key: 'auto', label: 'Auto', width: 860 },
+  { key: '1:1', label: '1:1', width: 860, minHeight: 860 },
+  { key: '4:5', label: '4:5', width: 860, minHeight: 1075 },
+  { key: '16:9', label: '16:9', width: 860, minHeight: 484 },
+];
+
 interface CaptureFrameProps {
   content: string;
   title: string;
   fontSize: number;
+  aspectRatio: AspectRatio;
   captureRef: React.RefObject<HTMLDivElement | null>;
 }
 
-/**
- * Resolve the computed font-family from a CSS variable so html-to-image
- * can embed it correctly. CSS variables don't resolve inside SVG foreignObject
- * serialization because the variable definitions live on ancestor elements
- * outside the captured subtree.
- */
 function useResolvedFont(cssVar: string, fallback: string): string {
   const [resolved, setResolved] = useState(fallback);
 
@@ -26,8 +30,9 @@ function useResolvedFont(cssVar: string, fallback: string): string {
   return resolved;
 }
 
-export function CaptureFrame({ content, title, fontSize, captureRef }: CaptureFrameProps) {
+export function CaptureFrame({ content, title, fontSize, aspectRatio, captureRef }: CaptureFrameProps) {
   const fontFamily = useResolvedFont('--font-bangla', "'Noto Sans Bengali', system-ui, sans-serif");
+  const ratio = ASPECT_RATIOS.find((r) => r.key === aspectRatio) ?? ASPECT_RATIOS[0];
 
   return (
     <div
@@ -38,7 +43,8 @@ export function CaptureFrame({ content, title, fontSize, captureRef }: CaptureFr
         position: 'fixed',
         left: '-9999px',
         top: '0',
-        width: '860px',
+        width: `${ratio.width}px`,
+        minHeight: ratio.minHeight ? `${ratio.minHeight}px` : undefined,
         padding: '32px',
         backgroundColor: '#1a1a1a',
         color: '#e8e8e8',
@@ -47,6 +53,9 @@ export function CaptureFrame({ content, title, fontSize, captureRef }: CaptureFr
         lineHeight: '1.8',
         whiteSpace: 'pre-wrap',
         wordBreak: 'break-word',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: ratio.minHeight ? 'center' : 'flex-start',
       }}
     >
       {title && (
