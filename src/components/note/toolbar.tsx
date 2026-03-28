@@ -1,4 +1,5 @@
 import React from 'react';
+import type { CopyStatus } from '../../hooks/useShareImage';
 
 interface ToolbarProps {
   onFormatBold: () => void;
@@ -11,10 +12,13 @@ interface ToolbarProps {
   onInsertNumberedList: () => void;
   onPrint: () => void;
   onShareImage: () => void;
+  onCopyImage: () => void;
   onCopyToClipboard: () => void;
   isBanglaMode: boolean;
   fontSize: number;
   onFontSizeChange: (size: number) => void;
+  isCapturing: boolean;
+  copyStatus: CopyStatus;
 }
 
 const ToolbarSep = () => <div className="toolbar-sep" />;
@@ -47,10 +51,13 @@ export const Toolbar: React.FC<ToolbarProps> = React.memo(({
   onInsertNumberedList,
   onPrint,
   onShareImage,
+  onCopyImage,
   onCopyToClipboard,
   isBanglaMode,
   fontSize,
   onFontSizeChange,
+  isCapturing,
+  copyStatus,
 }) => {
   return (
     <div className="editor-toolbar">
@@ -166,12 +173,41 @@ export const Toolbar: React.FC<ToolbarProps> = React.memo(({
 
       {/* Share as image — always visible including mobile */}
       <ToolbarSep />
-      <ToolbarBtn onClick={onShareImage} title="Share as image">
+      <button
+        onClick={onShareImage}
+        className="toolbar-btn"
+        data-tooltip="Save as image"
+        aria-label="Save as image"
+        disabled={isCapturing}
+        style={{ opacity: isCapturing ? 0.5 : 1 }}
+      >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
           <circle cx="12" cy="13" r="4" />
         </svg>
-      </ToolbarBtn>
+      </button>
+      <button
+        onClick={onCopyImage}
+        className="toolbar-btn"
+        data-tooltip="Copy as image"
+        aria-label="Copy as image"
+        disabled={isCapturing}
+        style={{ opacity: isCapturing ? 0.5 : 1 }}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+          <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+        </svg>
+      </button>
+      {copyStatus === 'copied' && (
+        <span className="toolbar-status" style={{ color: '#4ade80', fontSize: '11px', whiteSpace: 'nowrap', padding: '0 4px' }}>Copied!</span>
+      )}
+      {copyStatus === 'downloaded' && (
+        <span className="toolbar-status" style={{ color: '#4ade80', fontSize: '11px', whiteSpace: 'nowrap', padding: '0 4px' }}>Saved!</span>
+      )}
+      {copyStatus === 'fallback' && (
+        <span className="toolbar-status" style={{ color: '#fbbf24', fontSize: '11px', whiteSpace: 'nowrap', padding: '0 4px' }}>Downloaded (clipboard unavailable)</span>
+      )}
     </div>
   );
 });

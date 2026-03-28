@@ -83,7 +83,7 @@ const NoteComponent: React.FC = () => {
 
   const { pushSnapshot, undo, redo, canUndo, canRedo, resetHistory } = useUndoRedo();
 
-  const { captureRef, captureAndDownload, isCapturing } = useShareImage();
+  const { captureRef, captureAndDownload, captureAndCopy, isCapturing, copyStatus } = useShareImage();
   const [captureContent, setCaptureContent] = useState<string>('');
 
   const toggleSidebar = useCallback(() => {
@@ -242,6 +242,29 @@ const NoteComponent: React.FC = () => {
       });
     });
   }, [currentNote, currentTitle, captureAndDownload]);
+
+  const handleCopyImage = useCallback(() => {
+    // CRITICAL: Read selection synchronously BEFORE any React state update
+    // causes re-render and focus loss
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const hasSelection = start !== end;
+
+    const textToCapture = hasSelection
+      ? currentNote.substring(start, end)
+      : currentNote;
+
+    setCaptureContent(textToCapture);
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        captureAndCopy(currentTitle).catch(console.error);
+      });
+    });
+  }, [currentNote, currentTitle, captureAndCopy]);
 
   useEffect(() => {
     if (isBanglaMode) {
@@ -1113,6 +1136,7 @@ const NoteComponent: React.FC = () => {
             onInsertNumberedList={insertNumberedList}
             onPrint={handlePrint}
             onShareImage={handleShareImage}
+            onCopyImage={handleCopyImage}
             onCopyToClipboard={handleCopyToClipboard}
             isBanglaMode={isBanglaMode}
             fontSize={fontSize}
@@ -1120,6 +1144,8 @@ const NoteComponent: React.FC = () => {
               setFontSize(newSize);
               localStorage.setItem(FONT_SIZE_KEY, String(newSize));
             }}
+            isCapturing={isCapturing}
+            copyStatus={copyStatus}
           />
         </div>
       </div>
