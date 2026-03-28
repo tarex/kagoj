@@ -218,19 +218,29 @@ export function phoneticDistance(str1: string, str2: string): number {
   return dp[len1][len2];
 }
 
+// Normalize Unicode so visually identical Bangla strings compare equal
+function normalizeUnicode(s: string): string {
+  return s.normalize('NFC');
+}
+
 // Find the closest word using trie prefix search (no full dictionary scan)
 function findClosestWord(word: string, maxDistance: number = 2): string | null {
+  const normalizedWord = normalizeUnicode(word);
+
   // 1. Check common mistakes first
-  if (commonMistakes[word]) return commonMistakes[word];
+  if (commonMistakes[normalizedWord]) return commonMistakes[normalizedWord];
 
   // 2. Get prefix-based suggestions from trie (fast)
-  const prefixLength = Math.max(2, word.length - 2);
-  const prefixSuggestions = adaptiveDictionary.getSuggestions(word.slice(0, prefixLength), 20);
+  const prefixLength = Math.max(2, normalizedWord.length - 2);
+  const prefixSuggestions = adaptiveDictionary.getSuggestions(normalizedWord.slice(0, prefixLength), 20);
 
   // 3. Find closest by phoneticDistance among suggestions (ties broken by shorter word)
   let minDistance = Infinity;
   let closestWord: string | null = null;
   for (const candidate of prefixSuggestions) {
+    const normalizedCandidate = normalizeUnicode(candidate);
+    // Skip if candidate is the same word (handles Unicode normalization differences)
+    if (normalizedCandidate === normalizedWord) continue;
     if (Math.abs(candidate.length - word.length) > maxDistance) continue;
     const distance = phoneticDistance(word, candidate);
     if (distance < minDistance && distance <= maxDistance) {
@@ -264,14 +274,18 @@ export function checkSpelling(text: string): SpellingError[] {
       continue;
     }
 
+    // Normalize for consistent comparison (handles য + ় vs য় etc.)
+    const normalizedWord = normalizeUnicode(word);
+
     // Check if word is in the trie-backed adaptive dictionary
-    if (!adaptiveDictionary.isKnownWord(word)) {
+    // Try both raw and normalized forms
+    if (!adaptiveDictionary.isKnownWord(word) && !adaptiveDictionary.isKnownWord(normalizedWord)) {
       // Suffix-aware validation: strip suffixes (including compound suffixes) and check stem
       let knownViaSuffix = false;
       for (const suffix of BANGLA_SUFFIXES) {
         if (word.length > suffix.length && word.endsWith(suffix)) {
           const stem = word.slice(0, word.length - suffix.length);
-          if (stem.length >= 2 && adaptiveDictionary.isKnownWord(stem)) {
+          if (stem.length >= 2 && (adaptiveDictionary.isKnownWord(stem) || adaptiveDictionary.isKnownWord(normalizeUnicode(stem)))) {
             knownViaSuffix = true;
             break;
           }
@@ -283,9 +297,8 @@ export function checkSpelling(text: string): SpellingError[] {
 
       if (!knownViaSuffix) {
         // Only flag if we have a KNOWN common mistake or a very close correction
-        const commonFix = commonMistakes[word];
+        const commonFix = commonMistakes[normalizedWord] ?? commonMistakes[word];
         if (commonFix) {
-          // Definite known mistake — always flag
           errors.push({
             word,
             correction: commonFix,
@@ -294,12 +307,10 @@ export function checkSpelling(text: string): SpellingError[] {
             confidence: 95,
           });
         } else if (!hasConjunct) {
-          // Try phonetic correction — but only flag if distance is very small
-          // (high confidence it's actually a typo, not just a word we don't know)
           const correction = findClosestWord(word);
-          if (correction && correction !== word) {
+          // Use normalized comparison to avoid "same word" false positives
+          if (correction && normalizeUnicode(correction) !== normalizedWord) {
             const distance = phoneticDistance(word, correction);
-            // Only flag if distance ≤ 1 (one character off — likely a real typo)
             if (distance <= 1) {
               const confidence = Math.max(0, 100 - (distance * 30));
               errors.push({
@@ -311,8 +322,6 @@ export function checkSpelling(text: string): SpellingError[] {
               });
             }
           }
-          // If no close correction found, do NOT flag — it's probably a valid
-          // word that's just not in our dictionary
         }
       }
     }
