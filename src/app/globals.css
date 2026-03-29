@@ -1372,10 +1372,9 @@ html.dark .toolbar-btn:active {
 
   /* Shortcuts panel full-width on mobile */
   .shortcuts-panel {
-    right: 8px;
-    left: 8px;
-    min-width: unset;
-    max-width: none;
+    width: calc(100vw - 16px);
+    max-height: calc(100vh - 24px);
+    padding: 16px 16px 14px;
   }
 
   /* Word suggestion popup */
@@ -1610,45 +1609,84 @@ textarea:focus-visible {
   transform: scale(0.96);
 }
 
-/* ── Keyboard Shortcuts Panel ── */
-.shortcuts-panel {
+/* ── Backdrop ── */
+.sp-backdrop {
   position: fixed;
-  top: calc(var(--topbar-height) + var(--safe-area-top) + 8px);
-  right: 24px;
-  background-color: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--border-primary);
-  border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-xl);
-  padding: 20px 24px;
-  min-width: 340px;
-  max-width: 420px;
-  z-index: 200;
-  animation: shortcutsSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 199;
+  animation: spBackdropIn 0.25s ease-out;
 }
 
-@keyframes shortcutsSlideIn {
+.dark .sp-backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+@keyframes spBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── Keyboard Shortcuts / Typing Guide Panel ── */
+.shortcuts-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: color-mix(in srgb, var(--bg-elevated) 95%, transparent);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-2xl);
+  box-shadow:
+    0 24px 48px rgba(0, 0, 0, 0.18),
+    0 8px 16px rgba(0, 0, 0, 0.08);
+  padding: 28px 36px 24px;
+  width: min(820px, calc(100vw - 40px));
+  max-height: calc(100vh - 48px);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  animation: spPanelIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes spPanelIn {
   from {
     opacity: 0;
-    transform: translateY(-8px) scale(0.97);
+    transform: translate(-50%, -48%) scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
-.shortcuts-panel-title {
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 16px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--border-primary);
+/* ── Header: tabs + close ── */
+.sp-header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.sp-close {
+  margin-left: auto;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.sp-close:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .shortcuts-group {
@@ -1706,6 +1744,346 @@ textarea:focus-visible {
 
 .shortcut-row span:last-child {
   color: var(--text-secondary);
+}
+
+/* ── Panel Tabs ── */
+.sp-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.sp-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sp-tab:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.sp-tab-active {
+  background: var(--accent-primary-light);
+  color: var(--accent-primary);
+}
+
+.sp-tab-content {
+  animation: spContentIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes spContentIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Shortcuts body uses its own max-height since it's shorter */
+.sp-shortcuts-body {
+  max-height: min(60vh, 400px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-secondary) transparent;
+}
+
+/* Mapping body: search is sticky, scroll below */
+.sp-mapping-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+/* ── Mapping: Scroll Container ── */
+.sp-mapping-scroll {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-secondary) transparent;
+  max-height: min(72vh, 640px);
+}
+
+/* ── Search ── */
+.sp-search-wrap {
+  position: relative;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.sp-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.sp-search {
+  width: 100%;
+  padding: 10px 36px 10px 36px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary, var(--bg-tertiary));
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 14px;
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.sp-search:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 15%, transparent);
+}
+
+.sp-search::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+.sp-search-clear {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+}
+
+.sp-search-clear:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+/* ── Sections ── */
+.sp-section {
+  margin-bottom: 18px;
+}
+
+.sp-section:last-of-type {
+  margin-bottom: 10px;
+}
+
+.sp-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent-primary);
+  margin-bottom: 8px;
+  padding: 3px 8px;
+  background-color: var(--accent-primary-light);
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.sp-section-inline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sp-num-note {
+  font-family: ui-monospace, 'SF Mono', monospace;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* ── Character Cells (card layout: Bangla on top, key below) ── */
+.sp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+}
+
+.sp-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 8px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: default;
+  animation: spCellIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--cell-i, 0) * 20ms);
+}
+
+@keyframes spCellIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.sp-cell:hover {
+  background-color: var(--accent-primary-light);
+  border-color: color-mix(in srgb, var(--accent-primary) 25%, transparent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sp-cell-bangla {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
+  min-height: 34px;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sp-cell:hover .sp-cell-bangla {
+  transform: scale(1.15);
+  color: var(--accent-primary);
+}
+
+.sp-cell-key {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-secondary);
+  border-radius: 5px;
+  font-family: ui-monospace, 'SF Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 2px 8px;
+  box-shadow: 0 1px 0 var(--border-secondary);
+  white-space: nowrap;
+  text-align: center;
+}
+
+.sp-cell-hint {
+  font-size: 10px;
+  color: var(--text-secondary);
+  opacity: 0.6;
+  line-height: 1;
+  text-align: center;
+}
+
+/* Compact variant for barga table */
+.sp-cell-compact {
+  padding: 10px 6px 8px;
+}
+
+/* ── Barga Table (5x5 traditional consonant grid) ── */
+.sp-barga {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  padding: 6px;
+  background: color-mix(in srgb, var(--bg-tertiary) 30%, transparent);
+}
+
+.sp-barga-row {
+  display: grid;
+  grid-template-columns: 32px repeat(5, 1fr);
+  gap: 4px;
+  align-items: center;
+  animation: spRowIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--row-i, 0) * 60ms + 100ms);
+}
+
+@keyframes spRowIn {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.sp-barga-label {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  opacity: 0.5;
+  text-align: center;
+  line-height: 1;
+}
+
+/* ── Tips ── */
+.sp-tips {
+  margin-top: 10px;
+  padding: 12px 14px;
+  background: var(--accent-primary-light);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: spContentIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both;
+}
+
+.sp-tip-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.sp-tip-row kbd {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-secondary);
+  border-radius: 4px;
+  font-family: ui-monospace, 'SF Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 2px 6px;
+  flex-shrink: 0;
+}
+
+.sp-tip-row span kbd {
+  margin: 0 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sp-cell,
+  .sp-barga-row,
+  .sp-tips {
+    animation: none;
+  }
+  .sp-cell:hover {
+    transform: none;
+  }
+  .sp-cell:hover .sp-cell-bangla {
+    transform: none;
+  }
 }
 
 /* ── Responsive: Title Input & Spelling Overlay ── */

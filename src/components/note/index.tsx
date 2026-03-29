@@ -71,6 +71,7 @@ const NoteComponent: React.FC = () => {
   const [showShortcuts, setShowShortcuts] = useState<boolean>(false);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const searchInputRef = useRef<HTMLInputElement>(null!);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const aiTriggerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -1103,11 +1104,38 @@ const NoteComponent: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <input
+                ref={searchInputRef}
                 type="text"
                 placeholder="নোট খুঁজুন..."
                 className="search-input"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (isBanglaMode) {
+                    banglaInputHandler.processInputKeyPress(
+                      searchInputRef as unknown as React.RefObject<HTMLTextAreaElement>,
+                      searchQuery,
+                      setSearchQuery,
+                      e as unknown as React.KeyboardEvent<HTMLTextAreaElement>
+                    );
+                  }
+                }}
+                onBeforeInput={(e) => {
+                  if (!isBanglaMode) return;
+                  const inputEvent = e.nativeEvent as InputEvent;
+                  if (inputEvent.inputType !== 'insertText' || !inputEvent.data) return;
+                  const char = inputEvent.data;
+                  if (char.length !== 1) return;
+                  const code = char.charCodeAt(0);
+                  if (code < 32 || code > 126) return;
+                  e.preventDefault();
+                  banglaInputHandler.processCharInput(
+                    searchInputRef as unknown as React.RefObject<HTMLTextAreaElement>,
+                    searchQuery,
+                    setSearchQuery,
+                    char
+                  );
+                }}
               />
               {searchQuery && (
                 <button
