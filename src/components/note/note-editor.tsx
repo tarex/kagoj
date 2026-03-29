@@ -6,6 +6,8 @@ interface NoteEditorProps {
   onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   onBeforeInput?: (e: React.FormEvent<HTMLTextAreaElement>) => void;
   onInput?: (e: React.FormEvent<HTMLTextAreaElement>) => void;
+  onCompositionStart?: (e: React.CompositionEvent<HTMLTextAreaElement>) => void;
+  onCompositionEnd?: (e: React.CompositionEvent<HTMLTextAreaElement>) => void;
   textareaRef: React.RefObject<HTMLTextAreaElement>;
   fontSize: number;
 }
@@ -16,6 +18,8 @@ export const NoteEditor = React.memo<NoteEditorProps>(({
   onKeyDown,
   onBeforeInput,
   onInput,
+  onCompositionStart,
+  onCompositionEnd,
   textareaRef,
   fontSize,
 }) => {
@@ -27,6 +31,8 @@ export const NoteEditor = React.memo<NoteEditorProps>(({
       onKeyDown={onKeyDown}
       onBeforeInput={onBeforeInput}
       onInput={onInput}
+      onCompositionStart={onCompositionStart}
+      onCompositionEnd={onCompositionEnd}
       className="text-editor"
       placeholder="বাংলায় লিখুন..."
       style={{

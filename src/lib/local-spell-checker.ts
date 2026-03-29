@@ -176,6 +176,12 @@ const commonMistakes: { [key: string]: string } = {
   'বিধী': 'বিধি'
 };
 
+/** Check if a word is a known common mistake (should not be learned into the dictionary). */
+export function isCommonMistake(word: string): boolean {
+  const normalized = word.normalize('NFC');
+  return normalized in commonMistakes || word in commonMistakes;
+}
+
 export interface SpellingError {
   word: string;
   correction: string;

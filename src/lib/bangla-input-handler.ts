@@ -130,6 +130,15 @@ export class BanglaInputHandler {
     return { text: finalText, cursorPosition: newPosition };
   }
 
+  /**
+   * Transliterate a single character given the text before the cursor.
+   * Used by the handleInput fallback on Android where the character
+   * is already inserted into the DOM.
+   */
+  public transliterateChar(textBeforeCursor: string, char: string): string {
+    return this.handleKeyPress(textBeforeCursor, char);
+  }
+
   private handleKeyPress(text: string, typedChar: string): string {
     if (this.isNonCharacterOrSpecialKey(typedChar)) {
       return text;

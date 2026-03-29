@@ -1,5 +1,6 @@
 import { BanglaTrie } from './trie';
 import { comprehensiveBanglaWords } from './bangla-words-comprehensive';
+import { isCommonMistake } from './local-spell-checker';
 
 const LEARNED_WORDS_KEY = 'bangla_learned_words';
 const WORD_FREQUENCY_KEY = 'bangla_word_frequency';
@@ -161,9 +162,14 @@ class AdaptiveDictionary {
     for (const [word, count] of wordCounts) {
       const isKnown = this.trie.search(word);
 
-      // Only learn unknown words if they appear 2+ times in the text
-      // (single-occurrence unknowns are likely misspellings)
-      if (!isKnown && count < 2) {
+      // Only learn unknown words if they appear 3+ times in the text
+      // (low-occurrence unknowns are likely misspellings)
+      if (!isKnown && count < 3) {
+        continue;
+      }
+
+      // Never learn known common mistakes into the dictionary
+      if (!isKnown && isCommonMistake(word)) {
         continue;
       }
 

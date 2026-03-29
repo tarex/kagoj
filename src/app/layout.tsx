@@ -20,6 +20,7 @@ export const metadata: Metadata = {
   metadataBase: process.env.VERCEL_PROJECT_PRODUCTION_URL
     ? new URL(`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`)
     : new URL('http://localhost:3000'),
+  manifest: '/manifest.json',
   title: 'কাগজ - সহজে বাংলা লিখুন',
   description: 'Type English keys, see Bangla instantly. Phonetic Bangla writing app with per-keystroke transliteration, adaptive dictionary, and ghost text suggestions. Works offline.',
   openGraph: {

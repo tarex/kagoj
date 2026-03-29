@@ -61,14 +61,26 @@ const NoteComponent: React.FC = () => {
   const [ghostSuggestion, setGhostSuggestion] = useState<string>('');  // Only one suggestion for ghost text
   const [ghostCursorPos, setGhostCursorPos] = useState<number>(0); // Where the ghost suggestion should render
   const [isAISuggestionActive, setIsAISuggestionActive] = useState<boolean>(false);
+  // Track whether the user already accepted a suggestion, so late-arriving AI doesn't overwrite
+  const suggestionAcceptedRef = useRef<boolean>(false);
+  // Refs to avoid recreating handleChange on every keystroke
+  const currentNoteRef = useRef(currentNote);
+  currentNoteRef.current = currentNote;
+  const currentTitleRef = useRef(currentTitle);
+  currentTitleRef.current = currentTitle;
   const [showShortcuts, setShowShortcuts] = useState<boolean>(false);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const aiTriggerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Android composition input tracking
+  const handledByBeforeInputRef = useRef<boolean>(false);
+  const isComposingRef = useRef<boolean>(false);
+  const handledByInputFallbackRef = useRef<boolean>(false);
 
-  const { aiSuggestion, isLoadingAI: _isLoadingAI, requestAISuggestion, clearAISuggestion } = useAISuggestion(isBanglaMode);
+
+  const { aiSuggestion, isLoadingAI: _isLoadingAI, requestAISuggestion, clearAISuggestion, clearSuggestionCache } = useAISuggestion(isBanglaMode);
   
   // Use the spell check hook
   const {
@@ -384,16 +396,29 @@ const NoteComponent: React.FC = () => {
     }
   }, []);
 
-  // Clear spell-check errors and reset undo history when switching notes
+  // Clear spell-check errors, AI cache, and reset undo history when switching notes
   useEffect(() => {
     clearSpellCheck();
+    clearSuggestionCache();
     resetHistory(currentNote, currentTitle, 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only reset on note switch, not on every text change
-  }, [selectedNoteIndex, clearSpellCheck, resetHistory]);
+  }, [selectedNoteIndex, clearSpellCheck, clearSuggestionCache, resetHistory]);
 
-  // Sync AI suggestion into ghost suggestion state
+  // Unified function to clear all suggestion state (ghost, AI, timers)
+  const clearAllSuggestions = useCallback(() => {
+    setGhostSuggestion('');
+    setIsAISuggestionActive(false);
+    clearAISuggestion();
+    if (aiTriggerRef.current) {
+      clearTimeout(aiTriggerRef.current);
+      aiTriggerRef.current = null;
+    }
+  }, [clearAISuggestion]);
+
+  // Sync AI suggestion into ghost suggestion state.
+  // Skip if the user already accepted a suggestion (prevents late AI from clobbering accepted text).
   useEffect(() => {
-    if (aiSuggestion) {
+    if (aiSuggestion && !suggestionAcceptedRef.current) {
       setGhostSuggestion(aiSuggestion);
       setIsAISuggestionActive(true);
     }
@@ -495,6 +520,7 @@ const NoteComponent: React.FC = () => {
 
     if (isAISuggestionActive) {
       // AI suggestion: insert full ghost suggestion text at cursor position
+      suggestionAcceptedRef.current = true;
       clearAISuggestion();
       setGhostSuggestion('');
       setIsAISuggestionActive(false);
@@ -509,6 +535,7 @@ const NoteComponent: React.FC = () => {
       }, 0);
     } else {
       // Dictionary suggestion: word completion path
+      suggestionAcceptedRef.current = true;
       let start = cursorPos;
       while (start > 0 && !/[\s\.,;!?।]/.test(text[start - 1])) {
         start--;
@@ -517,8 +544,10 @@ const NoteComponent: React.FC = () => {
       const currentWord = text.substring(start, cursorPos);
       const fullWord = currentWord + ghostSuggestion;
 
-      // Learn the completed word
-      adaptiveDictionary.learnWord(fullWord);
+      // Learn the completed word (only if already known to prevent misspelling pollution)
+      if (adaptiveDictionary.isKnownWord(fullWord)) {
+        adaptiveDictionary.learnWord(fullWord);
+      }
       setGhostSuggestion('');
       setIsAISuggestionActive(false);
 
@@ -536,7 +565,17 @@ const NoteComponent: React.FC = () => {
     return true;
   }, [ghostSuggestion, isAISuggestionActive, clearAISuggestion, setCurrentNote]);
 
+  const handleCompositionStart = useCallback(() => {
+    isComposingRef.current = true;
+  }, []);
+
+  const handleCompositionEnd = useCallback(() => {
+    isComposingRef.current = false;
+  }, []);
+
   const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Skip during active IME composition to prevent double-processing on Android
+    if (isComposingRef.current) return;
     // Handle Ctrl+Tab to toggle language mode
     if (e.key === 'Tab' && e.shiftKey) {
       e.preventDefault();
@@ -555,9 +594,7 @@ const NoteComponent: React.FC = () => {
     
     // Handle Escape key to dismiss ghost suggestion
     if (e.key === 'Escape' && ghostSuggestion) {
-      setGhostSuggestion('');
-      clearAISuggestion();
-      setIsAISuggestionActive(false);
+      clearAllSuggestions();
       return;
     }
     
@@ -597,10 +634,9 @@ const NoteComponent: React.FC = () => {
     // Process Bangla input (skip for navigation keys and Delete)
     const skipKeys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown', 'Delete'];
 
-    // Clear ghost on cursor movement — suggestion is position-dependent
+    // Clear ghost on cursor movement -- suggestion is position-dependent
     if (skipKeys.includes(e.key)) {
-      setGhostSuggestion('');
-      setIsAISuggestionActive(false);
+      clearAllSuggestions();
       return;
     }
 
@@ -608,7 +644,7 @@ const NoteComponent: React.FC = () => {
     const hasSelection = textareaRef.current &&
       textareaRef.current.selectionStart !== textareaRef.current.selectionEnd;
     if (hasSelection && (e.key === 'Backspace' || e.key === 'Delete')) {
-      setGhostSuggestion('');
+      clearAllSuggestions();
       return;
     }
     if (isBanglaMode && !skipKeys.includes(e.key)) {
@@ -649,9 +685,13 @@ const NoteComponent: React.FC = () => {
   const handleBeforeInput = useCallback((e: React.FormEvent<HTMLTextAreaElement>) => {
     if (!isBanglaMode) return;
 
+    handledByBeforeInputRef.current = false;
+
     const inputEvent = e.nativeEvent as InputEvent;
-    // Only intercept single-character text insertion (typing)
-    if (inputEvent.inputType !== 'insertText' || !inputEvent.data) return;
+    // Intercept text insertion -- both regular and composition (Android keyboards)
+    const isTextInsert = inputEvent.inputType === 'insertText' ||
+                         inputEvent.inputType === 'insertCompositionText';
+    if (!isTextInsert || !inputEvent.data) return;
 
     const char = inputEvent.data;
     if (char.length !== 1) return;
@@ -662,6 +702,7 @@ const NoteComponent: React.FC = () => {
     if (!isAsciiPrintable) return;
 
     e.preventDefault();
+    handledByBeforeInputRef.current = true;
     const result = banglaInputHandler.processCharInput(
       textareaRef,
       currentNote,
@@ -684,11 +725,11 @@ const NoteComponent: React.FC = () => {
     }
     const currentWord = newText.substring(wordStart, newCursorPos);
 
+    suggestionAcceptedRef.current = false;
     if (currentWord && currentWord.length > 0) {
       updateGhostSuggestion(currentWord, getPrevWord(newText, wordStart), newCursorPos);
     } else {
-      setGhostSuggestion('');
-      setIsAISuggestionActive(false);
+      clearAllSuggestions();
     }
 
     // Word learning at boundaries (space, comma, etc.)
@@ -700,8 +741,7 @@ const NoteComponent: React.FC = () => {
       if (lastWord && lastWord.length >= 2 && adaptiveDictionary.isKnownWord(lastWord)) {
         adaptiveDictionary.learnWord(lastWord);
       }
-      setGhostSuggestion('');
-      setIsAISuggestionActive(false);
+      clearAllSuggestions();
     }
 
     // Spell check scheduling
@@ -716,50 +756,143 @@ const NoteComponent: React.FC = () => {
         saveCurrentNote();
       }
     }, 2000);
-  }, [isBanglaMode, banglaInputHandler, currentNote, currentTitle, setCurrentNote, updateGhostSuggestion, scheduleSpellCheck, saveCurrentNote, pushSnapshot]);
+  }, [isBanglaMode, banglaInputHandler, currentNote, currentTitle, setCurrentNote, updateGhostSuggestion, clearAllSuggestions, scheduleSpellCheck, saveCurrentNote, pushSnapshot]);
 
-  // Add a direct input handler to catch actual typed characters
+  // Input handler: acts as fallback transliterator for Android composition input.
+  // On desktop/iOS, beforeinput handles everything and this just updates ghost suggestions.
+  // On Android keyboards using composition, beforeinput may fail to preventDefault(),
+  // so this detects untransliterated ASCII and corrects it after insertion.
   const handleInput = useCallback((e: React.FormEvent<HTMLTextAreaElement>) => {
     if (!isBanglaMode) {
-      setGhostSuggestion('');
+      clearAllSuggestions();
+      handledByBeforeInputRef.current = false;
       return;
     }
 
-    // Clear stale ghost immediately
-    setGhostSuggestion('');
+    // If beforeinput already handled this keystroke, reset flag and skip
+    if (handledByBeforeInputRef.current) {
+      handledByBeforeInputRef.current = false;
+      return;
+    }
+
+    // FALLBACK: beforeinput did NOT handle this input.
+    // This happens on Android when composition events bypass our filter
+    // or when preventDefault() on beforeinput was ignored by the browser.
+    // The ASCII character is already in the DOM -- find and transliterate it.
 
     const textarea = e.target as HTMLTextAreaElement;
-    const text = textarea.value;
+    const currentDomValue = textarea.value;
     const cursorPos = textarea.selectionStart;
-    
-    // Find current word at cursor position
-    let start = cursorPos;
-    while (start > 0 && !/[\s\.,;!?।]/.test(text[start - 1])) {
-      start--;
+    const prevValue = currentNoteRef.current;
+
+    // Not a character insertion (deletion or no change) -- just update ghost
+    if (currentDomValue.length <= prevValue.length) {
+      clearAllSuggestions();
+      return;
     }
 
-    const currentWordAtCursor = text.substring(start, cursorPos);
+    // Extract the newly inserted text
+    const insertionLength = currentDomValue.length - prevValue.length;
+    const insertionStart = cursorPos - insertionLength;
 
-    // Only update if we have a word
-    if (currentWordAtCursor && currentWordAtCursor.length > 0) {
-      updateGhostSuggestion(currentWordAtCursor, getPrevWord(text, start), cursorPos);
+    if (insertionStart < 0) return;
+
+    const insertedText = currentDomValue.substring(insertionStart, cursorPos);
+
+    // Only transliterate ASCII input (phonetic Roman characters)
+    // If it's already Bangla or non-ASCII, just update ghost suggestions
+    if (!/^[\x20-\x7E]+$/.test(insertedText)) {
+      let start = cursorPos;
+      while (start > 0 && !/[\s\.,;!?।]/.test(currentDomValue[start - 1])) {
+        start--;
+      }
+      const currentWordAtCursor = currentDomValue.substring(start, cursorPos);
+      if (currentWordAtCursor && currentWordAtCursor.length > 0) {
+        updateGhostSuggestion(currentWordAtCursor, getPrevWord(currentDomValue, start), cursorPos);
+      }
+      return;
+    }
+
+    // Remove the ASCII from the DOM value, then transliterate character-by-character
+    const beforeInsertion = currentDomValue.substring(0, insertionStart);
+    const afterInsertion = currentDomValue.substring(cursorPos);
+
+    let transliteratedBefore = beforeInsertion;
+    for (const char of insertedText) {
+      transliteratedBefore = banglaInputHandler.transliterateChar(transliteratedBefore, char);
+    }
+
+    const newText = transliteratedBefore + afterInsertion;
+    const newCursorPos = transliteratedBefore.length;
+
+    setCurrentNote(newText);
+    handledByInputFallbackRef.current = true;
+
+    requestAnimationFrame(() => {
+      if (textareaRef.current) {
+        textareaRef.current.selectionStart = newCursorPos;
+        textareaRef.current.selectionEnd = newCursorPos;
+      }
+    });
+
+    pushSnapshot(newText, currentTitleRef.current, newCursorPos);
+
+    // Ghost suggestions
+    let wordStart = newCursorPos;
+    while (wordStart > 0 && !/[\s\.,;!?।]/.test(newText[wordStart - 1])) {
+      wordStart--;
+    }
+    const currentWord = newText.substring(wordStart, newCursorPos);
+
+    suggestionAcceptedRef.current = false;
+    if (currentWord && currentWord.length > 0) {
+      updateGhostSuggestion(currentWord, getPrevWord(newText, wordStart), newCursorPos);
     } else {
-      setGhostSuggestion('');
+      clearAllSuggestions();
     }
-  }, [isBanglaMode, updateGhostSuggestion]);
+
+    // Word learning at boundaries
+    const lastChar = newText[newCursorPos - 1];
+    if (lastChar && /[\s,;]/.test(lastChar)) {
+      const beforeBoundary = newText.substring(0, newCursorPos - 1);
+      const words = beforeBoundary.split(/[\s\.,;!?।]+/);
+      const lastWord = words[words.length - 1];
+      if (lastWord && lastWord.length >= 2 && adaptiveDictionary.isKnownWord(lastWord)) {
+        adaptiveDictionary.learnWord(lastWord);
+      }
+      clearAllSuggestions();
+    }
+
+    scheduleSpellCheck(newText, 2000);
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    saveTimeoutRef.current = setTimeout(() => {
+      if (newText.trim()) {
+        saveCurrentNote();
+      }
+    }, 2000);
+  }, [isBanglaMode, banglaInputHandler, setCurrentNote, updateGhostSuggestion, clearAllSuggestions, scheduleSpellCheck, saveCurrentNote, pushSnapshot]);
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    // Skip if the handleInput fallback already processed this input (Android composition)
+    if (handledByInputFallbackRef.current) {
+      handledByInputFallbackRef.current = false;
+      return;
+    }
+
     const value = e.target.value;
-    const prevValue = currentNote;
+    const prevValue = currentNoteRef.current;
     setCurrentNote(value);
     scrollCursorIntoView();
 
     // Push undo snapshot
-    pushSnapshot(value, currentTitle, e.target.selectionStart);
+    pushSnapshot(value, currentTitleRef.current, e.target.selectionStart);
 
-    // Clear stale ghost suggestion immediately — debounced update will set the new one
-    setGhostSuggestion('');
-    setIsAISuggestionActive(false);
+    // Clear stale ghost suggestion immediately -- debounced update will set the new one
+    clearAllSuggestions();
+    suggestionAcceptedRef.current = false;
     
     // Always schedule spell check when in Bangla mode (not gated by showSpellingErrors)
     // Auto-invalidation handles immediate error removal; debounce catches new errors
@@ -812,13 +945,7 @@ const NoteComponent: React.FC = () => {
             setGhostSuggestion(nextWordPredictions[0]);
             setGhostCursorPos(value.length);
             setIsAISuggestionActive(true); // treat as full-word insertion like AI
-          } else {
-            setGhostSuggestion('');
-            setIsAISuggestionActive(false);
           }
-        } else {
-          setGhostSuggestion('');
-          setIsAISuggestionActive(false);
         }
 
         // Trigger AI suggestion after user types a space and pauses 500ms
@@ -827,14 +954,12 @@ const NoteComponent: React.FC = () => {
           if (aiTriggerRef.current) clearTimeout(aiTriggerRef.current);
           aiTriggerRef.current = setTimeout(() => {
             const cursorContext = value.length > 500 ? value.slice(-500) : value;
-            requestAISuggestion(cursorContext, value);
+            requestAISuggestion(cursorContext, value, currentTitleRef.current);
           }, AI_TRIGGER_DELAY_MS);
         }
       } else if (lastChar === '।' || lastChar === '.' || lastChar === '?' || lastChar === '!') {
-        // Sentence ended, clear AI suggestion
-        setGhostSuggestion('');
-        clearAISuggestion();
-        setIsAISuggestionActive(false);
+        // Sentence ended, clear all suggestions
+        clearAllSuggestions();
       } else {
         // Check for word suggestions on every change
         if (isBanglaMode) {
@@ -852,11 +977,9 @@ const NoteComponent: React.FC = () => {
       }
     } else {
       // Text was deleted, clear suggestions
-      setGhostSuggestion('');
-      clearAISuggestion();
-      setIsAISuggestionActive(false);
+      clearAllSuggestions();
     }
-  }, [currentNote, currentTitle, scheduleSpellCheck, saveCurrentNote, isBanglaMode, setGhostSuggestion, updateGhostSuggestion, requestAISuggestion, clearAISuggestion, pushSnapshot]);
+  }, [scheduleSpellCheck, saveCurrentNote, isBanglaMode, updateGhostSuggestion, requestAISuggestion, clearAllSuggestions, pushSnapshot, setCurrentNote, scrollCursorIntoView]);
 
   return (
     <div className="app-container">
@@ -1064,6 +1187,8 @@ const NoteComponent: React.FC = () => {
                 onKeyDown={handleKeyPress}
                 onBeforeInput={handleBeforeInput}
                 onInput={handleInput}
+                onCompositionStart={handleCompositionStart}
+                onCompositionEnd={handleCompositionEnd}
                 textareaRef={textareaRef}
                 fontSize={fontSize}
               />
@@ -1095,8 +1220,7 @@ const NoteComponent: React.FC = () => {
                   onAccept={acceptGhostSuggestion}
                 />
               )}
-              {/* Spelling Error Overlay — disabled, needs rethink */}
-              {/* {showSpellingErrors && spellingErrors.length > 0 && (
+              {showSpellingErrors && spellingErrors.length > 0 && (
                 <SpellingOverlay
                   text={currentNote}
                   errors={spellingErrors}
@@ -1105,7 +1229,7 @@ const NoteComponent: React.FC = () => {
                   onCorrect={handleCorrection}
                   onIgnore={handleIgnoreSpelling}
                 />
-              )} */}
+              )}
               {/* Word Suggestion Popup — shows when user highlights a word */}
               <WordSuggestionPopup
                 textareaRef={textareaRef}

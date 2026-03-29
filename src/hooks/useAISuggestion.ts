@@ -9,14 +9,30 @@ export const AI_TRIGGER_DELAY_MS = 500;
 /** Module-level cache shared across all hook instances */
 const suggestionCache = new LRUCache<string, string>(AI_CACHE_SIZE);
 
+/** Lightweight tone detection from text patterns */
+function detectTone(text: string): string {
+  if (!text || text.length < 20) return 'neutral';
+  const sample = text.slice(-300);
+  const hasApni = /আপনি|আপনার|আপনাকে/.test(sample);
+  const hasTumi = /তুমি|তোমার|তোমাকে/.test(sample);
+  const hasTui = /তুই|তোর|তোকে/.test(sample);
+  const hasSadhu = /করিয়া|হইতে|হইল|করিলে/.test(sample);
+  if (hasSadhu) return 'literary/sadhu';
+  if (hasTui) return 'very informal (tui)';
+  if (hasTumi) return 'informal (tumi)';
+  if (hasApni) return 'formal (apni)';
+  return 'neutral';
+}
+
 /** Timestamp of the last AI request, shared across hook instances */
 let lastRequestTime = 0;
 
 export interface UseAISuggestionReturn {
   aiSuggestion: string;
   isLoadingAI: boolean;
-  requestAISuggestion: (cursorContext: string, fullText?: string) => void;
+  requestAISuggestion: (cursorContext: string, fullText?: string, noteTitle?: string) => void;
   clearAISuggestion: () => void;
+  clearSuggestionCache: () => void;
 }
 
 /**
@@ -35,7 +51,7 @@ export function useAISuggestion(isBanglaMode: boolean): UseAISuggestionReturn {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const requestAISuggestion = useCallback(
-    (cursorContext: string, fullText?: string) => {
+    (cursorContext: string, fullText?: string, noteTitle?: string) => {
       if (!isBanglaMode) {
         setAiSuggestion('');
         return;
@@ -63,11 +79,13 @@ export function useAISuggestion(isBanglaMode: boolean): UseAISuggestionReturn {
       const words = trimmedContext.trimEnd().split(/\s+/);
       const currentWord = words.length > 0 ? words[words.length - 1] : undefined;
 
-      // Cache key derived from last 100 chars
-      const cacheKey =
-        trimmedContext.length > 100
-          ? trimmedContext.slice(-100)
-          : trimmedContext;
+      // Cache key: current paragraph topic (first 50 chars) + trailing 80 chars of context.
+      // This prevents cross-topic cache hits when recent text is similar.
+      const fullText2 = fullText ?? cursorContext;
+      const paragraphs = fullText2.split(/\n\n/);
+      const currentParagraph = paragraphs[paragraphs.length - 1] ?? '';
+      const topicHint = currentParagraph.slice(0, 50);
+      const cacheKey = topicHint + '|' + trimmedContext.slice(-80);
 
       // Check cache first
       if (suggestionCache.has(cacheKey)) {
@@ -97,6 +115,8 @@ export function useAISuggestion(isBanglaMode: boolean): UseAISuggestionReturn {
           cursorContext: trimmedContext,
           lastSentence,
           currentWord,
+          noteTitle,
+          toneHint: detectTone(text),
         }),
         signal: controller.signal,
       })
@@ -125,6 +145,10 @@ export function useAISuggestion(isBanglaMode: boolean): UseAISuggestionReturn {
     setAiSuggestion('');
   }, []);
 
+  const clearSuggestionCache = useCallback(() => {
+    suggestionCache.clear();
+  }, []);
+
   // Abort in-flight request on unmount
   useEffect(() => {
     return () => {
@@ -134,5 +158,5 @@ export function useAISuggestion(isBanglaMode: boolean): UseAISuggestionReturn {
     };
   }, []);
 
-  return { aiSuggestion, isLoadingAI, requestAISuggestion, clearAISuggestion };
+  return { aiSuggestion, isLoadingAI, requestAISuggestion, clearAISuggestion, clearSuggestionCache };
 }

@@ -7,6 +7,8 @@ const requestSchema = z.object({
   cursorContext: z.string().min(1),
   lastSentence: z.string().optional(),
   currentWord: z.string().optional(),
+  noteTitle: z.string().optional(),
+  toneHint: z.string().optional(),
 });
 
 export async function POST(req: Request) {
@@ -21,25 +23,28 @@ export async function POST(req: Request) {
       return EMPTY_RESPONSE;
     }
 
-    const { cursorContext, lastSentence, currentWord } = parsed.data;
+    const { cursorContext, lastSentence, currentWord, noteTitle, toneHint } = parsed.data;
 
     // Dynamic import so the app doesn't crash when @ai-sdk/openai can't find the key at module load
     const { openai } = await import('@ai-sdk/openai');
     const { generateText } = await import('ai');
 
-    const ghostPrompt = `You are a context-aware Bangla writing assistant. Your job is to predict the NEXT few words the writer intends to type, based on:
-1. The overall topic and theme of the text
-2. The grammatical structure of the current sentence
-3. Common Bangla phrases and collocations that fit this context
-4. The tone (formal/informal) established by the writing
+    const ghostPrompt = `You are a context-aware Bangla writing assistant. Predict the NEXT few words the writer intends to type.
+
+Consider:
+1. The topic${noteTitle ? ` (title: "${noteTitle}")` : ''} and theme of the text
+2. Grammatical structure of the current sentence
+3. Common Bangla phrases and collocations
+4. The tone: ${toneHint ?? 'match what the writer has established'}
 
 Rules:
 - Return ONLY the completion text (no quotes, no explanation)
-- Keep it under 40 characters
-- The completion must be grammatically correct and semantically meaningful in context
-- Match the existing tone and style of the text
-- If the text ends mid-word, complete that word first, then add the next natural word
-- If unsure or text is not Bangla, return empty string`;
+- Keep it under 30 characters
+- Must be grammatically correct and semantically meaningful
+- Match the existing tone and vocabulary level
+- If text ends mid-word, complete that word first, then add the next natural word
+- If unsure or text is not Bangla, return empty string
+- Do NOT repeat what was already written`;
 
     // Build a structured prompt with context layers
     let prompt = cursorContext;
@@ -55,8 +60,9 @@ Rules:
       system: ghostPrompt,
       prompt,
       temperature: 0.3,
-      maxOutputTokens: 60,
+      maxOutputTokens: 40,
       maxRetries: 1,
+      stopSequences: ['।', '\n'],
     });
 
     return NextResponse.json({ suggestion: completion.trim(), source: 'ai' });
