@@ -55,7 +55,7 @@ Rules:
       prompt += `\n[বর্তমান শব্দ: ${currentWord}]`;
     }
 
-    const { text: completion } = await generateText({
+    const result = await generateText({
       model: openai.chat('gpt-4o-mini'),
       system: ghostPrompt,
       prompt,
@@ -65,7 +65,7 @@ Rules:
       stopSequences: ['।', '\n'],
     });
 
-    return NextResponse.json({ suggestion: completion.trim(), source: 'ai' });
+    return NextResponse.json({ suggestion: result.text?.trim() ?? '', source: 'ai' });
   } catch (error) {
     console.error('Ghost text AI error:', error);
     return EMPTY_RESPONSE;
