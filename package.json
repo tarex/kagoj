@@ -11,6 +11,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "kagoj-input": "workspace:*",
     "@ai-sdk/openai": "^3.0.48",
     "@types/lodash.debounce": "^4.0.9",
     "ai": "^6.0.140",
