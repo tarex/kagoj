@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next/types';
 import { Literata, Noto_Sans_Bengali } from 'next/font/google';
 import { PWARegister } from './pwa-register';
+import { ConsoleGreeting } from './console-greeting';
 import './globals.css';
 
 const literata = Literata({
@@ -65,6 +66,7 @@ export default function RootLayout({
         className={`${literata.variable} ${notoBengali.variable} antialiased`}
       >
         <PWARegister />
+        <ConsoleGreeting />
         {children}
       </body>
     </html>
