@@ -20,6 +20,7 @@ import { BanglaInputHandler } from '@/lib/bangla-input-handler';
 import { adaptiveDictionary } from '@/lib/adaptive-dictionary';
 import { bigramStore } from '@/lib/bigram-store';
 import { banglaCollocations } from '@/lib/bangla-collocations';
+import { comprehensiveBanglaWords } from '@/lib/bangla-words-comprehensive';
 
 const FONT_SIZE_KEY = 'noteFontSize';
 const DEFAULT_FONT_SIZE = 24;
@@ -382,7 +383,7 @@ const NoteComponent: React.FC = () => {
   
   // Initialize adaptive dictionary on client and learn from notes
   useEffect(() => {
-    adaptiveDictionary.initializeOnClient();
+    adaptiveDictionary.initializeOnClient(comprehensiveBanglaWords);
     bigramStore.initializeOnClient();
     bigramStore.seed(banglaCollocations);
 

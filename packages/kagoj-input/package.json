@@ -1,0 +1,63 @@
+{
+  "name": "kagoj-input",
+  "version": "0.1.0",
+  "description": "Bangla phonetic transliteration engine -- add Bangla input to any text field",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./transliterate": {
+      "types": "./dist/transliterate.d.ts",
+      "import": "./dist/transliterate.js",
+      "require": "./dist/transliterate.cjs"
+    },
+    "./dictionary": {
+      "types": "./dist/dictionary.d.ts",
+      "import": "./dist/dictionary.js",
+      "require": "./dist/dictionary.cjs"
+    },
+    "./data/words": {
+      "types": "./dist/data/words.d.ts",
+      "import": "./dist/data/words.js",
+      "require": "./dist/data/words.cjs"
+    },
+    "./data/collocations": {
+      "types": "./dist/data/collocations.d.ts",
+      "import": "./dist/data/collocations.js",
+      "require": "./dist/data/collocations.cjs"
+    },
+    "./spellcheck": {
+      "types": "./dist/spellcheck.d.ts",
+      "import": "./dist/spellcheck.js",
+      "require": "./dist/spellcheck.cjs"
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3"
+  },
+  "keywords": [
+    "bangla",
+    "bengali",
+    "transliteration",
+    "phonetic",
+    "input-method",
+    "ime"
+  ],
+  "license": "MIT"
+}

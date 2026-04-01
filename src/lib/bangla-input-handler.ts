@@ -1,26 +1,16 @@
 import { RefObject } from 'react';
-import { contextPatterns } from './context-pattern';
-
-interface TransliterationRule {
-  pattern: string;
-  contextPattern?: string;
-  replacement: string;
-}
+import { Transliterator } from 'kagoj-input';
 
 /**
- * Modern implementation of Bangla Input Method Editor
- * Handles phonetic typing conversion from English to Bangla characters
+ * React-specific wrapper around the framework-agnostic Transliterator.
+ * Keeps the existing singleton + React event API so components don't change.
  */
 export class BanglaInputHandler {
-  private context = '';
-  private active = false;
-  private readonly rules: TransliterationRule[];
-  private readonly maxPatternLength: number; // Store max pattern length
+  private transliterator: Transliterator;
   private static instance: BanglaInputHandler;
 
   private constructor() {
-    this.rules = contextPatterns;
-    this.maxPatternLength = this.calculateMaxPatternLength(); // Calculate once
+    this.transliterator = new Transliterator();
   }
 
   public static getInstance(): BanglaInputHandler {
@@ -31,16 +21,15 @@ export class BanglaInputHandler {
   }
 
   public enable(): void {
-    this.active = true;
+    this.transliterator.enable();
   }
 
   public disable(): void {
-    this.active = false;
-    this.context = '';
+    this.transliterator.disable();
   }
 
   public isActive(): boolean {
-    return this.active;
+    return this.transliterator.isActive();
   }
 
   public processInputKeyPress(
@@ -49,14 +38,10 @@ export class BanglaInputHandler {
     setCurrentValue: (value: string) => void,
     e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
   ): void {
-    // If user is holding down a modifier key (Cmd/Ctrl/Alt),
-    // let the default behavior handle the key.
     if (e.metaKey || e.ctrlKey || e.altKey) {
       return;
     }
 
-    // On mobile keyboards, e.key is often "Unidentified" or "Process".
-    // Skip and let beforeinput/processCharInput handle it instead.
     if (e.key === 'Unidentified' || e.key === 'Process') {
       return;
     }
@@ -75,7 +60,7 @@ export class BanglaInputHandler {
     const beforeCursor: string = text.slice(0, cursorPosition);
     const afterCursor: string = text.slice(cursorPosition);
 
-    const convertedText: string = this.handleKeyPress(beforeCursor, typedChar);
+    const convertedText: string = this.transliterator.handleKeyPress(beforeCursor, typedChar);
     const finalText: string = convertedText + afterCursor;
     setCurrentValue(finalText);
 
@@ -90,19 +75,13 @@ export class BanglaInputHandler {
     });
   }
 
-  /**
-   * Process a character directly (used by beforeinput on mobile).
-   * Takes the raw character instead of reading from KeyboardEvent.
-   * Returns { text, cursorPosition } so callers can use the new values
-   * immediately without waiting for React re-render.
-   */
   public processCharInput(
     inputRef: RefObject<HTMLInputElement | HTMLTextAreaElement>,
     currentValue: string,
     setCurrentValue: (value: string) => void,
     char: string
   ): { text: string; cursorPosition: number } | null {
-    if (!this.active) return null;
+    if (!this.transliterator.isActive()) return null;
 
     const inputElement = inputRef.current;
     if (!inputElement) return null;
@@ -113,7 +92,7 @@ export class BanglaInputHandler {
     const beforeCursor: string = text.slice(0, cursorPosition);
     const afterCursor: string = text.slice(cursorPosition);
 
-    const convertedText: string = this.handleKeyPress(beforeCursor, char);
+    const convertedText: string = this.transliterator.handleKeyPress(beforeCursor, char);
     const finalText: string = convertedText + afterCursor;
     setCurrentValue(finalText);
 
@@ -130,91 +109,7 @@ export class BanglaInputHandler {
     return { text: finalText, cursorPosition: newPosition };
   }
 
-  /**
-   * Transliterate a single character given the text before the cursor.
-   * Used by the handleInput fallback on Android where the character
-   * is already inserted into the DOM.
-   */
   public transliterateChar(textBeforeCursor: string, char: string): string {
-    return this.handleKeyPress(textBeforeCursor, char);
-  }
-
-  private handleKeyPress(text: string, typedChar: string): string {
-    if (this.isNonCharacterOrSpecialKey(typedChar)) {
-      return text;
-    }
-
-    if (this.shouldPassThrough(typedChar)) {
-      return this.handleSpecialChar(text, typedChar);
-    }
-
-    if (!this.active) {
-      return text + typedChar;
-    }
-
-    const segment = this.getTextSegmentToProcess(text, typedChar);
-    const transliterated = this.transliterate(segment.text, this.context);
-    this.updateContext(segment.text);
-
-    return text.slice(0, segment.startIndex) + transliterated;
-  }
-
-  private shouldPassThrough(char: string): boolean {
-    return (
-      char === 'Enter' || char === 'Backspace' || char === '\n' || char === '\r'
-    );
-  }
-
-  private handleSpecialChar(text: string, char: string): string {
-    if (char === 'Backspace') {
-      return text.slice(0, -1);
-    }
-    if (char === 'Enter') {
-      return text + '\n';
-    }
-    return text + char;
-  }
-
-  private getTextSegmentToProcess(text: string, char: string) {
-    const startIndex = Math.max(0, text.length - this.maxPatternLength);
-    return {
-      startIndex,
-      text: text.slice(startIndex) + char,
-    };
-  }
-
-  private updateContext(text: string): void {
-    this.context = text.slice(-this.maxPatternLength);
-  }
-
-  private transliterate(input: string, context: string): string {
-    for (const rule of this.rules) {
-      const regex = new RegExp(rule.pattern + '$');
-
-      if (rule.contextPattern) {
-        const contextRegex = new RegExp(rule.contextPattern + '$');
-        if (regex.test(input) && contextRegex.test(context)) {
-          return input.replace(regex, rule.replacement);
-        }
-      } else if (regex.test(input)) {
-        return input.replace(regex, rule.replacement);
-      }
-    }
-    return input;
-  }
-
-  private isNonCharacterOrSpecialKey(key: string): boolean {
-    const recognizedKeys = ['Enter', 'Backspace', '\n', '\r'];
-    const isExplicitlyRecognized = recognizedKeys.includes(key);
-    const isSingleCharacter = key.length === 1;
-    return !isSingleCharacter && !isExplicitlyRecognized;
-  }
-
-  private calculateMaxPatternLength(): number {
-    let maxLength = 0;
-    for (const rule of this.rules) {
-      maxLength = Math.max(maxLength, rule.pattern.length);
-    }
-    return maxLength;
+    return this.transliterator.handleKeyPress(textBeforeCursor, char);
   }
 }
