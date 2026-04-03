@@ -75,9 +75,14 @@ export function useAISuggestion(isBanglaMode: boolean): UseAISuggestionReturn {
         lastSentence = sentences[sentences.length - 2].trim();
       }
 
-      // Extract the current partial word (if cursor is mid-word)
-      const words = trimmedContext.trimEnd().split(/\s+/);
-      const currentWord = words.length > 0 ? words[words.length - 1] : undefined;
+      // Extract the current partial word only if cursor is actually mid-word
+      // (context does not end with whitespace). After space trigger, don't send
+      // the just-finished word as it biases the model to re-complete it.
+      let currentWord: string | undefined;
+      if (trimmedContext.length > 0 && !/\s$/.test(trimmedContext)) {
+        const words = trimmedContext.split(/\s+/);
+        currentWord = words.length > 0 ? words[words.length - 1] : undefined;
+      }
 
       // Cache key: current paragraph topic (first 50 chars) + trailing 80 chars of context.
       // This prevents cross-topic cache hits when recent text is similar.
