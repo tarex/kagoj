@@ -123,7 +123,10 @@ export function useAISuggestion(isBanglaMode: boolean): UseAISuggestionReturn {
         .then(async (res) => {
           const data = (await res.json()) as { suggestion?: string; source?: string };
           const suggestion = data.suggestion ?? '';
-          suggestionCache.set(cacheKey, suggestion);
+          // Only cache non-empty results; empty responses may be transient failures
+          if (suggestion) {
+            suggestionCache.set(cacheKey, suggestion);
+          }
           setAiSuggestion(suggestion);
         })
         .catch((err: unknown) => {
