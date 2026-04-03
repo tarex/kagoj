@@ -110,7 +110,6 @@ export function useAISuggestion(isBanglaMode: boolean): UseAISuggestionReturn {
 
       const controller = new AbortController();
       abortControllerRef.current = controller;
-      lastRequestTime = now;
       setIsLoadingAI(true);
 
       fetch('/api/suggestions', {
@@ -128,7 +127,9 @@ export function useAISuggestion(isBanglaMode: boolean): UseAISuggestionReturn {
         .then(async (res) => {
           const data = (await res.json()) as { suggestion?: string; source?: string };
           const suggestion = data.suggestion ?? '';
-          // Only cache non-empty results; empty responses may be transient failures
+          // Only update rate limit on successful responses so aborted/failed
+          // requests don't burn the 2s window
+          lastRequestTime = Date.now();
           if (suggestion) {
             suggestionCache.set(cacheKey, suggestion);
           }
@@ -136,7 +137,7 @@ export function useAISuggestion(isBanglaMode: boolean): UseAISuggestionReturn {
         })
         .catch((err: unknown) => {
           if (err instanceof Error && err.name === 'AbortError') {
-            // Intentional abort — do not log
+            // Intentional abort — do not log, do not consume rate limit
             return;
           }
           console.error('useAISuggestion: fetch error', err);
