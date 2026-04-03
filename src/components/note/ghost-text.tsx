@@ -40,24 +40,37 @@ export const GhostText = React.memo<GhostTextProps>(({
 
   // Calculate position for the mobile accept button based on suggestion end
   useEffect(() => {
-    if (!markerRef.current || !textareaRef.current) {
-      setAcceptPos(null);
-      return;
-    }
+    const updatePos = () => {
+      if (!markerRef.current || !textareaRef.current) {
+        setAcceptPos(null);
+        return;
+      }
 
-    const marker = markerRef.current;
+      const marker = markerRef.current;
+      const textarea = textareaRef.current;
+      const editorWrapper = textarea.closest('.editor-wrapper');
+      if (!editorWrapper) return;
+
+      const markerRect = marker.getBoundingClientRect();
+      const wrapperRect = editorWrapper.getBoundingClientRect();
+
+      setAcceptPos({
+        top: markerRect.top - wrapperRect.top + markerRect.height / 2,
+        left: markerRect.right - wrapperRect.left + 4,
+      });
+    };
+
+    updatePos();
+
     const textarea = textareaRef.current;
-    const editorWrapper = textarea.closest('.editor-wrapper');
-    if (!editorWrapper) return;
+    textarea?.addEventListener('scroll', updatePos);
+    window.addEventListener('resize', updatePos);
 
-    const markerRect = marker.getBoundingClientRect();
-    const wrapperRect = editorWrapper.getBoundingClientRect();
-
-    setAcceptPos({
-      top: markerRect.top - wrapperRect.top + markerRect.height / 2,
-      left: markerRect.right - wrapperRect.left + 4,
-    });
-  }, [suggestion, currentText, cursorPos, textareaRef]);
+    return () => {
+      textarea?.removeEventListener('scroll', updatePos);
+      window.removeEventListener('resize', updatePos);
+    };
+  }, [suggestion, currentText, cursorPos, fontSize, textareaRef]);
 
   if (!suggestion) return null;
 
