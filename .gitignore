@@ -49,3 +49,4 @@ next-env.d.ts
 /.planning
 
 .idea
+.context/codex-session-id
