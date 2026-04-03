@@ -296,7 +296,7 @@ describe('useNotes', () => {
       expect(result.current.selectedNoteIndex).toBe(0);
     });
 
-    it('saves current content then clears editor on createNewNote', () => {
+    it('saves current content then creates new empty note on createNewNote', () => {
       const { result } = renderHook(() => useNotes());
 
       // Type some content first (no selected note)
@@ -304,17 +304,19 @@ describe('useNotes', () => {
       act(() => { result.current.setCurrentTitle('world'); });
       act(() => { result.current.createNewNote(); });
 
-      // Content saved as a note, editor cleared
-      expect(result.current.notes).toHaveLength(1);
-      expect(result.current.notes[0].content).toBe('hello');
-      expect(result.current.notes[0].title).toBe('world');
+      // Content saved as a note + new empty note created at front
+      expect(result.current.notes).toHaveLength(2);
+      expect(result.current.notes[0].content).toBe(''); // new empty note
+      expect(result.current.notes[1].content).toBe('hello'); // saved content
+      expect(result.current.notes[1].title).toBe('world');
       expect(result.current.currentNote).toBe('');
       expect(result.current.currentTitle).toBe('');
+      expect(result.current.selectedNoteIndex).toBe(0); // selects the new empty note
     });
   });
 
   describe('createNewNote while editing existing', () => {
-    it('saves current note in-place then clears editor', () => {
+    it('saves current note in-place and creates new empty note in sidebar', () => {
       seedNotes([
         { content: 'first', title: 'First' },
         { content: 'second', title: 'Second' },
@@ -328,13 +330,14 @@ describe('useNotes', () => {
       // Press "new note" button
       act(() => { result.current.createNewNote(); });
 
-      // Should save edits to note 0, add empty note at front, total 3
-      // Actually: createNewNote when selectedNoteIndex !== null saves in-place and sets index to 0
-      // Then clears editor. Note count stays 2 since it just saves, doesn't prepend.
-      expect(result.current.notes).toHaveLength(2);
-      expect(result.current.notes[0].content).toBe('first edited');
+      // Should save edits to note 0 AND create a new empty note at front
+      expect(result.current.notes).toHaveLength(3);
+      expect(result.current.notes[0].content).toBe(''); // new empty note
+      expect(result.current.notes[1].content).toBe('first edited'); // saved edit
+      expect(result.current.notes[2].content).toBe('second'); // untouched
       expect(result.current.currentNote).toBe('');
       expect(result.current.currentTitle).toBe('');
+      expect(result.current.selectedNoteIndex).toBe(0); // selects the new note
     });
 
     it('switching between notes preserves content of each note', () => {
@@ -447,6 +450,138 @@ describe('useNotes', () => {
 
       expect(result.current.notes).toHaveLength(1);
       expect(result.current.notes[0].content).toBe('b');
+    });
+  });
+
+  // =====================================================
+  // REGRESSION: "new page" must always add a note to sidebar
+  // =====================================================
+
+  describe('new page always appears in sidebar', () => {
+    it('createNewNote with selected note adds new entry to sidebar', () => {
+      seedNotes([
+        { content: 'existing', title: 'Existing' },
+      ], 0);
+
+      const { result } = renderHook(() => useNotes());
+      expect(result.current.notes).toHaveLength(1);
+
+      act(() => { result.current.createNewNote(); });
+
+      // Must have 2 notes now: the new empty one + the existing one
+      expect(result.current.notes).toHaveLength(2);
+      expect(result.current.notes[0].content).toBe('');
+      expect(result.current.notes[0].title).toBe('');
+      expect(result.current.selectedNoteIndex).toBe(0);
+    });
+
+    it('createNewNote with no notes creates first note in sidebar', () => {
+      const { result } = renderHook(() => useNotes());
+      expect(result.current.notes).toHaveLength(0);
+
+      act(() => { result.current.createNewNote(); });
+
+      expect(result.current.notes).toHaveLength(1);
+      expect(result.current.selectedNoteIndex).toBe(0);
+    });
+
+    it('createNewNote preserves all existing notes', () => {
+      seedNotes([
+        { content: 'a', title: 'A' },
+        { content: 'b', title: 'B' },
+        { content: 'c', title: 'C' },
+      ], 1);
+
+      const { result } = renderHook(() => useNotes());
+
+      act(() => { result.current.setCurrentNote('b edited'); });
+      act(() => { result.current.createNewNote(); });
+
+      // 3 original + 1 new = 4
+      expect(result.current.notes).toHaveLength(4);
+      expect(result.current.notes[0].content).toBe(''); // new empty
+      expect(result.current.notes[1].content).toBe('a');
+      expect(result.current.notes[2].content).toBe('b edited'); // saved in-place
+      expect(result.current.notes[3].content).toBe('c');
+    });
+
+    it('rapid createNewNote calls each add a note', () => {
+      const { result } = renderHook(() => useNotes());
+
+      act(() => { result.current.createNewNote(); });
+      act(() => { result.current.createNewNote(); });
+      act(() => { result.current.createNewNote(); });
+
+      expect(result.current.notes).toHaveLength(3);
+      expect(result.current.selectedNoteIndex).toBe(0);
+    });
+  });
+
+  // =====================================================
+  // REGRESSION: auto-create note when typing without selection
+  // =====================================================
+
+  describe('auto-create note on typing without selection', () => {
+    it('typing content with no selected note creates a note in sidebar', () => {
+      const { result } = renderHook(() => useNotes());
+      expect(result.current.notes).toHaveLength(0);
+      expect(result.current.selectedNoteIndex).toBeNull();
+
+      act(() => { result.current.setCurrentNote('hello'); });
+
+      expect(result.current.notes).toHaveLength(1);
+      expect(result.current.notes[0].content).toBe('hello');
+      expect(result.current.selectedNoteIndex).toBe(0);
+    });
+
+    it('typing title with no selected note creates a note in sidebar', () => {
+      const { result } = renderHook(() => useNotes());
+
+      act(() => { result.current.setCurrentTitle('my title'); });
+
+      expect(result.current.notes).toHaveLength(1);
+      expect(result.current.notes[0].title).toBe('my title');
+      expect(result.current.selectedNoteIndex).toBe(0);
+    });
+
+    it('whitespace-only content does not auto-create a note', () => {
+      const { result } = renderHook(() => useNotes());
+
+      act(() => { result.current.setCurrentNote('   '); });
+
+      expect(result.current.notes).toHaveLength(0);
+      expect(result.current.selectedNoteIndex).toBeNull();
+    });
+
+    it('pasting content with no selected note creates a note immediately', () => {
+      seedNotes([{ content: 'existing', title: 'E' }]);
+      // No selectedNoteIndex -- simulates fresh state after deleting selection
+
+      const { result } = renderHook(() => useNotes());
+      expect(result.current.selectedNoteIndex).toBeNull();
+
+      // Simulate paste
+      act(() => { result.current.setCurrentNote('pasted text'); });
+
+      expect(result.current.notes).toHaveLength(2);
+      expect(result.current.notes[0].content).toBe('pasted text');
+      expect(result.current.selectedNoteIndex).toBe(0);
+    });
+
+    it('auto-created note is editable without duplication', () => {
+      const { result } = renderHook(() => useNotes());
+
+      // First keystroke auto-creates
+      act(() => { result.current.setCurrentNote('h'); });
+      expect(result.current.notes).toHaveLength(1);
+
+      // Subsequent keystrokes update in-place
+      act(() => { result.current.setCurrentNote('he'); });
+      act(() => { result.current.setCurrentNote('hel'); });
+      act(() => { result.current.setCurrentNote('hello'); });
+
+      expect(result.current.notes).toHaveLength(1);
+      expect(result.current.notes[0].content).toBe('hello');
     });
   });
 });
