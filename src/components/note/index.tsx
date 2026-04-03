@@ -64,6 +64,8 @@ const NoteComponent: React.FC = () => {
   const [isAISuggestionActive, setIsAISuggestionActive] = useState<boolean>(false);
   // Track whether the user already accepted a suggestion, so late-arriving AI doesn't overwrite
   const suggestionAcceptedRef = useRef<boolean>(false);
+  // Generation counter: increments on every clear so stale AI responses are ignored
+  const suggestionGenRef = useRef<number>(0);
   // Refs to avoid recreating handleChange on every keystroke
   const currentNoteRef = useRef(currentNote);
   currentNoteRef.current = currentNote;
@@ -412,6 +414,7 @@ const NoteComponent: React.FC = () => {
   const clearAllSuggestions = useCallback(() => {
     setGhostSuggestion('');
     setIsAISuggestionActive(false);
+    suggestionGenRef.current++;
     clearAISuggestion();
     if (aiTriggerRef.current) {
       clearTimeout(aiTriggerRef.current);
@@ -420,9 +423,14 @@ const NoteComponent: React.FC = () => {
   }, [clearAISuggestion]);
 
   // Sync AI suggestion into ghost suggestion state.
-  // Skip if the user already accepted a suggestion (prevents late AI from clobbering accepted text).
+  // Capture the generation at request time; ignore responses from prior generations.
+  const aiSuggestionGenRef = useRef<number>(0);
   useEffect(() => {
-    if (aiSuggestion && !suggestionAcceptedRef.current) {
+    aiSuggestionGenRef.current = suggestionGenRef.current;
+  }, [_isLoadingAI]); // capture gen when a new request starts (isLoadingAI flips to true)
+
+  useEffect(() => {
+    if (aiSuggestion && !suggestionAcceptedRef.current && aiSuggestionGenRef.current === suggestionGenRef.current) {
       setGhostSuggestion(aiSuggestion);
       setIsAISuggestionActive(true);
     }
