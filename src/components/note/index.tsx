@@ -522,52 +522,38 @@ const NoteComponent: React.FC = () => {
     const text = textarea.value;
     const cursorPos = textarea.selectionStart;
 
-    if (isAISuggestionActive) {
-      // AI suggestion: insert full ghost suggestion text at cursor position
-      suggestionAcceptedRef.current = true;
-      clearAISuggestion();
-      setGhostSuggestion('');
-      setIsAISuggestionActive(false);
+    suggestionAcceptedRef.current = true;
 
-      const newText = text.substring(0, cursorPos) + ghostSuggestion + text.substring(cursorPos);
-      setCurrentNote(newText);
-
-      setTimeout(() => {
-        const newPos = cursorPos + ghostSuggestion.length;
-        textarea.selectionStart = textarea.selectionEnd = newPos;
-        textarea.focus();
-      }, 0);
-    } else {
-      // Dictionary suggestion: word completion path
-      suggestionAcceptedRef.current = true;
+    if (!isAISuggestionActive) {
+      // Dictionary suggestion: learn the completed word
       let start = cursorPos;
       while (start > 0 && !/[\s\.,;!?।]/.test(text[start - 1])) {
         start--;
       }
-
       const currentWord = text.substring(start, cursorPos);
       const fullWord = currentWord + ghostSuggestion;
-
-      // Learn the completed word (only if already known to prevent misspelling pollution)
       if (adaptiveDictionary.isKnownWord(fullWord)) {
         adaptiveDictionary.learnWord(fullWord);
       }
-      setGhostSuggestion('');
-      setIsAISuggestionActive(false);
-
-      // Insert the ghost text (completion suffix)
-      const newText = text.substring(0, cursorPos) + ghostSuggestion + text.substring(cursorPos);
-      setCurrentNote(newText);
-
-      setTimeout(() => {
-        const newPos = cursorPos + ghostSuggestion.length;
-        textarea.selectionStart = textarea.selectionEnd = newPos;
-        textarea.focus();
-      }, 0);
     }
 
+    clearAISuggestion();
+    setGhostSuggestion('');
+    setIsAISuggestionActive(false);
+
+    const newText = text.substring(0, cursorPos) + ghostSuggestion + text.substring(cursorPos);
+    const newPos = cursorPos + ghostSuggestion.length;
+    setCurrentNote(newText);
+    pushSnapshot(newText, currentTitleRef.current, newPos);
+    saveCurrentNoteRef.current();
+
+    setTimeout(() => {
+      textarea.selectionStart = textarea.selectionEnd = newPos;
+      textarea.focus();
+    }, 0);
+
     return true;
-  }, [ghostSuggestion, isAISuggestionActive, clearAISuggestion, setCurrentNote]);
+  }, [ghostSuggestion, isAISuggestionActive, clearAISuggestion, setCurrentNote, pushSnapshot]);
 
   const handleCompositionStart = useCallback(() => {
     isComposingRef.current = true;
