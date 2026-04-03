@@ -89,53 +89,46 @@ export const useNotes = () => {
   }, [currentTitle, isInitialized]);
 
   const createNewNote = () => {
-    // Save current note if it has content or title
+    let updatedNotes = [...notes];
+
+    // Save current note before creating new one
     if (currentNote.trim() || currentTitle.trim()) {
       if (selectedNoteIndex !== null) {
-        // We're already editing a note, just save it
-        const updatedNotes = [...notes];
         updatedNotes[selectedNoteIndex] = {
           ...updatedNotes[selectedNoteIndex],
           content: currentNote,
           title: currentTitle,
         };
-        setNotes(updatedNotes);
-        saveNotes(updatedNotes);
       } else {
-        // Create a new note from current content
-        const newNote: Note = {
+        // Save unsaved content as a note first
+        const savedNote: Note = {
           content: currentNote,
           title: currentTitle,
           date: new Date().toISOString(),
         };
-        const updatedNotes = [newNote, ...notes];
-        setNotes(updatedNotes);
-        saveNotes(updatedNotes);
+        updatedNotes = [savedNote, ...updatedNotes];
       }
-      // Always select the newly created note (index 0)
-      setSelectedNoteIndex(0);
-    } else {
-      // Create an empty note
-      const newNote: Note = {
-        content: '',
-        title: '',
-        date: new Date().toISOString(),
-      };
-      const updatedNotes = [newNote, ...notes];
-      setNotes(updatedNotes);
-      saveNotes(updatedNotes);
-      // Select the newly created empty note
-      setSelectedNoteIndex(0);
     }
 
-    // Clear content and title for the new note
+    // Always create a new empty note
+    const newNote: Note = {
+      content: '',
+      title: '',
+      date: new Date().toISOString(),
+    };
+    updatedNotes = [newNote, ...updatedNotes];
+    setNotes(updatedNotes);
+    saveNotes(updatedNotes);
+    setSelectedNoteIndex(0);
+
+    // Clear editor for the new note
     setCurrentNote('');
     setCurrentTitleState('');
     localStorage.removeItem('currentNote');
     localStorage.removeItem('currentTitle');
   };
 
-  const saveCurrentNote = () => {
+  const saveCurrentNote = useCallback(() => {
     // Save the current note if it has content or title
     if (currentNote.trim() || currentTitle.trim()) {
       if (selectedNoteIndex === null) {
@@ -162,7 +155,7 @@ export const useNotes = () => {
         saveNotes(updatedNotes);
       }
     }
-  };
+  }, [currentNote, currentTitle, selectedNoteIndex, notes, saveNotes, setSelectedNoteIndex]);
 
   const selectNote = (index: number) => {
     setSelectedNoteIndex(index);
@@ -190,8 +183,8 @@ export const useNotes = () => {
   const updateCurrentNote = useCallback((newContent: string) => {
     setCurrentNote(newContent);
 
-    // If we're editing an existing note, update it in the list
     if (selectedNoteIndex !== null && notes[selectedNoteIndex]) {
+      // Update existing note in the list
       const updatedNotes = [...notes];
       updatedNotes[selectedNoteIndex] = {
         ...updatedNotes[selectedNoteIndex],
@@ -199,15 +192,26 @@ export const useNotes = () => {
       };
       setNotes(updatedNotes);
       saveNotes(updatedNotes);
+    } else if (selectedNoteIndex === null && newContent.trim()) {
+      // Auto-create a note when typing with no note selected
+      const newNote: Note = {
+        content: newContent,
+        title: currentTitle,
+        date: new Date().toISOString(),
+      };
+      const updatedNotes = [newNote, ...notes];
+      setNotes(updatedNotes);
+      saveNotes(updatedNotes);
+      setSelectedNoteIndex(0);
     }
-  }, [selectedNoteIndex, notes, saveNotes]);
+  }, [selectedNoteIndex, notes, saveNotes, currentTitle, setSelectedNoteIndex]);
 
   // Update existing note when title changes
   const updateCurrentTitle = useCallback((newTitle: string) => {
     setCurrentTitleState(newTitle);
 
-    // If we're editing an existing note, update it in the list
     if (selectedNoteIndex !== null && notes[selectedNoteIndex]) {
+      // Update existing note in the list
       const updatedNotes = [...notes];
       updatedNotes[selectedNoteIndex] = {
         ...updatedNotes[selectedNoteIndex],
@@ -215,8 +219,19 @@ export const useNotes = () => {
       };
       setNotes(updatedNotes);
       saveNotes(updatedNotes);
+    } else if (selectedNoteIndex === null && newTitle.trim()) {
+      // Auto-create a note when typing title with no note selected
+      const newNote: Note = {
+        content: currentNote,
+        title: newTitle,
+        date: new Date().toISOString(),
+      };
+      const updatedNotes = [newNote, ...notes];
+      setNotes(updatedNotes);
+      saveNotes(updatedNotes);
+      setSelectedNoteIndex(0);
     }
-  }, [selectedNoteIndex, notes, saveNotes]);
+  }, [selectedNoteIndex, notes, saveNotes, currentNote, setSelectedNoteIndex]);
 
   return {
     notes,

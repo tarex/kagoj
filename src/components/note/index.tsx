@@ -74,6 +74,8 @@ const NoteComponent: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const searchInputRef = useRef<HTMLInputElement>(null!);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const saveCurrentNoteRef = useRef(saveCurrentNote);
+  saveCurrentNoteRef.current = saveCurrentNote;
   const aiTriggerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Android composition input tracking
@@ -908,7 +910,7 @@ const NoteComponent: React.FC = () => {
     }
     saveTimeoutRef.current = setTimeout(() => {
       if (value.trim()) {
-        saveCurrentNote();
+        saveCurrentNoteRef.current();
       }
     }, 2000);
     
