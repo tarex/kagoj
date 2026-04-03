@@ -948,8 +948,11 @@ const NoteComponent: React.FC = () => {
         // (will override bigram prediction if AI returns something better)
         if (lastChar === ' ' && isBanglaMode) {
           if (aiTriggerRef.current) clearTimeout(aiTriggerRef.current);
+          const caretPos = e.target.selectionStart;
           aiTriggerRef.current = setTimeout(() => {
-            const cursorContext = value.length > 500 ? value.slice(-500) : value;
+            // Use text before cursor, not document tail, for correct mid-document editing
+            const textBeforeCursor = value.substring(0, caretPos);
+            const cursorContext = textBeforeCursor.length > 500 ? textBeforeCursor.slice(-500) : textBeforeCursor;
             requestAISuggestion(cursorContext, value, currentTitleRef.current);
           }, AI_TRIGGER_DELAY_MS);
         }
