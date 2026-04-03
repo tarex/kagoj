@@ -437,17 +437,15 @@ const NoteComponent: React.FC = () => {
       let bestMatch: string | undefined;
 
       if (prevWord) {
-        // 1. Check user-learned bigrams first (strongest signal)
+        // 1. Check bigrams (user-learned + pre-seeded collocations)
         const bigramHits = bigramStore.getSuggestionsWithPrefix(prevWord, word, 5);
         if (bigramHits.length > 0) {
           bestMatch = bigramHits[0];
         }
 
-        // 2. If no user bigrams, check pre-seeded collocations against trie suggestions
-        if (!bestMatch && trieSuggestions.length > 0) {
-          const collocationHits = bigramStore.getSuggestionsWithPrefix(prevWord, word, 5);
-          // Also check if any trie suggestion forms a known collocation
-          const collocationSet = new Set(collocationHits);
+        // 2. If no direct bigram match, check if any trie suggestion forms a known collocation
+        if (!bestMatch && trieSuggestions.length > 0 && bigramHits.length > 0) {
+          const collocationSet = new Set(bigramHits);
           const contextualMatch = trieSuggestions.find(s => collocationSet.has(s));
           if (contextualMatch) {
             bestMatch = contextualMatch;
