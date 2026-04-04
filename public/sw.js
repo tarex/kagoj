@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kagoj-v3';
+const CACHE_NAME = 'kagoj-v4';
 
 const PRECACHE_URLS = ['/'];
 
