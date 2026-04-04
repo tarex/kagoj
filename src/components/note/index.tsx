@@ -463,8 +463,7 @@ const NoteComponent: React.FC = () => {
     }
 
     const savedTheme = localStorage.getItem(THEME_KEY);
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const shouldBeDark = savedTheme ? savedTheme === 'dark' : prefersDark;
+    const shouldBeDark = savedTheme ? savedTheme === 'dark' : true;
     setIsDarkMode(shouldBeDark);
     
     if (shouldBeDark) {
