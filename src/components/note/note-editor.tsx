@@ -35,6 +35,9 @@ export const NoteEditor = React.memo<NoteEditorProps>(({
       onCompositionEnd={onCompositionEnd}
       className="text-editor"
       placeholder="বাংলায় লিখুন..."
+      spellCheck={false}
+      autoCorrect="off"
+      autoCapitalize="off"
       style={{
         fontSize: `${fontSize}px`,
       }}

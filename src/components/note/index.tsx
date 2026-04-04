@@ -74,6 +74,8 @@ const NoteComponent: React.FC = () => {
   const [showShortcuts, setShowShortcuts] = useState<boolean>(false);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const searchQueryRef = useRef(searchQuery);
+  searchQueryRef.current = searchQuery;
   const searchInputRef = useRef<HTMLInputElement>(null!);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const saveCurrentNoteRef = useRef(saveCurrentNote);
@@ -84,6 +86,93 @@ const NoteComponent: React.FC = () => {
   const handledByBeforeInputRef = useRef<boolean>(false);
   const isComposingRef = useRef<boolean>(false);
   const handledByInputFallbackRef = useRef<boolean>(false);
+
+  // Shared Bangla input handler factory for <input> elements (title, search).
+  // Returns onChange, onKeyDown, onBeforeInput, onInput handlers with Android fallback.
+  const makeBanglaInputHandlers = useCallback((
+    inputRef: React.RefObject<HTMLInputElement>,
+    valueRef: React.RefObject<string>,
+    setValue: (v: string) => void,
+  ) => {
+    const fallbackRef = { current: false };
+
+    const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (fallbackRef.current) {
+        fallbackRef.current = false;
+        return;
+      }
+      setValue(e.target.value);
+    };
+
+    const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (isBanglaMode) {
+        banglaInputHandler.processInputKeyPress(
+          inputRef as unknown as React.RefObject<HTMLTextAreaElement>,
+          valueRef.current,
+          setValue,
+          e as unknown as React.KeyboardEvent<HTMLTextAreaElement>
+        );
+      }
+    };
+
+    const onBeforeInput = (e: React.FormEvent<HTMLInputElement>) => {
+      if (!isBanglaMode) return;
+      const inputEvent = e.nativeEvent as InputEvent;
+      if (inputEvent.inputType !== 'insertText' || !inputEvent.data) return;
+      const char = inputEvent.data;
+      if (char.length !== 1) return;
+      const code = char.charCodeAt(0);
+      if (code < 32 || code > 126) return;
+      e.preventDefault();
+      banglaInputHandler.processCharInput(
+        inputRef as unknown as React.RefObject<HTMLTextAreaElement>,
+        valueRef.current,
+        setValue,
+        char
+      );
+    };
+
+    const onInput = (e: React.FormEvent<HTMLInputElement>) => {
+      if (!isBanglaMode) return;
+      const input = e.target as HTMLInputElement;
+      const currentDomValue = input.value;
+      const cursorPos = input.selectionStart ?? currentDomValue.length;
+      const prevValue = valueRef.current;
+
+      if (currentDomValue.length <= prevValue.length) return;
+
+      const insertionLength = currentDomValue.length - prevValue.length;
+      const insertionStart = cursorPos - insertionLength;
+      if (insertionStart < 0) return;
+
+      const insertedText = currentDomValue.substring(insertionStart, cursorPos);
+      if (!/^[\x20-\x7E]+$/.test(insertedText)) return;
+
+      const beforeInsertion = currentDomValue.substring(0, insertionStart);
+      const afterInsertion = currentDomValue.substring(cursorPos);
+
+      let transliterated = beforeInsertion;
+      for (const ch of insertedText) {
+        transliterated = banglaInputHandler.transliterateChar(transliterated, ch);
+      }
+
+      fallbackRef.current = true;
+      setValue(transliterated + afterInsertion);
+
+      requestAnimationFrame(() => {
+        if (inputRef.current) {
+          const newPos = transliterated.length;
+          inputRef.current.selectionStart = newPos;
+          inputRef.current.selectionEnd = newPos;
+        }
+      });
+    };
+
+    return { onChange, onKeyDown, onBeforeInput, onInput };
+  }, [isBanglaMode, banglaInputHandler]);
+
+  const titleInputHandlers = makeBanglaInputHandlers(titleInputRef, currentTitleRef, setCurrentTitle);
+  const searchInputHandlers = makeBanglaInputHandlers(searchInputRef, searchQueryRef, setSearchQuery);
 
 
   const { aiSuggestion, isLoadingAI: _isLoadingAI, requestAISuggestion, clearAISuggestion, clearSuggestionCache } = useAISuggestion(isBanglaMode);
@@ -1107,33 +1196,7 @@ const NoteComponent: React.FC = () => {
                 placeholder="নোট খুঁজুন..."
                 className="search-input"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (isBanglaMode) {
-                    banglaInputHandler.processInputKeyPress(
-                      searchInputRef as unknown as React.RefObject<HTMLTextAreaElement>,
-                      searchQuery,
-                      setSearchQuery,
-                      e as unknown as React.KeyboardEvent<HTMLTextAreaElement>
-                    );
-                  }
-                }}
-                onBeforeInput={(e) => {
-                  if (!isBanglaMode) return;
-                  const inputEvent = e.nativeEvent as InputEvent;
-                  if (inputEvent.inputType !== 'insertText' || !inputEvent.data) return;
-                  const char = inputEvent.data;
-                  if (char.length !== 1) return;
-                  const code = char.charCodeAt(0);
-                  if (code < 32 || code > 126) return;
-                  e.preventDefault();
-                  banglaInputHandler.processCharInput(
-                    searchInputRef as unknown as React.RefObject<HTMLTextAreaElement>,
-                    searchQuery,
-                    setSearchQuery,
-                    char
-                  );
-                }}
+                {...searchInputHandlers}
               />
               {searchQuery && (
                 <button
@@ -1176,33 +1239,10 @@ const NoteComponent: React.FC = () => {
               placeholder="শিরোনাম..."
               className="note-title-input"
               value={currentTitle}
-              onChange={(e) => setCurrentTitle(e.target.value)}
-              onKeyDown={(e) => {
-                if (isBanglaMode) {
-                  banglaInputHandler.processInputKeyPress(
-                    titleInputRef as unknown as React.RefObject<HTMLTextAreaElement>,
-                    currentTitle,
-                    setCurrentTitle,
-                    e as unknown as React.KeyboardEvent<HTMLTextAreaElement>
-                  );
-                }
-              }}
-              onBeforeInput={(e) => {
-                if (!isBanglaMode) return;
-                const inputEvent = e.nativeEvent as InputEvent;
-                if (inputEvent.inputType !== 'insertText' || !inputEvent.data) return;
-                const char = inputEvent.data;
-                if (char.length !== 1) return;
-                const code = char.charCodeAt(0);
-                if (code < 32 || code > 126) return;
-                e.preventDefault();
-                banglaInputHandler.processCharInput(
-                  titleInputRef as unknown as React.RefObject<HTMLTextAreaElement>,
-                  currentTitle,
-                  setCurrentTitle,
-                  char
-                );
-              }}
+              spellCheck={false}
+              autoCorrect="off"
+              autoCapitalize="off"
+              {...titleInputHandlers}
             />
             <div className="title-divider"><hr /></div>
             <div className="editor-wrapper">
