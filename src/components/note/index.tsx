@@ -691,8 +691,86 @@ const NoteComponent: React.FC = () => {
       return;
     }
     
-    // Removed automatic spell checking on Enter key
-    
+    // Auto-continue numbered/bullet lists on Enter
+    if (e.key === 'Enter' && textareaRef.current) {
+      const textarea = textareaRef.current;
+      const pos = textarea.selectionStart;
+      const text = currentNote;
+      const textBeforeCursor = text.slice(0, pos);
+      const lastNewline = textBeforeCursor.lastIndexOf('\n');
+      const currentLine = textBeforeCursor.slice(lastNewline + 1);
+
+      // Match Bangla numbered list: ১। ২। ১০। etc.
+      const banglaDigits = '০১২৩৪৫৬৭৮৯';
+      const numMatch = currentLine.match(/^([০-৯]+)।\s/);
+      // Match bullet list: •
+      const bulletMatch = currentLine.match(/^(•)\s/);
+
+      if (numMatch) {
+        // Check if line has content after the prefix
+        const prefix = numMatch[0];
+        const lineContent = currentLine.slice(prefix.length).trim();
+
+        if (lineContent.length === 0) {
+          // Empty list item -- remove the prefix instead of continuing
+          e.preventDefault();
+          const lineStart = lastNewline + 1;
+          const newText = text.slice(0, lineStart) + text.slice(pos);
+          pendingCursorRef.current = lineStart;
+          setCurrentNote(newText);
+          scrollCursorIntoView();
+          return;
+        }
+
+        // Parse Bangla number and increment
+        const banglaNum = numMatch[1];
+        let num = 0;
+        for (const ch of banglaNum) {
+          num = num * 10 + banglaDigits.indexOf(ch);
+        }
+        num++;
+        let nextBangla = '';
+        const numStr = String(num);
+        for (const ch of numStr) {
+          nextBangla += banglaDigits[parseInt(ch)];
+        }
+
+        e.preventDefault();
+        const afterCursor = text.slice(pos);
+        const newText = textBeforeCursor + '\n' + nextBangla + '। ' + afterCursor;
+        const newPos = pos + 1 + nextBangla.length + 2; // \n + digits + । + space
+        pendingCursorRef.current = newPos;
+        setCurrentNote(newText);
+        scrollCursorIntoView();
+        return;
+      }
+
+      if (bulletMatch) {
+        const prefix = bulletMatch[0];
+        const lineContent = currentLine.slice(prefix.length).trim();
+
+        if (lineContent.length === 0) {
+          // Empty bullet item -- remove the prefix
+          e.preventDefault();
+          const lineStart = lastNewline + 1;
+          const newText = text.slice(0, lineStart) + text.slice(pos);
+          pendingCursorRef.current = lineStart;
+          setCurrentNote(newText);
+          scrollCursorIntoView();
+          return;
+        }
+
+        e.preventDefault();
+        const afterCursor = text.slice(pos);
+        const newText = textBeforeCursor + '\n• ' + afterCursor;
+        const newPos = pos + 3; // \n + • + space
+        pendingCursorRef.current = newPos;
+        setCurrentNote(newText);
+        scrollCursorIntoView();
+        return;
+      }
+    }
+
     // Handle Escape key to dismiss ghost suggestion
     if (e.key === 'Escape' && ghostSuggestion) {
       clearAllSuggestions();
