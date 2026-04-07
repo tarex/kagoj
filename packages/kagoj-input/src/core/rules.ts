@@ -97,7 +97,6 @@ export const contextPatterns: TransliterationRule[] = [
 
   // Rules for 'ক্ষ'
   { pattern: 'ক্ক(h|H)', contextPattern: '[^o`]', replacement: 'ক্ষ' },
-  { pattern: 'কশ(h|H)', contextPattern: '[^o`]', replacement: 'ক্ষ' },
 
   // Rules for 'র্' (reph)
   { pattern: 'ররk', replacement: 'র্ক' },

@@ -404,6 +404,21 @@ export const KeyboardShortcutsPanel: React.FC<KeyboardShortcutsPanelProps> = ({
                     <span className="sp-num-note">0-9 &rarr; ০-৯</span>
                   </div>
 
+                  {/* Common conjuncts */}
+                  <div className="sp-section">
+                    <div className="sp-section-label">সাধারণ যুক্তাক্ষর</div>
+                    <div className="sp-grid">
+                      {[
+                        { type: 'kkh', bangla: 'ক্ষ', hint: 'ksha' },
+                        { type: 'shT', bangla: 'ষ্ট', hint: 'shto' },
+                        { type: 'gg', bangla: 'জ্ঞ', hint: 'ggo' },
+                        { type: 'nch', bangla: 'ঞ্চ', hint: 'oncho' },
+                        { type: 'nj', bangla: 'ঞ্জ', hint: 'onjo' },
+                        { type: 'ng', bangla: 'ং', hint: 'ong' },
+                      ].map(renderCell)}
+                    </div>
+                  </div>
+
                   {/* Tips */}
                   <div className="sp-tips">
                     <div className="sp-tip-row">

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useLayoutEffect, useCallback } from 'react';
 import { NoteList } from './note-list';
 import { NoteEditor } from './note-editor';
 import { GhostText } from './ghost-text';
@@ -82,10 +82,24 @@ const NoteComponent: React.FC = () => {
   saveCurrentNoteRef.current = saveCurrentNote;
   const aiTriggerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Pending cursor position: set before state updates, applied in useLayoutEffect
+  // after React commits the new textarea value to the DOM.
+  const pendingCursorRef = useRef<number | null>(null);
+
   // Android composition input tracking
   const handledByBeforeInputRef = useRef<boolean>(false);
   const isComposingRef = useRef<boolean>(false);
   const handledByInputFallbackRef = useRef<boolean>(false);
+
+  // Restore cursor position after React commits textarea value to DOM.
+  // Without this, React's controlled textarea re-render resets cursor to end.
+  useLayoutEffect(() => {
+    if (pendingCursorRef.current !== null && textareaRef.current) {
+      textareaRef.current.selectionStart = pendingCursorRef.current;
+      textareaRef.current.selectionEnd = pendingCursorRef.current;
+      pendingCursorRef.current = null;
+    }
+  });
 
   // Shared Bangla input handler factory for <input> elements (title, search).
   // Returns onChange, onKeyDown, onBeforeInput, onInput handlers with Android fallback.
@@ -280,6 +294,7 @@ const NoteComponent: React.FC = () => {
   const handleUndo = useCallback(() => {
     const entry = undo();
     if (!entry) return;
+    pendingCursorRef.current = entry.cursorPos;
     setCurrentNote(entry.text);
     setCurrentTitle(entry.title);
     if (textareaRef.current) {
@@ -293,6 +308,7 @@ const NoteComponent: React.FC = () => {
   const handleRedo = useCallback(() => {
     const entry = redo();
     if (!entry) return;
+    pendingCursorRef.current = entry.cursorPos;
     setCurrentNote(entry.text);
     setCurrentTitle(entry.title);
     if (textareaRef.current) {
@@ -637,6 +653,7 @@ const NoteComponent: React.FC = () => {
 
     const newText = text.substring(0, cursorPos) + ghostSuggestion + text.substring(cursorPos);
     const newPos = cursorPos + ghostSuggestion.length;
+    pendingCursorRef.current = newPos;
     setCurrentNote(newText);
     pushSnapshot(newText, currentTitleRef.current, newPos);
     saveCurrentNoteRef.current();
@@ -732,12 +749,19 @@ const NoteComponent: React.FC = () => {
       return;
     }
     if (isBanglaMode && !skipKeys.includes(e.key)) {
+      // Compute expected cursor position before the handler modifies state
+      const cursorBefore = textareaRef.current?.selectionStart ?? 0;
+      const textBefore = currentNote.slice(0, cursorBefore);
+
       banglaInputHandler.processInputKeyPress(
         textareaRef,
         currentNote,
         setCurrentNote,
         e
       );
+
+      // Estimate new cursor: handler replaces textBefore with transliterated version
+      // The rAF below will read the actual position and correct pendingCursorRef
       scrollCursorIntoView();
 
       // processInputKeyPress calls preventDefault(), so handleChange won't fire.
@@ -747,6 +771,8 @@ const NoteComponent: React.FC = () => {
         const textarea = textareaRef.current;
         const text = textarea.value;
         const cursorPos = textarea.selectionStart;
+        // Ensure cursor is restored after React re-render
+        pendingCursorRef.current = cursorPos;
 
         let start = cursorPos;
         while (start > 0 && !/[\s\.,;!?।]/.test(text[start - 1])) {
@@ -795,6 +821,7 @@ const NoteComponent: React.FC = () => {
     );
 
     if (!result) return;
+    pendingCursorRef.current = result.cursorPosition;
     scrollCursorIntoView();
 
     const { text: newText, cursorPosition: newCursorPos } = result;
@@ -909,6 +936,7 @@ const NoteComponent: React.FC = () => {
     const newText = transliteratedBefore + afterInsertion;
     const newCursorPos = transliteratedBefore.length;
 
+    pendingCursorRef.current = newCursorPos;
     setCurrentNote(newText);
     handledByInputFallbackRef.current = true;
 
@@ -967,7 +995,9 @@ const NoteComponent: React.FC = () => {
     }
 
     const value = e.target.value;
+    const cursorPos = e.target.selectionStart;
     const prevValue = currentNoteRef.current;
+    pendingCursorRef.current = cursorPos;
     setCurrentNote(value);
     scrollCursorIntoView();
 

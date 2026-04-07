@@ -143,6 +143,16 @@ The app includes a built-in typing guide (accessible via the keyboard icon in th
 | `$` | ৳ | Taka sign |
 | `0-9` | ০-৯ | Bangla numerals |
 
+### Common Conjuncts
+
+| Type | Result | Example |
+| --- | --- | --- |
+| `kkh` | ক্ষ | `kkhoma` = ক্ষমা |
+| `shT` | ষ্ট | `koshTe` = কষ্টে |
+| `gg` | জ্ঞ | `bigg`an = বিজ্ঞান |
+| `nc` | ঞ্চ | `ponco` = পঞ্চ |
+| `nj` | ঞ্জ | | 
+
 **Tip**: Uppercase = retroflex/aspirated (`T` = ট, `t` = ত).
 
 ---
